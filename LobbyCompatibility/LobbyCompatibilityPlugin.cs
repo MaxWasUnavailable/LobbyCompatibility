@@ -1,8 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using LobbyCompatibility.Lib;
-using LobbyCompatibility.Patches;
 
 namespace LobbyCompatibility;
 
@@ -11,7 +9,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
 {
     private bool _isPatched;
     private Harmony? Harmony { get; set; }
-    internal new static ManualLogSource? Logger { get; set; }
+    private new static ManualLogSource? Logger { get; set; }
     public static LobbyCompatibilityPlugin? Instance { get; private set; }
     
     private void Awake()
@@ -42,14 +40,6 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
         Harmony ??= new Harmony(PluginInfo.PLUGIN_GUID);
         
         Harmony.PatchAll();
-        AsyncPatch.Transpiler(
-            Harmony, 
-            typeof(MenuManager), 
-            nameof(MenuManager.GetLeaderboardForChallenge), 
-            typeof(LeaderboardPatch), 
-            nameof(LeaderboardPatch.ModdedLeaderboards)
-            );
-        
         _isPatched = true;
 
         Logger?.LogDebug("Patched!");
