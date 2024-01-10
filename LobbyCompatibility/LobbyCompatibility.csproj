@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
         <AssemblyName>LobbyCompatibility</AssemblyName>
-        <Description>Towards a future with less lobby incompatibility.</Description>
+        <Description>Towards a future with fewer lobby incompatibility errors.</Description>
         <Version>0.0.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
