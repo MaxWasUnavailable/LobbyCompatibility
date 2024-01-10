@@ -4,7 +4,7 @@ using HarmonyLib;
 using LobbyCompatibility.Enums;
 using Steamworks.Data;
 
-namespace LobbyCompatibility.Features;
+namespace LobbyCompatibility.Patches;
 
 /// <summary>
 ///     Patches <see cref="GameNetworkManager.LobbyDataIsJoinable" />.

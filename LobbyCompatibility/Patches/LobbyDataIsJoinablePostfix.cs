@@ -1,10 +1,11 @@
 using HarmonyLib;
 using LobbyCompatibility.Enums;
+using LobbyCompatibility.Features;
 using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
 
-namespace LobbyCompatibility.Features;
+namespace LobbyCompatibility.Patches;
 
 /// <summary>
 ///     Patches <see cref="GameNetworkManager.LobbyDataIsJoinable" />.
