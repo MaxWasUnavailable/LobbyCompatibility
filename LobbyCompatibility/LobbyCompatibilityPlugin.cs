@@ -5,12 +5,12 @@ using HarmonyLib;
 namespace LobbyCompatibility;
 
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public class LobbyCompatibility : BaseUnityPlugin
+public class LobbyCompatibilityPlugin : BaseUnityPlugin
 {
     private bool _isPatched;
     private Harmony? Harmony { get; set; }
     private new static ManualLogSource? Logger { get; set; }
-    public static LobbyCompatibility? Instance { get; private set; }
+    public static LobbyCompatibilityPlugin? Instance { get; private set; }
     
     private void Awake()
     {
