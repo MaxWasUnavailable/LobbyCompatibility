@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LobbyCompatibility.Enums;
+using Steamworks.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,12 +25,17 @@ namespace LobbyCompatibility.Behaviours
             LobbyCompatibilityPlugin.Logger?.LogInfo(lobbySlot.thisLobby.Id);
             var joinButton = GetComponentInChildren<Button>();
             // joinButton.interactable = false;
+            var numPlayers = lobbySlot.playerCount;
 
             CreateModListButton(joinButton);
+
+            var moddedLobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
+            numPlayers.text = numPlayers.text + $" - {GetModdedLobbyText(moddedLobbyType)}";
         }
 
         // Create button that displays mod list when clicked 
         // TODO: Behaviour on Hover?
+        // TODO: Hook up to lobby info panel
         private Button CreateModListButton(Button original)
         {
             var button = Instantiate(original, transform);
@@ -60,5 +67,39 @@ namespace LobbyCompatibility.Behaviours
             button.onClick.m_PersistentCalls.Clear();
             return button;
         }
+
+        // Enum.GetName is slow
+        private string GetModdedLobbyText(ModdedLobbyType lobbyType)
+        {
+            switch (lobbyType)
+            {
+                case ModdedLobbyType.Compatible:
+                    return "Compatible";
+                case ModdedLobbyType.Incompatible:
+                    return "Incompatible";
+                case ModdedLobbyType.Unknown:
+                default:
+                    return "Unknown";
+            }
+        }
+
+        // TODO: Replace with real implementation
+        private ModdedLobbyType GetModdedLobbyType(Lobby lobby)
+        {
+            // some lobby.getdata shenanigans here
+            return ModdedLobbyType.Unknown;
+        }
+
+        // Unnecessary if we just hijack the player count text in Start()
+        /*
+        private TextMeshProUGUI CreateCompatibilityText(TextMeshProUGUI original)
+        {
+            var text = Instantiate(original, transform);
+            text.transform.localPosition = new Vector3(60, text.transform.localPosition.y, text.transform.localPosition.z);
+
+            text.text = "- Compatible";
+            return text;
+        }
+        */
     }
 }
