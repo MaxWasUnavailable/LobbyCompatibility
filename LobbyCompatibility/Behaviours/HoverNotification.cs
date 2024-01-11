@@ -1,4 +1,5 @@
-﻿using Steamworks.Data;
+﻿using LobbyCompatibility.Enums;
+using Steamworks.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,6 @@ namespace LobbyCompatibility.Behaviours
         public static HoverNotification? Instance;
 
         // Used for getting the relative transform for panel position calculation
-        private Transform? parentContainer;
         private RectTransform? panel;
         private TextMeshProUGUI? text;
 
@@ -30,7 +30,7 @@ namespace LobbyCompatibility.Behaviours
             this.text = text;
         }
 
-        public void DisplayNotification(Lobby lobby, RectTransform elementTransform, Transform elementContainerTransform)
+        public void DisplayNotification(Lobby lobby, ModdedLobbyType lobbyType, RectTransform elementTransform, Transform elementContainerTransform)
         {
             if (panel == null)
                 return;
@@ -50,8 +50,12 @@ namespace LobbyCompatibility.Behaviours
             hoverPanelPosition += new Vector2(4f, alignWithBottom ? -4f : -4f);
             panel.anchoredPosition = hoverPanelPosition;
             panel.gameObject.SetActive(true);
-            
+
             // set text based on lobby data here
+            if (text != null)
+            {
+                text.text = $"Mod Status: {GetModdedLobbyText(lobbyType)}";
+            }
         }
 
         public void HideNotification()
@@ -61,5 +65,22 @@ namespace LobbyCompatibility.Behaviours
 
             panel.gameObject.SetActive(false);
         }
+
+
+        // Enum.GetName is slow
+        private string GetModdedLobbyText(ModdedLobbyType lobbyType)
+        {
+            switch (lobbyType)
+            {
+                case ModdedLobbyType.Compatible:
+                    return "Compatible";
+                case ModdedLobbyType.Incompatible:
+                    return "Incompatible";
+                case ModdedLobbyType.Unknown:
+                default:
+                    return "Unknown";
+            }
+        }
+
     }
 }

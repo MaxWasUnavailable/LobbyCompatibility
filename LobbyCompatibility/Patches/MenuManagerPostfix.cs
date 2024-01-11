@@ -67,6 +67,9 @@ internal static class MenuManagerPostfix
 
         var hoverNotification = newNotification.AddComponent<HoverNotification>();
         var text = panelTransform.Find("NotificationText").GetComponent<TextMeshProUGUI>();
+        text.fontSizeMax = 15f;
+        text.fontSizeMin = 12f;
+        text.GetComponent<RectTransform>().anchoredPosition = new Vector2(-2f, 75f);
         hoverNotification.Setup(panelTransform, text);
     }
 

@@ -19,6 +19,7 @@ namespace LobbyCompatibility.Behaviours
     public class ModdedLobbySlot : MonoBehaviour
     {
         private LobbySlot? lobbySlot;
+        private ModdedLobbyType lobbyType;
         private Transform? parentContainer;
         private RectTransform? buttonTransform;
         private ButtonEventHandler? buttonEventHandler;
@@ -31,12 +32,12 @@ namespace LobbyCompatibility.Behaviours
             lobbySlot = GetComponent<LobbySlot>();
             if (lobbySlot == null) return;
 
+            lobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
+
             var numPlayers = lobbySlot.playerCount;
             numPlayers.transform.localPosition = new Vector3(32f, numPlayers.transform.localPosition.y, numPlayers.transform.localPosition.z); // adjust playercount to the right to make button space
-            
-            var moddedLobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
 
-            var sprite = GetLobbySprite(moddedLobbyType);
+            var sprite = GetLobbySprite(lobbyType);
             var joinButton = GetComponentInChildren<Button>(); // Find "Join Lobby" button template
 
             if (joinButton != null && sprite != null && lobbySlot.LobbyName != null)
@@ -100,7 +101,7 @@ namespace LobbyCompatibility.Behaviours
 
             if (hovered)
             {
-                HoverNotification.Instance.DisplayNotification(lobbySlot.thisLobby, buttonTransform, parentContainer);
+                HoverNotification.Instance.DisplayNotification(lobbySlot.thisLobby, lobbyType, buttonTransform, parentContainer);
             }
             else
             {
