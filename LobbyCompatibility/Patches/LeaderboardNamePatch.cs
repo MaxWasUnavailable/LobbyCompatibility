@@ -5,7 +5,7 @@ using Steamworks;
 namespace LobbyCompatibility.Patches;
 
 [HarmonyPatch]
-[HarmonyPriority(Priority.First)]
+[HarmonyPriority(Priority.Last)]
 [HarmonyWrapSafe]
 internal class LeaderboardNamePatch
 {
