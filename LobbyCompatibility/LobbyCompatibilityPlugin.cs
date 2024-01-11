@@ -31,6 +31,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
     
+    
     /// <summary>
     /// Retrieves the MethodInfo of the compiler-generated async method.
     /// Async method content is not actually in the <c>async Method()</c>, but instead is in a separate <c>struct</c> under the method "MoveNext";
@@ -63,10 +64,10 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
         
         Harmony.PatchAll();
         
-        // Async Patches have to be done manually
+        //Async Patches have to be done manually
         Harmony.Patch(GetAsyncInfo(typeof(MenuManager), nameof(MenuManager.GetLeaderboardForChallenge)), 
             transpiler: new HarmonyMethod(AccessTools.Method(typeof(LeaderboardPatch), nameof(LeaderboardPatch.ChangeToModdedLeaderboard))));
-        Harmony.Patch(GetAsyncInfo(typeof(MenuManager), nameof(MenuManager.RemoveLeaderboardScore)), 
+        Harmony.Patch(GetAsyncInfo(typeof(MenuManager), nameof(MenuManager.RemoveLeaderboardScore)),
             transpiler: new HarmonyMethod(AccessTools.Method(typeof(LeaderboardPatch), nameof(LeaderboardPatch.ChangeToModdedLeaderboard))));
         
         
