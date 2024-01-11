@@ -1,4 +1,5 @@
 ﻿using LobbyCompatibility.Enums;
+using LobbyCompatibility.Features;
 using Steamworks.Data;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
+using Color = UnityEngine.Color;
 
 namespace LobbyCompatibility.Behaviours
 {
@@ -29,8 +32,53 @@ namespace LobbyCompatibility.Behaviours
 
             CreateModListButton(joinButton);
 
+            var sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Warning.png");
+            if (sprite != null && lobbySlot.LobbyName != null)
+            {
+                CreateImage(lobbySlot.transform, sprite, lobbySlot.LobbyName.color);
+            }
+
             var moddedLobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
             numPlayers.text = numPlayers.text + $" - {GetModdedLobbyText(moddedLobbyType)}";
+        }
+
+        private static int count = 0;
+
+        private void CreateImage(Transform parent, Sprite sprite, Color color)
+        {
+            var imageObject = new GameObject("WarningSymbol");
+            imageObject.transform.SetParent(parent, false);
+            var image = imageObject.AddComponent<Image>();
+
+            count++;
+            var testCount = count % 3;
+            if (testCount == 0)
+            {
+                image.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Warning.png");
+            }
+            else if (testCount == 1)
+            {
+                image.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.QuestionMarkWarning.png");
+            }
+            else if (testCount == 2)
+            {
+                image.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.CheckMarkWarning.png");
+            }
+            image.color = color;
+
+            var imageTransform = imageObject.GetComponent<RectTransform>();
+
+            // a lot of manual transform-ing...
+            imageTransform.anchorMin = Vector2.one;
+            imageTransform.anchorMax = Vector2.one;
+            imageTransform.pivot = Vector2.one;
+            imageTransform.sizeDelta = new Vector2(30f, 30f);
+            imageTransform.offsetMin = new Vector2(-37f, -37f);
+            imageTransform.offsetMax = Vector2.zero;
+            imageTransform.anchoredPosition = Vector2.zero;
+            imageTransform.localPosition = new Vector3(450f, -4, 0);
+            imageTransform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+
         }
 
         // Create button that displays mod list when clicked 
