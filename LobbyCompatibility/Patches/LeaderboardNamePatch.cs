@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Reflection;
+using HarmonyLib;
 using Steamworks;
-using Steamworks.Data;
 
 namespace LobbyCompatibility.Patches;
 
@@ -9,8 +9,13 @@ namespace LobbyCompatibility.Patches;
 [HarmonyWrapSafe]
 internal class LeaderboardNamePatch
 {
+    [HarmonyTargetMethod]
+    private static MethodBase TargetMethod()
+    {
+        return typeof(SteamUserStats).Assembly.GetType("Steamworks.ISteamUserStats")!.GetMethod("FindOrCreateLeaderboard", (BindingFlags)60)!;
+    }
+    
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(ISteamUserStats), nameof(ISteamUserStats.FindOrCreateLeaderboard))]
     private static void SavePrefix(ref string pchLeaderboardName)
     {
         pchLeaderboardName = (pchLeaderboardName.StartsWith("challenge")) ? $"modded_{pchLeaderboardName}" : pchLeaderboardName;
