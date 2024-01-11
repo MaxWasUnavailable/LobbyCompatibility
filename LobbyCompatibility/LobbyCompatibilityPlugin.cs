@@ -63,14 +63,6 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
         Harmony ??= new Harmony(PluginInfo.PLUGIN_GUID);
         
         Harmony.PatchAll();
-        
-        //Async Patches have to be done manually
-        Harmony.Patch(GetAsyncInfo(typeof(MenuManager), nameof(MenuManager.GetLeaderboardForChallenge)), 
-            transpiler: new HarmonyMethod(AccessTools.Method(typeof(LeaderboardPatch), nameof(LeaderboardPatch.ChangeToModdedLeaderboard))));
-        Harmony.Patch(GetAsyncInfo(typeof(MenuManager), nameof(MenuManager.RemoveLeaderboardScore)),
-            transpiler: new HarmonyMethod(AccessTools.Method(typeof(LeaderboardPatch), nameof(LeaderboardPatch.ChangeToModdedLeaderboard))));
-        
-        
         _isPatched = true;
 
         Logger?.LogDebug("Patched!");
