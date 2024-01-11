@@ -11,12 +11,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
+using static UnityEngine.UI.Selectable;
+using LobbyCompatibility.Patches;
 
 namespace LobbyCompatibility.Behaviours
 {
     public class ModdedLobbySlot : MonoBehaviour
     {
         private LobbySlot? lobbySlot;
+        private RectTransform? buttonTransform;
+        private ButtonEventHandler? buttonEventHandler;
 
         // Runs after LobbySlot data set
         public void Start()
@@ -42,10 +46,16 @@ namespace LobbyCompatibility.Behaviours
 
         // Create button that displays mod list when clicked 
         // TODO: Hook up to lobby info panel
-        private Button CreateModListButton(Button original, Sprite sprite, Color color, Transform parent)
+        private Button? CreateModListButton(Button original, Sprite sprite, Color color, Transform parent)
         {
             var button = Instantiate(original, parent);
-            var buttonTransform = button.GetComponent<RectTransform>();
+            buttonTransform = button.GetComponent<RectTransform>();
+
+            var buttonImageTransform = button.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
+            var buttonImage = buttonImageTransform?.GetComponent<Image>();
+
+            if (buttonImageTransform == null || buttonImage == null) 
+                return null;
 
             // Set positioning of new button (slightly offset left from the player count)
             buttonTransform.sizeDelta = new Vector2(30f, 30f);
@@ -55,7 +65,7 @@ namespace LobbyCompatibility.Behaviours
             buttonTransform.localPosition = new Vector3(-5.5f, 1.25f, 0f);
             buttonTransform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
 
-            SetupSelectionHighlight(button, sprite, color);
+            SetupButtonImage(buttonImageTransform, buttonImage);
 
             var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
@@ -65,28 +75,44 @@ namespace LobbyCompatibility.Behaviours
 
             // Clear "join" event added in unity editor
             button.onClick.m_PersistentCalls.Clear();
+
+            // Disable default button hover/click transition
+            button.transition = Transition.None;
+            button.animator.enabled = false;
+
+            // Inject custom event handling
+            buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
+            buttonEventHandler.SetButtonImageData(buttonImage, sprite, sprite, color, buttonImage.color);
+            buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
             return button;
         }
 
-        private void SetupSelectionHighlight(Button button, Sprite sprite, Color color)
+        private void OnModListHoverStateChanged(bool hovered)
         {
-            var buttonHighlightTransform = button.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
-            if (buttonHighlightTransform == null) return;
+            if (buttonTransform == null)
+                return;
 
+            if (!hovered)
+            {
+                // disable panel
+                MenuManagerPostfix.Panel.gameObject.SetActive(false);
+            }
+            else
+            {
+                MenuManagerPostfix.Panel.anchoredPosition = RectTransformUtility.CalculateRelativeRectTransformBounds(buttonTransform.parent.parent.parent, buttonTransform).center;
+                MenuManagerPostfix.Panel.gameObject.SetActive(true);
+            }
+        }
+
+        private void SetupButtonImage(RectTransform buttonImageTransform, Image buttonImage)
+        {
             // Align background highlight with new positioning
-            buttonHighlightTransform.sizeDelta = new Vector2(25f, 25f);
-            buttonHighlightTransform.offsetMin = new Vector2(0f, 0f);
-            buttonHighlightTransform.offsetMax = new Vector2(25f, 25f);
-            buttonHighlightTransform.anchoredPosition = new Vector2(14f, 15f);
-            buttonHighlightTransform.localScale = Vector3.one;
-            buttonHighlightTransform.GetComponent<Image>().sprite = sprite; // Add custom image to display when hovered. TODO: Make a better version (not just recolored, use some fancy outlines/inversion)
-
-            var buttonImageTransform = Instantiate(buttonHighlightTransform, buttonHighlightTransform.transform.parent, true);
-            buttonImageTransform.transform.SetAsFirstSibling(); // layer UNDER the selection, so selection will override
-            var buttonImage = buttonImageTransform.GetComponent<Image>();
-            buttonImage.color = color;
+            buttonImageTransform.sizeDelta = new Vector2(25f, 25f);
+            buttonImageTransform.offsetMin = new Vector2(0f, 0f);
+            buttonImageTransform.offsetMax = new Vector2(25f, 25f);
+            buttonImageTransform.anchoredPosition = new Vector2(14f, 15f);
+            buttonImageTransform.localScale = Vector3.one;
             buttonImage.enabled = true;
-            
         }
 
         // TODO: This only needs to be loaded once. Good enough for debugging as-is
