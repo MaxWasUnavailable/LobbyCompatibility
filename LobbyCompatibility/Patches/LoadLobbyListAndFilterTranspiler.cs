@@ -62,7 +62,7 @@ namespace LobbyCompatibility.Patches
             var moddedLobbySlot = lobbySlot.gameObject.AddComponent<ModdedLobbySlot>();
 
             // Set container parent for hover tooltip position math
-            moddedLobbySlot.SetParentContainer(levelListContainer);
+            moddedLobbySlot.SetParentContainer(levelListContainer.parent);
 
             return lobbySlot;
         }
