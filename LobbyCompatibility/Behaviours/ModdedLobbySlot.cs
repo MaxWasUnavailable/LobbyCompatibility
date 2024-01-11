@@ -25,90 +25,42 @@ namespace LobbyCompatibility.Behaviours
             // Not 100% ideal, but I don't want to mess with IL/stack weirdness too much right now
             lobbySlot = GetComponent<LobbySlot>();
             if (lobbySlot == null) return;
-            LobbyCompatibilityPlugin.Logger?.LogInfo(lobbySlot.thisLobby.Id);
-            var joinButton = GetComponentInChildren<Button>();
-            // joinButton.interactable = false;
+
             var numPlayers = lobbySlot.playerCount;
-
-            CreateModListButton(joinButton);
-
-            var sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Warning.png");
-            if (sprite != null && lobbySlot.LobbyName != null)
-            {
-                CreateImage(lobbySlot.transform, sprite, lobbySlot.LobbyName.color);
-            }
-
+            numPlayers.transform.localPosition = new Vector3(32f, numPlayers.transform.localPosition.y, numPlayers.transform.localPosition.z); // adjust playercount to the right to make button space
+            
             var moddedLobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
-            numPlayers.text = numPlayers.text + $" - {GetModdedLobbyText(moddedLobbyType)}";
-        }
 
-        private static int count = 0;
+            var sprite = GetLobbySprite(moddedLobbyType);
+            var joinButton = GetComponentInChildren<Button>(); // Find "Join Lobby" button template
 
-        private void CreateImage(Transform parent, Sprite sprite, Color color)
-        {
-            var imageObject = new GameObject("WarningSymbol");
-            imageObject.transform.SetParent(parent, false);
-            var image = imageObject.AddComponent<Image>();
-
-            count++;
-            var testCount = count % 3;
-            if (testCount == 0)
+            if (joinButton != null && sprite != null && lobbySlot.LobbyName != null)
             {
-                image.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Warning.png");
+                CreateModListButton(joinButton, sprite, lobbySlot.LobbyName.color, numPlayers.transform);
             }
-            else if (testCount == 1)
-            {
-                image.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.QuestionMarkWarning.png");
-            }
-            else if (testCount == 2)
-            {
-                image.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.CheckMarkWarning.png");
-            }
-            image.color = color;
-
-            var imageTransform = imageObject.GetComponent<RectTransform>();
-
-            // a lot of manual transform-ing...
-            imageTransform.anchorMin = Vector2.one;
-            imageTransform.anchorMax = Vector2.one;
-            imageTransform.pivot = Vector2.one;
-            imageTransform.sizeDelta = new Vector2(30f, 30f);
-            imageTransform.offsetMin = new Vector2(-37f, -37f);
-            imageTransform.offsetMax = Vector2.zero;
-            imageTransform.anchoredPosition = Vector2.zero;
-            imageTransform.localPosition = new Vector3(450f, -4, 0);
-            imageTransform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
-
         }
 
         // Create button that displays mod list when clicked 
-        // TODO: Behaviour on Hover?
         // TODO: Hook up to lobby info panel
-        private Button CreateModListButton(Button original)
+        private Button CreateModListButton(Button original, Sprite sprite, Color color, Transform parent)
         {
-            var button = Instantiate(original, transform);
+            var button = Instantiate(original, parent);
             var buttonTransform = button.GetComponent<RectTransform>();
 
-            // set positioning of new button (slightly offset left from the join button)
+            // Set positioning of new button (slightly offset left from the player count)
             buttonTransform.sizeDelta = new Vector2(30f, 30f);
             buttonTransform.offsetMin = new Vector2(-37f, -37f);
             buttonTransform.offsetMax = new Vector2(-9.3f, -7f);
             buttonTransform.anchoredPosition = new Vector2(-85f, -7f);
+            buttonTransform.localPosition = new Vector3(-5.5f, 1.25f, 0f);
+            buttonTransform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
 
-            var buttonHighlightTransform = button.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
-            if (buttonHighlightTransform != null)
-            {
-                // Align background highlight with new positioning
-                buttonHighlightTransform.sizeDelta = new Vector2(25.191f, 25.191f);
-                buttonHighlightTransform.offsetMin = new Vector2(-0.423f, 3.0325f);
-                buttonHighlightTransform.offsetMax = new Vector2(28.2235f, 28.2235f);
-                buttonHighlightTransform.anchoredPosition = new Vector2(14f, 15f);
-            }
+            SetupSelectionHighlight(button, sprite, color);
 
             var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
-                buttonText.text = "?";
+                buttonText.text = ""; // Set the string to blank so we can still use the graphic's "hitbox" for hover/click raycast calculation 
             }
 
             // Clear "join" event added in unity editor
@@ -116,38 +68,58 @@ namespace LobbyCompatibility.Behaviours
             return button;
         }
 
-        // Enum.GetName is slow
-        private string GetModdedLobbyText(ModdedLobbyType lobbyType)
+        private void SetupSelectionHighlight(Button button, Sprite sprite, Color color)
+        {
+            var buttonHighlightTransform = button.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
+            if (buttonHighlightTransform == null) return;
+
+            // Align background highlight with new positioning
+            buttonHighlightTransform.sizeDelta = new Vector2(25f, 25f);
+            buttonHighlightTransform.offsetMin = new Vector2(0f, 0f);
+            buttonHighlightTransform.offsetMax = new Vector2(25f, 25f);
+            buttonHighlightTransform.anchoredPosition = new Vector2(14f, 15f);
+            buttonHighlightTransform.localScale = Vector3.one;
+            buttonHighlightTransform.GetComponent<Image>().sprite = sprite; // Add custom image to display when hovered. TODO: Make a better version (not just recolored, use some fancy outlines/inversion)
+
+            var buttonImageTransform = Instantiate(buttonHighlightTransform, buttonHighlightTransform.transform.parent, true);
+            buttonImageTransform.transform.SetAsFirstSibling(); // layer UNDER the selection, so selection will override
+            var buttonImage = buttonImageTransform.GetComponent<Image>();
+            buttonImage.color = color;
+            buttonImage.enabled = true;
+            
+        }
+
+        // TODO: This only needs to be loaded once. Good enough for debugging as-is
+        private Sprite? GetLobbySprite(ModdedLobbyType lobbyType)
         {
             switch (lobbyType)
             {
                 case ModdedLobbyType.Compatible:
-                    return "Compatible";
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.CheckMarkWarning.png");
                 case ModdedLobbyType.Incompatible:
-                    return "Incompatible";
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Warning.png");
                 case ModdedLobbyType.Unknown:
                 default:
-                    return "Unknown";
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.QuestionMarkWarning.png");
             }
         }
 
         // TODO: Replace with real implementation
+        // Just incrementing through lobby types right now for debugging use
+        private static int debuggingCount = 0;
         private ModdedLobbyType GetModdedLobbyType(Lobby lobby)
         {
-            // some lobby.getdata shenanigans here
-            return ModdedLobbyType.Unknown;
+            debuggingCount++;
+            switch (debuggingCount % 3)
+            {
+                case 0:
+                    return ModdedLobbyType.Compatible;
+                case 1:
+                    return ModdedLobbyType.Incompatible;
+                case 2:
+                default:
+                    return ModdedLobbyType.Unknown;
+            }
         }
-
-        // Unnecessary if we just hijack the player count text in Start()
-        /*
-        private TextMeshProUGUI CreateCompatibilityText(TextMeshProUGUI original)
-        {
-            var text = Instantiate(original, transform);
-            text.transform.localPosition = new Vector3(60, text.transform.localPosition.y, text.transform.localPosition.z);
-
-            text.text = "- Compatible";
-            return text;
-        }
-        */
     }
 }
