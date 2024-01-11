@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using HarmonyLib;
+using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
 using Steamworks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Color = UnityEngine.Color;
@@ -63,6 +65,9 @@ internal static class MenuManagerPostfix
         Panel = panelTransform;
         Panel.gameObject.SetActive(false);
 
+        var hoverNotification = newNotification.AddComponent<HoverNotification>();
+        var text = panelTransform.Find("NotificationText").GetComponent<TextMeshProUGUI>();
+        hoverNotification.Setup(panelTransform, text);
     }
 
     private static void MultiplySizeDelta(Transform transform, float xMultiplier, float yMultiplier)

@@ -19,6 +19,7 @@ namespace LobbyCompatibility.Behaviours
     public class ModdedLobbySlot : MonoBehaviour
     {
         private LobbySlot? lobbySlot;
+        private Transform? parentContainer;
         private RectTransform? buttonTransform;
         private ButtonEventHandler? buttonEventHandler;
 
@@ -42,6 +43,11 @@ namespace LobbyCompatibility.Behaviours
             {
                 CreateModListButton(joinButton, sprite, lobbySlot.LobbyName.color, numPlayers.transform);
             }
+        }
+
+        public void SetParentContainer(Transform transform)
+        {
+            parentContainer = transform;
         }
 
         // Create button that displays mod list when clicked 
@@ -89,18 +95,16 @@ namespace LobbyCompatibility.Behaviours
 
         private void OnModListHoverStateChanged(bool hovered)
         {
-            if (buttonTransform == null)
+            if (buttonTransform == null || lobbySlot == null || parentContainer == null || HoverNotification.Instance == null)
                 return;
 
-            if (!hovered)
+            if (hovered)
             {
-                // disable panel
-                MenuManagerPostfix.Panel.gameObject.SetActive(false);
+                HoverNotification.Instance.DisplayNotification(lobbySlot.thisLobby, buttonTransform, parentContainer);
             }
             else
             {
-                MenuManagerPostfix.Panel.anchoredPosition = RectTransformUtility.CalculateRelativeRectTransformBounds(buttonTransform.parent.parent.parent, buttonTransform).center;
-                MenuManagerPostfix.Panel.gameObject.SetActive(true);
+                HoverNotification.Instance.HideNotification();
             }
         }
 
