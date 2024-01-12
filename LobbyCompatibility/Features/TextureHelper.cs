@@ -17,26 +17,33 @@ namespace LobbyCompatibility.Features
     /// </summary>
     internal static class TextureHelper
     {
+        internal static Dictionary<string, Sprite?> SpriteCache = new();
+
         /// <summary>
         ///     Load a sprite from an embedded resource in the specified assembly, or the currently loaded assembly if not specified.
+        ///     Uses an internal cache to avoid loading sprites multiple times.
         /// </summary>
         /// <param name="path"> The path of the embedded sprite. </param>
         /// <param name="assembly"> The assembly from which to load the embedded resource (Current assembly by default). </param>
         /// <returns> A <see cref="Sprite"/> created from the embedded image file, null otherwise. </returns>
         public static Sprite? FindSpriteInAssembly(string path, Assembly? assembly = null)
         {
+            if (SpriteCache.ContainsKey(path))
+                return SpriteCache[path];
+
             if (assembly == null) 
                 assembly = Assembly.GetExecutingAssembly();
 
             if (assembly == null)
                 return null;
 
+            Sprite? sprite = null;
+
             try
             {
-                // AssemblyFromPath(path, out Assembly asm, out string newPath);
                 if (assembly.GetManifestResourceNames().Contains(path))
                 {
-                    return LoadSpriteRaw(GetResource(assembly, path));
+                    sprite = LoadSpriteRaw(GetResource(assembly, path));
                 }
             }
             catch (Exception ex)
@@ -44,7 +51,8 @@ namespace LobbyCompatibility.Features
                 LobbyCompatibilityPlugin.Logger?.LogError("Unable to find texture in assembly! Exception: " + ex);
             }
 
-            return null;
+            SpriteCache.Add(path, sprite);
+            return sprite;
         }
 
         /// <summary>

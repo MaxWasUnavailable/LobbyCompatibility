@@ -38,11 +38,13 @@ namespace LobbyCompatibility.Behaviours
             numPlayers.transform.localPosition = new Vector3(32f, numPlayers.transform.localPosition.y, numPlayers.transform.localPosition.z); // adjust playercount to the right to make button space
 
             var sprite = GetLobbySprite(lobbyType);
+            var invertedSprite = GetInvertedLobbySprite(lobbyType);
+
             var joinButton = GetComponentInChildren<Button>(); // Find "Join Lobby" button template
 
-            if (joinButton != null && sprite != null && lobbySlot.LobbyName != null)
+            if (joinButton != null && sprite != null && invertedSprite != null && lobbySlot.LobbyName != null)
             {
-                CreateModListButton(joinButton, sprite, lobbySlot.LobbyName.color, numPlayers.transform);
+                CreateModListButton(joinButton, sprite, invertedSprite, lobbySlot.LobbyName.color, numPlayers.transform);
             }
         }
 
@@ -53,7 +55,7 @@ namespace LobbyCompatibility.Behaviours
 
         // Create button that displays mod list when clicked 
         // TODO: Hook up to lobby info panel
-        private Button? CreateModListButton(Button original, Sprite sprite, Color color, Transform parent)
+        private Button? CreateModListButton(Button original, Sprite sprite, Sprite invertedSprite, Color color, Transform parent)
         {
             var button = Instantiate(original, parent);
             buttonTransform = button.GetComponent<RectTransform>();
@@ -89,7 +91,7 @@ namespace LobbyCompatibility.Behaviours
 
             // Inject custom event handling
             buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
-            buttonEventHandler.SetButtonImageData(buttonImage, sprite, sprite, color, buttonImage.color);
+            buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, color, color);
             buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
             return button;
         }
@@ -135,10 +137,23 @@ namespace LobbyCompatibility.Behaviours
                     return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettingsQuestionMark.png");
             }
         }
+        private Sprite? GetInvertedLobbySprite(ModdedLobbyType lobbyType)
+        {
+            switch (lobbyType)
+            {
+                case ModdedLobbyType.Compatible:
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedModSettings.png");
+                case ModdedLobbyType.Incompatible:
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedModSettingsExclamationPoint.png");
+                case ModdedLobbyType.Unknown:
+                default:
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedModSettingsQuestionMark.png");
+            }
+        }
 
         // TODO: Replace with real implementation
         // Just incrementing through lobby types right now for debugging use
-        private static int debuggingCount = 0;
+        private static int debuggingCount = -1;
         private ModdedLobbyType GetModdedLobbyType(Lobby lobby)
         {
             debuggingCount++;
