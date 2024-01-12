@@ -67,8 +67,8 @@
         <Reference Include="Newtonsoft.Json" PrivateAssets="all">
             <HintPath>$(DependenciesDirectory)\Newtonsoft.Json.dll</HintPath>
         </Reference>
-        <Reference Include="Unity.Netcode.Runtime" Publicize="true" PrivateAssets="all">
-            <HintPath>$(DependenciesDirectory)\Unity.Netcode.Runtime.dll</HintPath>
+        <Reference Include="Facepunch.Steamworks.64" Publicize="true" PrivateAssets="all">
+            <HintPath>$(DependenciesDirecory)\Facepunch.Steamworks.64.dll</HintPath>
         </Reference>
     </ItemGroup>
 
