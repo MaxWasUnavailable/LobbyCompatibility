@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current">
+    <PropertyGroup>
+        <DependenciesDirectory>.../Lethal Company/Lethal Company_Data/Managed</DependenciesDirectory>
+        <ExportDirectory>.../Lethal Company/BepInEx/plugins</ExportDirectory>
+    </PropertyGroup>
+
+    <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExportDirectory)" />
+    </Target>
+</Project>
