@@ -112,9 +112,10 @@ namespace LobbyCompatibility.Behaviours
         private void SetupButtonImage(RectTransform buttonImageTransform, Image buttonImage)
         {
             // Align background highlight with new positioning
-            buttonImageTransform.sizeDelta = new Vector2(25f, 25f);
+            // has to be slightly bigger on the X axis because of weird scaling in the Lobby list
+            buttonImageTransform.sizeDelta = new Vector2(31.5f, 30f);
             buttonImageTransform.offsetMin = new Vector2(0f, 0f);
-            buttonImageTransform.offsetMax = new Vector2(25f, 25f);
+            buttonImageTransform.offsetMax = new Vector2(31.5f, 30f);
             buttonImageTransform.anchoredPosition = new Vector2(14f, 15f);
             buttonImageTransform.localScale = Vector3.one;
             buttonImage.enabled = true;
@@ -126,12 +127,12 @@ namespace LobbyCompatibility.Behaviours
             switch (lobbyType)
             {
                 case ModdedLobbyType.Compatible:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.CheckMarkWarning.png");
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettings.png");
                 case ModdedLobbyType.Incompatible:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Warning.png");
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettingsExclamationPoint.png");
                 case ModdedLobbyType.Unknown:
                 default:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.QuestionMarkWarning.png");
+                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettingsQuestionMark.png");
             }
         }
 

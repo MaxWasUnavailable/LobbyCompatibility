@@ -16,15 +16,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Resources\CheckMarkWarning.png" />
-      <None Remove="Resources\QuestionMarkWarning.png" />
-      <None Remove="Resources\Warning.png" />
+      <None Remove="Resources\InvertedModSettings.png" />
+      <None Remove="Resources\InvertedModSettingsExclamationPoint.png" />
+      <None Remove="Resources\InvertedModSettingsQuestionMark.png" />
+      <None Remove="Resources\ModSettings.png" />
+      <None Remove="Resources\ModSettingsExclamationPoint.png" />
+      <None Remove="Resources\ModSettingsQuestionMark.png" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="Resources\CheckMarkWarning.png" />
-      <EmbeddedResource Include="Resources\QuestionMarkWarning.png" />
-      <EmbeddedResource Include="Resources\Warning.png" />
+      <EmbeddedResource Include="Resources\InvertedModSettings.png" />
+      <EmbeddedResource Include="Resources\InvertedModSettingsExclamationPoint.png" />
+      <EmbeddedResource Include="Resources\InvertedModSettingsQuestionMark.png" />
+      <EmbeddedResource Include="Resources\ModSettings.png" />
+      <EmbeddedResource Include="Resources\ModSettingsExclamationPoint.png" />
+      <EmbeddedResource Include="Resources\ModSettingsQuestionMark.png" />
     </ItemGroup>
 
     <ItemGroup>
