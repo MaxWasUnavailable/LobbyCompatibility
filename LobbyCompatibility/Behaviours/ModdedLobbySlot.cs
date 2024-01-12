@@ -25,36 +25,59 @@ namespace LobbyCompatibility.Behaviours
         private ButtonEventHandler? buttonEventHandler;
 
         // Runs after LobbySlot data set
-        public void Start()
+        private void Start()
         {
-            LobbyCompatibilityPlugin.Logger?.LogInfo("Modded lobby awake!");
             // Not 100% ideal, but I don't want to mess with IL/stack weirdness too much right now
             lobbySlot = GetComponent<LobbySlot>();
             if (lobbySlot == null) return;
 
+            // Get the "Status" of the lobby - is it compatible?
             lobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
 
-            var numPlayers = lobbySlot.playerCount;
-            numPlayers.transform.localPosition = new Vector3(32f, numPlayers.transform.localPosition.y, numPlayers.transform.localPosition.z); // adjust playercount to the right to make button space
+            // Find player count text (could be moved/removed in a future update, but unlikely)
+            var playerCount = lobbySlot.playerCount;
+            if (playerCount == null)
+                return;
 
+            // Find "Join Lobby" button template
+            var joinButton = GetComponentInChildren<Button>();
+            if (joinButton == null)
+                return;
+
+            // Get button sprites (depending on the lobby type/status, sometimes it will need to be a warning/alert for incompatible lobbies)
             var sprite = GetLobbySprite(lobbyType);
-            var invertedSprite = GetInvertedLobbySprite(lobbyType);
-
-            var joinButton = GetComponentInChildren<Button>(); // Find "Join Lobby" button template
+            var invertedSprite = GetLobbySprite(lobbyType, true);
 
             if (joinButton != null && sprite != null && invertedSprite != null && lobbySlot.LobbyName != null)
             {
-                CreateModListButton(joinButton, sprite, invertedSprite, lobbySlot.LobbyName.color, numPlayers.transform);
+                // Shift player count to the right to make space for our "Mod Settings" button
+                playerCount.transform.localPosition = new Vector3(32f, playerCount.transform.localPosition.y, playerCount.transform.localPosition.z);
+
+                // Create the actual modlist button to the left of the player count text
+                CreateModListButton(joinButton, sprite, invertedSprite, lobbySlot.LobbyName.color, playerCount.transform);
             }
         }
 
+        // Unsubscribe to button events
+        private void OnDestroy()
+        {
+            if (buttonEventHandler == null) 
+                return;
+
+            buttonEventHandler.OnHoverStateChanged -= OnModListHoverStateChanged;
+            buttonEventHandler.OnClick -= OnModListClick;
+        }
+
+        /// <summary>
+        ///     Registers the parent container of the LobbySlot. Required for tooltip position math.
+        /// </summary>
+        /// <param name="transform"> The LobbySlot's parent container. Equivalent to the ScrollRect's viewport. </param>
         public void SetParentContainer(Transform transform)
         {
             parentContainer = transform;
         }
 
-        // Create button that displays mod list when clicked 
-        // TODO: Hook up to lobby info panel
+        // Clone the "Join" button into a new modlist button we can use
         private Button? CreateModListButton(Button original, Sprite sprite, Sprite invertedSprite, Color color, Transform parent)
         {
             var button = Instantiate(original, parent);
@@ -63,23 +86,17 @@ namespace LobbyCompatibility.Behaviours
             var buttonImageTransform = button.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
             var buttonImage = buttonImageTransform?.GetComponent<Image>();
 
-            if (buttonImageTransform == null || buttonImage == null) 
+            if (buttonTransform == null || buttonImageTransform == null || buttonImage == null) 
                 return null;
 
-            // Set positioning of new button (slightly offset left from the player count)
-            buttonTransform.sizeDelta = new Vector2(30f, 30f);
-            buttonTransform.offsetMin = new Vector2(-37f, -37f);
-            buttonTransform.offsetMax = new Vector2(-9.3f, -7f);
-            buttonTransform.anchoredPosition = new Vector2(-85f, -7f);
-            buttonTransform.localPosition = new Vector3(-5.5f, 1.25f, 0f);
-            buttonTransform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
-
+            SetupButtonPositioning(buttonTransform);
             SetupButtonImage(buttonImageTransform, buttonImage);
 
+            // Disable "Join" text
             var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
-                buttonText.text = ""; // Set the string to blank so we can still use the graphic's "hitbox" for hover/click raycast calculation 
+                buttonText.enabled = false;
             }
 
             // Clear "join" event added in unity editor
@@ -93,9 +110,17 @@ namespace LobbyCompatibility.Behaviours
             buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
             buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, color, color);
             buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
+            buttonEventHandler.OnClick += OnModListClick;
+
             return button;
         }
 
+        private void OnModListClick()
+        {
+            LobbyCompatibilityPlugin.Logger?.LogInfo("clicky");
+        }
+
+        // Handles displaying tooltips
         private void OnModListHoverStateChanged(bool hovered)
         {
             if (buttonTransform == null || lobbySlot == null || parentContainer == null || HoverNotification.Instance == null)
@@ -111,6 +136,17 @@ namespace LobbyCompatibility.Behaviours
             }
         }
 
+        private void SetupButtonPositioning(RectTransform buttonTransform)
+        {
+            // Set positioning of new button (slightly offset left from the player count text)
+            buttonTransform.sizeDelta = new Vector2(30f, 30f);
+            buttonTransform.offsetMin = new Vector2(-37f, -37f);
+            buttonTransform.offsetMax = new Vector2(-9.3f, -7f);
+            buttonTransform.anchoredPosition = new Vector2(-85f, -7f);
+            buttonTransform.localPosition = new Vector3(-5.5f, 1.25f, 0f);
+            buttonTransform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+        }
+
         private void SetupButtonImage(RectTransform buttonImageTransform, Image buttonImage)
         {
             // Align background highlight with new positioning
@@ -123,32 +159,21 @@ namespace LobbyCompatibility.Behaviours
             buttonImage.enabled = true;
         }
 
-        // TODO: This only needs to be loaded once. Good enough for debugging as-is
-        private Sprite? GetLobbySprite(ModdedLobbyType lobbyType)
+        // A bit hardcoded right now, will need to be redone once we have proper lobby data enums
+        private Sprite? GetLobbySprite(ModdedLobbyType lobbyType, bool inverted = false)
         {
-            switch (lobbyType)
-            {
-                case ModdedLobbyType.Compatible:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettings.png");
-                case ModdedLobbyType.Incompatible:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettingsExclamationPoint.png");
-                case ModdedLobbyType.Unknown:
-                default:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.ModSettingsQuestionMark.png");
-            }
-        }
-        private Sprite? GetInvertedLobbySprite(ModdedLobbyType lobbyType)
-        {
-            switch (lobbyType)
-            {
-                case ModdedLobbyType.Compatible:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedModSettings.png");
-                case ModdedLobbyType.Incompatible:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedModSettingsExclamationPoint.png");
-                case ModdedLobbyType.Unknown:
-                default:
-                    return TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedModSettingsQuestionMark.png");
-            }
+            string path = "LobbyCompatibility.Resources.";
+            if (inverted)
+                path += "Inverted";
+
+            if (lobbyType == ModdedLobbyType.Compatible)
+                path += "ModSettings";
+            else if (lobbyType == ModdedLobbyType.Incompatible)
+                path += "ModSettingsExclamationPoint";
+            else
+                path += "ModSettingsQuestionMark";
+
+            return TextureHelper.FindSpriteInAssembly(path + ".png");
         }
 
         // TODO: Replace with real implementation

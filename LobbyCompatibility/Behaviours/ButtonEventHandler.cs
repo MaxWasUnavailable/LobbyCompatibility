@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace LobbyCompatibility.Behaviours
 {
-    // Extends Button events (we can't easily do hover events with custom behaviour without this - the game uses an animation)
+    // Extends UnityEngine.Button events. Needed to run custom code on hover
     // Instead of opting to use button.onClick events, we might as well just use IPointerClickHandler since we're here already.
     public class ButtonEventHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
@@ -50,6 +50,7 @@ namespace LobbyCompatibility.Behaviours
             SetVisuals(true);
         }
 
+        // If button is highlighted, set the image to the highlighted sprite/color. Otherwise use the normal sprite/color
         private void SetVisuals(bool highlighted)
         {
             if (image == null) 
