@@ -14,14 +14,12 @@ using Color = UnityEngine.Color;
 
 namespace LobbyCompatibility.Behaviours
 {
-    // tooltip, essentially
-    public class HoverNotification : MonoBehaviour
+    public class ModListTooltipPanel : MonoBehaviour
     {
         private static readonly Vector2 notificationWidth = new Vector2(0.6f, 1f);
 
-        public static HoverNotification? Instance;
+        public static ModListTooltipPanel? Instance;
 
-        // Used for getting the relative transform for panel position calculation
         private RectTransform? panelTransform;
         private TextMeshProUGUI? text;
 

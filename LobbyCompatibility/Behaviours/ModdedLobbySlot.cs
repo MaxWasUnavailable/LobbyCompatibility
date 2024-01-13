@@ -11,7 +11,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
-using static UnityEngine.UI.Selectable;
 using LobbyCompatibility.Patches;
 
 namespace LobbyCompatibility.Behaviours
@@ -103,7 +102,7 @@ namespace LobbyCompatibility.Behaviours
             button.onClick.m_PersistentCalls.Clear();
 
             // Disable default button hover/click transition
-            button.transition = Transition.None;
+            button.transition = Selectable.Transition.None;
             button.animator.enabled = false;
 
             // Inject custom event handling
@@ -117,22 +116,26 @@ namespace LobbyCompatibility.Behaviours
 
         private void OnModListClick()
         {
+            if (lobbySlot == null || ModListPanel.Instance == null)
+                return;
+
             LobbyCompatibilityPlugin.Logger?.LogInfo("clicky");
+            ModListPanel.Instance.DisplayNotification(lobbySlot.thisLobby, lobbyType);
         }
 
         // Handles displaying tooltips
         private void OnModListHoverStateChanged(bool hovered)
         {
-            if (buttonTransform == null || lobbySlot == null || parentContainer == null || HoverNotification.Instance == null)
+            if (buttonTransform == null || lobbySlot == null || parentContainer == null || ModListTooltipPanel.Instance == null)
                 return;
 
             if (hovered)
             {
-                HoverNotification.Instance.DisplayNotification(lobbySlot.thisLobby, lobbyType, buttonTransform, parentContainer);
+                ModListTooltipPanel.Instance.DisplayNotification(lobbySlot.thisLobby, lobbyType, buttonTransform, parentContainer);
             }
             else
             {
-                HoverNotification.Instance.HideNotification();
+                ModListTooltipPanel.Instance.HideNotification();
             }
         }
 

@@ -30,9 +30,15 @@ internal static class MenuManagerPostfix
 
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
 
+
         // Setup hover notification/tooltip UI
+        var newHoverNotification = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+        newHoverNotification.AddComponent<ModListTooltipPanel>();
+        newHoverNotification.SetActive(true);
+
+        // Setup modlist panel UI
         var newNotification = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+        newNotification.AddComponent<ModListPanel>();
         newNotification.SetActive(true);
-        newNotification.AddComponent<HoverNotification>();
     }
 }
