@@ -145,7 +145,7 @@ namespace LobbyCompatibility.Behaviours
             CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerModOutdated, true, ref padding);
             CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientMissingMod, false, ref padding);
             CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerMissingMod, false, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.Compatible, false, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.Compatible, null, ref padding);
 
             scrollView.content.sizeDelta = new Vector2(0, padding + headerSpacing);
         }
@@ -164,7 +164,7 @@ namespace LobbyCompatibility.Behaviours
             padding += headerSpacing - textSpacing;
 
             // Create the category header
-            AddText(contentTextTemplate, contentTextTemplate.transform.parent, defaultTextColor, -padding, "Category", HorizontalAlignmentOptions.Center);
+            AddText(contentTextTemplate, contentTextTemplate.transform.parent, defaultTextColor, -padding, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true), HorizontalAlignmentOptions.Center);
             padding += headerSpacing;
 
             // Add each plugin

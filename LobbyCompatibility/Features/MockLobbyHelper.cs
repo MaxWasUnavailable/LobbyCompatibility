@@ -48,7 +48,9 @@ namespace LobbyCompatibility.Features
             "Weather",
             "Hotbar",
             "Brutal",
-            "Goku"
+            "Goku",
+            "CoilHead",
+            "SCP"
         };
 
         public static List<string> modSuffixes = new List<string>()
@@ -75,9 +77,13 @@ namespace LobbyCompatibility.Features
             "Expansion",
             "ItemDropship",
             "Posters",
-            "Cats",
             "Shotgun",
-            "Bracken"
+            "Bracken",
+            "Screams",
+            "FOV",
+            "Teleporter",
+            "Progression",
+            "TV"
         };
 
         // Hardcode-y mock data for testing all other features
@@ -142,6 +148,49 @@ namespace LobbyCompatibility.Features
                 default:
                     return "Unknown";
             }
+        }
+
+        // i am very tired. this is good enough for now.
+        // not 100% sure on the name of some categories, like CompatibilityResult.ServerMissingMod with required = false
+        // TODO: Short versions for hover list
+        public static string GetCompatibilityCategoryName(CompatibilityResult compatibilityResult, bool required)
+        {
+            if (compatibilityResult == CompatibilityResult.Compatible)
+            {
+                return "Compatible";
+            }
+            else if (compatibilityResult == CompatibilityResult.ClientMissingMod)
+            {
+                if (required)
+                {
+                    return "Missing Required Mods";
+                }
+                else
+                {
+                    return "Missing Optional Mods"; // ???
+                }
+            }
+            else if (compatibilityResult == CompatibilityResult.ServerMissingMod)
+            {
+                if (required)
+                {
+                    return "Incompatible With Server";
+                }
+                else
+                {
+                    return "Optional Mods Not On Server"; // ???
+                }
+            }
+            else if (compatibilityResult == CompatibilityResult.ServerModOutdated)
+            {
+                return "Outdated On Server"; // ???
+            }
+            else if (compatibilityResult == CompatibilityResult.ClientModOutdated)
+            {
+                return "Mod Updates Required"; // ???
+            }
+
+            return "Unknown";
         }
     }
 }
