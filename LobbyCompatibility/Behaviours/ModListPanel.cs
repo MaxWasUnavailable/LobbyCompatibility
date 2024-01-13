@@ -32,7 +32,6 @@ namespace LobbyCompatibility.Behaviours
 
         // Needed for scrolling / content size recalculation
         private ScrollRect? scrollView;
-        // private RectTransform? scrollViewContentTransform;
 
         // Needed for mod diff text generation
         private TextMeshProUGUI? contentTextTemplate;
@@ -94,7 +93,6 @@ namespace LobbyCompatibility.Behaviours
             var scrollViewTransform = scrollViewObject.GetComponent<RectTransform>();
             scrollView = scrollViewObject.GetComponent<ScrollRect>();
             var text = scrollViewObject.GetComponentInChildren<TextMeshProUGUI>();
-
             if (scrollViewTransform == null || scrollView == null || text == null)
                 return;
 
@@ -117,7 +115,7 @@ namespace LobbyCompatibility.Behaviours
 
         private void GenerateTextFromDiff(LobbyDiff lobbyDiff)
         {
-            if (titleText == null)
+            if (titleText == null || scrollView?.content == null)
                 return;
 
             titleText.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
@@ -148,6 +146,8 @@ namespace LobbyCompatibility.Behaviours
             CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientMissingMod, false, ref padding);
             CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerMissingMod, false, ref padding);
             CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.Compatible, false, ref padding);
+
+            scrollView.content.sizeDelta = new Vector2(0, padding + headerSpacing);
         }
 
         private void CreateTextFromDiffCategory(LobbyDiff lobbyDiff, CompatibilityResult compatibilityResult, bool? required, ref float padding)

@@ -25,6 +25,61 @@ namespace LobbyCompatibility.Features
             CompatibilityResult.ClientModOutdated,
         };
 
+        // for mock name generation
+        // giving myself a pat on the back, this name generation is pretty funny
+        public static List<string> modPrefixes = new List<string>()
+        {
+            "LateGame",
+            "More",
+            "Bigger",
+            "Lethal",
+            "EvenMore",
+            "TooMany",
+            "Ship",
+            "Reserved",
+            "Helmet",
+            "Input",
+            "Yippee",
+            "HD",
+            "Additional",
+            "Employee",
+            "Custom",
+            "Better",
+            "Weather",
+            "Hotbar",
+            "Brutal",
+            "Goku"
+        };
+
+        public static List<string> modSuffixes = new List<string>()
+        {
+            "Upgrades",
+            "Lobby",
+            "Company",
+            "Scrap",
+            "Lib",
+            "Things",
+            "Cosmetics",
+            "Boombox",
+            "API",
+            "_API",
+            "Core",
+            "Walkers",
+            "Emotes",
+            "Suits",
+            "Mimics",
+            "Loot",
+            "Utils",
+            "Sounds",
+            "Controller",
+            "Expansion",
+            "ItemDropship",
+            "Posters",
+            "Cats",
+            "Shotgun",
+            "Bracken"
+        };
+
         // Hardcode-y mock data for testing all other features
         public static LobbyDiff GetDiffFromLobby(Lobby lobby)
         {
@@ -67,7 +122,9 @@ namespace LobbyCompatibility.Features
                 required = true;
             }
 
-            var name = "Djmioasj";
+
+            // random name
+            var name = $"{modPrefixes[Random.Range(0, modPrefixes.Count)]}{modSuffixes[Random.Range(0, modSuffixes.Count)]}";
 
             return new PluginDiff(result, required, name, version, requiredVersion);
         }
