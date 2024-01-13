@@ -11,6 +11,7 @@ using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
 using Steamworks.Data;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace LobbyCompatibility.Behaviours
 {
@@ -26,16 +27,32 @@ namespace LobbyCompatibility.Behaviours
         private void Awake()
         {
             Instance = this;
+        }
 
-            // Find actual alert panel so we can modify it
-            panelTransform = transform.Find("Panel")?.GetComponent<RectTransform>();
-            if (panelTransform == null)
+        public void SetupPanel(GameObject panel)
+        {
+            var panelImage = panel.transform.Find("Panel")?.GetComponent<Image>();
+            panelTransform = panelImage?.rectTransform;
+
+            if (panelImage == null || panelTransform == null)
                 return;
+
+            // Get "dismiss" button so we can inject some custom behaviour
+            var button = panelTransform.Find("ResponseButton")?.GetComponent<Button>();
+            if (button == null)
+                return;
+
+            // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
+            panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
 
             // Multiply panel element sizes to make the hover notification skinnier
             UIHelper.TryMultiplySizeDelta(panelTransform, notificationWidth);
             UIHelper.TryMultiplySizeDelta(panelTransform.Find("Image"), notificationWidth);
             UIHelper.TryMultiplySizeDelta(panelTransform.Find("NotificationText"), notificationWidth);
+
+            // Inject custom button behaviour so it doesn't force you back to the main menu
+            button.onClick.m_PersistentCalls.Clear();
+            button.onClick.AddListener(() => { SetPanelActive(false); });
 
             SetupText(panelTransform);
             SetPanelActive(false);
@@ -68,12 +85,12 @@ namespace LobbyCompatibility.Behaviours
             }
         }
 
-        // Probably a bad idea to have this MonoBehaviour be a child object of its own panel...
         private void SetPanelActive(bool active)
         {
             if (panelTransform == null)
                 return;
 
+            // Disable the parent because it also contains a background image used for blocking raycasts
             panelTransform.parent.gameObject.SetActive(active);
         }
 

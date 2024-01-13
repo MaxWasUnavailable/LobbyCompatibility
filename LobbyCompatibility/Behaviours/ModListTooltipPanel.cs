@@ -38,13 +38,13 @@ namespace LobbyCompatibility.Behaviours
                 backgroundImage.enabled = false;
 
             // Find actual alert panel so we can modify it
-            var panel = transform.Find("Panel")?.GetComponent<Image>();
-            panelTransform = panel?.GetComponent<RectTransform>();
-            if (panel == null || panelTransform == null)
+            var panelImage = transform.Find("Panel")?.GetComponent<Image>();
+            panelTransform = panelImage?.rectTransform;
+            if (panelImage == null || panelTransform == null)
                 return;
 
             // Increase panel opacity to 100% since we disabled the background image
-            panel.color = new Color(panel.color.r, panel.color.g, panel.color.b, 1);
+            panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
             panelTransform.anchorMin = new Vector2(0, 1);
             panelTransform.anchorMax = new Vector2(0, 1);
 

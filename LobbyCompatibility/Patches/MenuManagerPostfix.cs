@@ -32,13 +32,20 @@ internal static class MenuManagerPostfix
 
 
         // Setup hover notification/tooltip UI
-        var newHoverNotification = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
-        newHoverNotification.AddComponent<ModListTooltipPanel>();
-        newHoverNotification.SetActive(true);
+        var modListTooltipPanel = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+        modListTooltipPanel.AddComponent<ModListTooltipPanel>();
+        modListTooltipPanel.SetActive(true);
 
-        // Setup modlist panel UI
-        var newNotification = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
-        newNotification.AddComponent<ModListPanel>();
-        newNotification.SetActive(true);
+        // Setup modlist panel
+        var modListPanelNotification = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+
+        // Create actual panel handler (needs to be a seperate object because of the way notifications are structured)
+        var modListPanelObject = new GameObject("ModListPanel Handler");
+        modListPanelObject.transform.SetParent(__instance.menuNotification.transform.parent);
+        var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
+
+        modListPanel.SetupPanel(modListPanelNotification);
+
+        // newNotification.SetActive(true);
     }
 }
