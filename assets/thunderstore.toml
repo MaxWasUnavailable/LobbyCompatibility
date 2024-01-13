@@ -1,9 +1,6 @@
 [config]
 schemaVersion = "0.0.1"
 
-[general]
-repository = "https://thunderstore.io"
-
 [package]
 namespace = ""
 name = "LobbyCompatibility"
@@ -32,5 +29,6 @@ target = "/BepInEx/plugins/LobbyCompatiblity/"
 
 [publish]
 communities = [ "lethal-company", ]
+repository = "https://thunderstore.io"
 [publish.categories]
 lethal-company = [ "bepinex", "mods", "libraries", "misc", "serverside", "clientside" ]
