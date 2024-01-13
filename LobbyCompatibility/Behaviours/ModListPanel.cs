@@ -43,8 +43,11 @@ namespace LobbyCompatibility.Behaviours
             if (button == null || buttonTransform == null)
                 return;
 
-            SetupScrollView(panelTransform, scrollViewTemplate);
+            text = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
+            if (text == null)
+                return;
 
+            SetupScrollView(panelTransform, scrollViewTemplate, text.color);
 
             // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
             panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
@@ -63,18 +66,17 @@ namespace LobbyCompatibility.Behaviours
 
             SetupText(panelTransform);
             SetPanelActive(false);
-
-            // setup scroll rect
         }
 
-        private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate)
+        private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate, Color headerTextColor)
         {
             // Setup ScrollView for panel
             var scrollViewObject = Instantiate(scrollViewTemplate, panelTransform);
             var scrollViewTransform = scrollViewObject.GetComponent<RectTransform>();
             var scrollView = scrollViewObject.GetComponent<ScrollRect>();
+            var text = scrollViewObject.GetComponentInChildren<TextMeshProUGUI>();
 
-            if (scrollViewTransform == null || scrollView == null)
+            if (scrollViewTransform == null || scrollView == null || text == null)
                 return;
 
             // Delete lobby manager (not sure why it's on this object?)
@@ -88,6 +90,47 @@ namespace LobbyCompatibility.Behaviours
 
             // Set scroll to zero
             scrollView.verticalNormalizedPosition = 1f;
+
+            // Use text as template
+            text.gameObject.SetActive(false);
+
+            // Spacing: 20 between header/subtext
+            // 15 between subtext
+
+            AddText(text, text.transform.parent, headerTextColor, -5f, "Incompatible With Server:");
+            AddText(text, text.transform.parent, Color.red, -25f, "LethalLib-1.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.red, -40f, "LethalThings-1.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.red, -55f, "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW-1.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, headerTextColor, -75f, "Mod Updates Required:");
+            AddText(text, text.transform.parent, Color.red, -95f, "BiggerLobby-1.2.0 (Need 3.3.3)", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.red, -110f, "MoreCompany-1.0.0 (Need 1.4.0)", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, headerTextColor, -130f, "Compatible Mods:");
+            AddText(text, text.transform.parent, Color.green, -150f, "LateGameUpgrades-4.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.green, -165f, "ShipUpgrades-2.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.green, -180f, "LateCompany-3.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.green, -195f, "ProbablyNotARealMod-3.0.0", HorizontalAlignmentOptions.Left);
+            AddText(text, text.transform.parent, Color.green, -210f, "CozyImprovements-1.5.0", HorizontalAlignmentOptions.Left);
+        }
+
+        // Fairly slow but it is what it is 
+        private void AddText(TextMeshProUGUI template, Transform parent, Color color, float yPosition, string content, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
+        {
+            var text = Instantiate(template, parent);
+            text.rectTransform.anchoredPosition = new Vector2(0f, yPosition);
+
+            // Set size to not quite take up the full box
+            text.rectTransform.sizeDelta = new Vector2(290f, 30f);
+            text.text = content;
+            text.color = color;
+
+            // Set text alignment / formatting options
+            text.horizontalAlignment = alignment;
+            text.enableAutoSizing = true;
+            text.fontSizeMax = 18.35f;
+            text.fontSizeMin = 2f;
+            text.enableWordWrapping = false;
+
+            text.gameObject.SetActive(true);
         }
 
         // This could/should eventually be moved to a UIHelper method if we want this to look identical to the full modlist panel
