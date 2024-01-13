@@ -12,13 +12,14 @@ using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
 using LobbyCompatibility.Patches;
+using LobbyCompatibility.Models;
 
 namespace LobbyCompatibility.Behaviours
 {
     public class ModdedLobbySlot : MonoBehaviour
     {
         private LobbySlot? lobbySlot;
-        private ModdedLobbyType lobbyType;
+        private LobbyDiff? lobbyDiff;
         private Transform? parentContainer;
         private RectTransform? buttonTransform;
         private ButtonEventHandler? buttonEventHandler;
@@ -28,10 +29,12 @@ namespace LobbyCompatibility.Behaviours
         {
             // Not 100% ideal, but I don't want to mess with IL/stack weirdness too much right now
             lobbySlot = GetComponent<LobbySlot>();
-            if (lobbySlot == null) return;
+            if (lobbySlot == null) 
+                return;
 
-            // Get the "Status" of the lobby - is it compatible?
-            lobbyType = GetModdedLobbyType(lobbySlot.thisLobby);
+            // Get the "diff" of the lobby - mock data right now
+            lobbyDiff = MockLobbyHelper.GetDiffFromLobby(lobbySlot.thisLobby);
+            var lobbyType = lobbyDiff.GetModdedLobbyType();
 
             // Find player count text (could be moved/removed in a future update, but unlikely)
             var playerCount = lobbySlot.playerCount;
@@ -116,22 +119,21 @@ namespace LobbyCompatibility.Behaviours
 
         private void OnModListClick()
         {
-            if (lobbySlot == null || ModListPanel.Instance == null)
+            if (lobbyDiff == null || ModListPanel.Instance == null)
                 return;
 
-            LobbyCompatibilityPlugin.Logger?.LogInfo("clicky");
-            ModListPanel.Instance.DisplayNotification(lobbySlot.thisLobby, lobbyType);
+            ModListPanel.Instance.DisplayNotification(lobbyDiff);
         }
 
         // Handles displaying tooltips
         private void OnModListHoverStateChanged(bool hovered)
         {
-            if (buttonTransform == null || lobbySlot == null || parentContainer == null || ModListTooltipPanel.Instance == null)
+            if (lobbyDiff == null || buttonTransform == null || parentContainer == null || ModListTooltipPanel.Instance == null)
                 return;
 
             if (hovered)
             {
-                ModListTooltipPanel.Instance.DisplayNotification(lobbySlot.thisLobby, lobbyType, buttonTransform, parentContainer);
+                ModListTooltipPanel.Instance.DisplayNotification(lobbyDiff, buttonTransform, parentContainer);
             }
             else
             {
@@ -177,24 +179,6 @@ namespace LobbyCompatibility.Behaviours
                 path += "ModSettingsQuestionMark";
 
             return TextureHelper.FindSpriteInAssembly(path + ".png");
-        }
-
-        // TODO: Replace with real implementation
-        // Just incrementing through lobby types right now for debugging use
-        private static int debuggingCount = -1;
-        private ModdedLobbyType GetModdedLobbyType(Lobby lobby)
-        {
-            debuggingCount++;
-            switch (debuggingCount % 3)
-            {
-                case 0:
-                    return ModdedLobbyType.Compatible;
-                case 1:
-                    return ModdedLobbyType.Incompatible;
-                case 2:
-                default:
-                    return ModdedLobbyType.Unknown;
-            }
         }
     }
 }

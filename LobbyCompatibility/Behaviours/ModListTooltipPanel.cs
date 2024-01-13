@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
+using LobbyCompatibility.Models;
 
 namespace LobbyCompatibility.Behaviours
 {
@@ -76,7 +77,7 @@ namespace LobbyCompatibility.Behaviours
             }
         }
 
-        public void DisplayNotification(Lobby lobby, ModdedLobbyType lobbyType, RectTransform elementTransform, Transform elementContainerTransform)
+        public void DisplayNotification(LobbyDiff lobbyDiff, RectTransform elementTransform, Transform elementContainerTransform)
         {
             if (panelTransform == null)
                 return;
@@ -101,7 +102,7 @@ namespace LobbyCompatibility.Behaviours
             // TODO: set text based on lobby data here
             if (text != null)
             {
-                text.text = $"Mod Status: {GetModdedLobbyText(lobbyType)}";
+                text.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
             }
         }
 
@@ -111,22 +112,6 @@ namespace LobbyCompatibility.Behaviours
                 return;
 
             panelTransform.gameObject.SetActive(false);
-        }
-
-        // Enum.GetName is slow
-        // TODO: Replace with proper utility
-        private string GetModdedLobbyText(ModdedLobbyType lobbyType)
-        {
-            switch (lobbyType)
-            {
-                case ModdedLobbyType.Compatible:
-                    return "Compatible";
-                case ModdedLobbyType.Incompatible:
-                    return "Incompatible";
-                case ModdedLobbyType.Unknown:
-                default:
-                    return "Unknown";
-            }
         }
     }
 }

@@ -12,6 +12,7 @@ using Color = UnityEngine.Color;
 using Steamworks.Data;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using LobbyCompatibility.Models;
 
 namespace LobbyCompatibility.Behaviours
 {
@@ -144,7 +145,7 @@ namespace LobbyCompatibility.Behaviours
             }
         }
 
-        public void DisplayNotification(Lobby lobby, ModdedLobbyType lobbyType)
+        public void DisplayNotification(LobbyDiff lobbyDiff)
         {
             if (panelTransform == null)
                 return;
@@ -154,7 +155,7 @@ namespace LobbyCompatibility.Behaviours
             // TODO: set text based on lobby data here
             if (text != null)
             {
-                text.text = $"Mod Status: {GetModdedLobbyText(lobbyType)}";
+                text.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
             }
         }
 
@@ -165,22 +166,6 @@ namespace LobbyCompatibility.Behaviours
 
             // Disable the parent because it also contains a background image used for blocking raycasts
             panelTransform.parent.gameObject.SetActive(active);
-        }
-
-        // Enum.GetName is slow
-        // TODO: Replace with proper utility
-        private string GetModdedLobbyText(ModdedLobbyType lobbyType)
-        {
-            switch (lobbyType)
-            {
-                case ModdedLobbyType.Compatible:
-                    return "Compatible";
-                case ModdedLobbyType.Incompatible:
-                    return "Incompatible";
-                case ModdedLobbyType.Unknown:
-                default:
-                    return "Unknown";
-            }
         }
     }
 }
