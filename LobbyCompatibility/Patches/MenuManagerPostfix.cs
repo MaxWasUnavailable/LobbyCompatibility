@@ -28,8 +28,11 @@ internal static class MenuManagerPostfix
         if (__instance.isInitScene)
             return;
 
-        LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
+        var lobbyListScrollView = __instance.serverListUIContainer.transform.Find("ListPanel/Scroll View");
+        if (lobbyListScrollView == null)
+            return;
 
+        LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
 
         // Setup hover notification/tooltip UI
         var modListTooltipPanel = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
@@ -43,9 +46,6 @@ internal static class MenuManagerPostfix
         var modListPanelObject = new GameObject("ModListPanel Handler");
         modListPanelObject.transform.SetParent(__instance.menuNotification.transform.parent);
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
-
-        modListPanel.SetupPanel(modListPanelNotification);
-
-        // newNotification.SetActive(true);
+        modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView);
     }
 }
