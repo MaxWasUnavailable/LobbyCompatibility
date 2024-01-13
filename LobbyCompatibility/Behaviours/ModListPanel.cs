@@ -13,17 +13,30 @@ using Steamworks.Data;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using LobbyCompatibility.Models;
+using Newtonsoft.Json;
 
 namespace LobbyCompatibility.Behaviours
 {
     public class ModListPanel : MonoBehaviour
     {
         private static readonly Vector2 notificationWidth = new Vector2(1.25f, 1.75f);
+        private static readonly float headerSpacing = 20f;
+        private static readonly float textSpacing = 15f;
 
         public static ModListPanel? Instance;
 
+        private List<GameObject> existingText = new();
+
         private RectTransform? panelTransform;
-        private TextMeshProUGUI? text;
+        private TextMeshProUGUI? titleText;
+
+        // Needed for scrolling / content size recalculation
+        private ScrollRect? scrollView;
+        // private RectTransform? scrollViewContentTransform;
+
+        // Needed for mod diff text generation
+        private TextMeshProUGUI? contentTextTemplate;
+        private Color defaultTextColor;
 
         private void Awake()
         {
@@ -44,11 +57,17 @@ namespace LobbyCompatibility.Behaviours
             if (button == null || buttonTransform == null)
                 return;
 
-            text = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
-            if (text == null)
+            titleText = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
+            if (titleText == null)
                 return;
 
-            SetupScrollView(panelTransform, scrollViewTemplate, text.color);
+            // set default text color
+            defaultTextColor = titleText.color;
+
+            // Move header up
+            titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
+
+            SetupScrollView(panelTransform, scrollViewTemplate);
 
             // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
             panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
@@ -65,16 +84,15 @@ namespace LobbyCompatibility.Behaviours
             button.onClick.m_PersistentCalls.Clear();
             button.onClick.AddListener(() => { SetPanelActive(false); });
 
-            SetupText(panelTransform);
             SetPanelActive(false);
         }
 
-        private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate, Color headerTextColor)
+        private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate)
         {
             // Setup ScrollView for panel
             var scrollViewObject = Instantiate(scrollViewTemplate, panelTransform);
             var scrollViewTransform = scrollViewObject.GetComponent<RectTransform>();
-            var scrollView = scrollViewObject.GetComponent<ScrollRect>();
+            scrollView = scrollViewObject.GetComponent<ScrollRect>();
             var text = scrollViewObject.GetComponentInChildren<TextMeshProUGUI>();
 
             if (scrollViewTransform == null || scrollView == null || text == null)
@@ -94,23 +112,94 @@ namespace LobbyCompatibility.Behaviours
 
             // Use text as template
             text.gameObject.SetActive(false);
+            contentTextTemplate = text;
+        }
 
-            // Spacing: 20 between header/subtext
-            // 15 between subtext
+        private void GenerateTextFromDiff(LobbyDiff lobbyDiff)
+        {
+            if (titleText == null)
+                return;
 
-            AddText(text, text.transform.parent, headerTextColor, -5f, "Incompatible With Server:");
-            AddText(text, text.transform.parent, Color.red, -25f, "LethalLib-1.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.red, -40f, "LethalThings-1.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.red, -55f, "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW-1.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, headerTextColor, -75f, "Mod Updates Required:");
-            AddText(text, text.transform.parent, Color.red, -95f, "BiggerLobby-1.2.0 (Need 3.3.3)", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.red, -110f, "MoreCompany-1.0.0 (Need 1.4.0)", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, headerTextColor, -130f, "Compatible Mods:");
-            AddText(text, text.transform.parent, Color.green, -150f, "LateGameUpgrades-4.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.green, -165f, "ShipUpgrades-2.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.green, -180f, "LateCompany-3.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.green, -195f, "ProbablyNotARealMod-3.0.0", HorizontalAlignmentOptions.Left);
-            AddText(text, text.transform.parent, Color.green, -210f, "CozyImprovements-1.5.0", HorizontalAlignmentOptions.Left);
+            titleText.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
+
+            // sort in the following order:
+            // ClientMissingMod -> ServerMissingMod -> ClientModOutdated -> ServerModOutdated -> Compatible
+            // Required -> not required
+            // i mostly just made that up but it makes sense to me
+            // NOTE: All ServerModOutdated/ClientModOutdated results WILL be required
+
+            // clear old text
+            foreach (var text in existingText)
+            {
+                if (text == null)
+                    continue;
+
+                Destroy(text);
+            }
+            existingText.Clear();
+
+            float padding = 0f;
+            // should probably be a list
+            // padding doesn't really need to be a ref
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientMissingMod, true, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerMissingMod, true, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientModOutdated, true, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerModOutdated, true, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientMissingMod, false, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerMissingMod, false, ref padding);
+            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.Compatible, false, ref padding);
+        }
+
+        private void CreateTextFromDiffCategory(LobbyDiff lobbyDiff, CompatibilityResult compatibilityResult, bool? required, ref float padding)
+        {
+            if (contentTextTemplate == null)
+                return;
+
+            // if required == null, any value is fine
+            var plugins = lobbyDiff.PluginDiffs.Where(x => x.CompatibilityResult == compatibilityResult && (required == null || x.Required == required)).ToList();
+            if (plugins.Count == 0) 
+                return;
+
+            // adds a few units of extra header padding
+            padding += headerSpacing - textSpacing;
+
+            // Create the category header
+            AddText(contentTextTemplate, contentTextTemplate.transform.parent, defaultTextColor, -padding, "Category", HorizontalAlignmentOptions.Center);
+            padding += headerSpacing;
+
+            // Add each plugin
+            foreach (var plugin in plugins)
+            {
+                var color = GetTextColorFromPluginDiff(plugin);
+                AddText(contentTextTemplate, contentTextTemplate.transform.parent, color, -padding, GetModNameFromPluginDiff(plugin), HorizontalAlignmentOptions.Left);
+                padding += textSpacing;
+            }
+        }
+
+        private string GetModNameFromPluginDiff(PluginDiff pluginDiff)
+        {
+            var name = $"{pluginDiff.Name}-{pluginDiff.Version}";
+
+            // Add the required version to version-based conflicts
+            if ((pluginDiff.CompatibilityResult == CompatibilityResult.ServerModOutdated || pluginDiff.CompatibilityResult == CompatibilityResult.ClientModOutdated) && pluginDiff.RequiredVersion != null)
+            {
+                name += $" (Need {pluginDiff.RequiredVersion})";
+            }
+            return name;
+        }
+
+        private Color GetTextColorFromPluginDiff(PluginDiff pluginDiff)
+        {
+            // Nice and bright green if we're compatible
+            if (pluginDiff.CompatibilityResult == CompatibilityResult.Compatible)
+                return Color.green;
+
+            // Red if we're required and not compatible
+            if (pluginDiff.Required)
+                return Color.red;
+
+            // Gray if it's not required, but also not compatible
+            return Color.gray;
         }
 
         // Fairly slow but it is what it is 
@@ -132,31 +221,20 @@ namespace LobbyCompatibility.Behaviours
             text.enableWordWrapping = false;
 
             text.gameObject.SetActive(true);
-        }
-
-        // This could/should eventually be moved to a UIHelper method if we want this to look identical to the full modlist panel
-        private void SetupText(RectTransform panelTransform)
-        {
-            text = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
-            if (text != null)
-            {
-                // Move header up
-                text.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
-            }
+            existingText.Add(text.gameObject);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff)
         {
-            if (panelTransform == null)
+            if (panelTransform == null || scrollView == null)
                 return;
+
+            // Set scroll to zero
+            scrollView.verticalNormalizedPosition = 1f;
 
             SetPanelActive(true);
             // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
-            // TODO: set text based on lobby data here
-            if (text != null)
-            {
-                text.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
-            }
+            GenerateTextFromDiff(lobbyDiff);
         }
 
         private void SetPanelActive(bool active)

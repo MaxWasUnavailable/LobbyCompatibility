@@ -33,7 +33,7 @@ namespace LobbyCompatibility.Features
             var modCount = Random.Range(extraModLobby ? 20 : 0, extraModLobby ? 100 : 10);
 
             var plugins = new List<PluginDiff>();
-            for (int i = 0; i < plugins.Count; i++)
+            for (int i = 0; i < modCount; i++)
             {
                 plugins.Add(GenerateRandomPluginDiff());
             }
@@ -58,11 +58,13 @@ namespace LobbyCompatibility.Features
             {
                 // server mod needs to be older
                 requiredVersion = new Version(version.Major - 1, version.Minor, version.Build);
+                required = true;
             }
             else if (resultType == 4)
             {
                 // server mod needs to be newer
                 requiredVersion = new Version(version.Major, version.Minor + Random.Range(0, 5), version.Build);
+                required = true;
             }
 
             var name = "Djmioasj";
