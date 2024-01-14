@@ -81,6 +81,9 @@ namespace LobbyCompatibility.Behaviours
         // Clone the "Join" button into a new modlist button we can use
         private Button? CreateModListButton(Button original, Sprite sprite, Sprite invertedSprite, Color color, Transform parent)
         {
+            if (_lobbyDiff == null)
+                return null;
+
             var button = Instantiate(original, parent);
             _buttonTransform = button.GetComponent<RectTransform>();
 
@@ -107,9 +110,12 @@ namespace LobbyCompatibility.Behaviours
             button.transition = Selectable.Transition.None;
             button.animator.enabled = false;
 
+            // Get brighter color for noncompatible lobbies
+            var incompatibleColor = buttonText?.color ?? color;
+
             // Inject custom event handling
             _buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
-            _buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, color, color);
+            _buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, _lobbyDiff.LobbyType == ModdedLobbyType.Compatible ? color : incompatibleColor, _lobbyDiff.LobbyType == ModdedLobbyType.Compatible ? color : incompatibleColor);
             _buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
             _buttonEventHandler.OnClick += OnModListClick;
 
