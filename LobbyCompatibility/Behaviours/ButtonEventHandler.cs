@@ -13,22 +13,22 @@ namespace LobbyCompatibility.Behaviours
     // Instead of opting to use button.onClick events, we might as well just use IPointerClickHandler since we're here already.
     public class ButtonEventHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
-        private Image? image;
-        private Sprite? normalSprite;
-        private Sprite? highlightedSprite;
-        private Color? normalColor;
-        private Color? highlightedColor;
-
         public event Action<bool>? OnHoverStateChanged;
         public event Action? OnClick;
 
+        private Image? _image;
+        private Sprite? _normalSprite;
+        private Sprite? _highlightedSprite;
+        private Color? _normalColor;
+        private Color? _highlightedColor;
+
         public void SetButtonImageData(Image image, Sprite normalSprite, Sprite highlightedSprite, Color normalColor, Color highlightedColor)
         {
-            this.image = image;
-            this.normalSprite = normalSprite;
-            this.highlightedSprite = highlightedSprite;
-            this.normalColor = normalColor;
-            this.highlightedColor = highlightedColor;
+            _image = image;
+            _normalSprite = normalSprite;
+            _highlightedSprite = highlightedSprite;
+            _normalColor = normalColor;
+            _highlightedColor = highlightedColor;
 
             SetVisuals(false);
         }
@@ -53,16 +53,16 @@ namespace LobbyCompatibility.Behaviours
         // If button is highlighted, set the image to the highlighted sprite/color. Otherwise use the normal sprite/color
         private void SetVisuals(bool highlighted)
         {
-            if (image == null) 
+            if (_image == null) 
                 return;
 
-            image.sprite = highlighted ? highlightedSprite : normalSprite;
+            _image.sprite = highlighted ? _highlightedSprite : _normalSprite;
 
-            var color = highlighted ? highlightedColor : normalColor;
+            var color = highlighted ? _highlightedColor : _normalColor;
             if (color == null) 
                 return;
 
-            image.color = color.Value;
+            _image.color = color.Value;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace LobbyCompatibility.Features
         // Kind of a stupid way to do sorted load order but it works for now
         // (CompatibilityResult, Required)
         // required = null means merge all required/nonrequired into one category
-        private static List<(CompatibilityResult, bool?)> sortedCategoryLoadOrder = new List<(CompatibilityResult, bool?)>()
+        private static readonly List<(CompatibilityResult, bool?)> SortedCategoryLoadOrder = new List<(CompatibilityResult, bool?)>()
         {
             (CompatibilityResult.ClientMissingMod, true),
             (CompatibilityResult.ServerMissingMod, true),
@@ -139,7 +139,7 @@ namespace LobbyCompatibility.Features
             int lines = 0;
             int pluginLines = 0;
 
-            foreach (var (compatibilityResult, required) in sortedCategoryLoadOrder)
+            foreach (var (compatibilityResult, required) in SortedCategoryLoadOrder)
             {
                 var plugins = lobbyDiff.PluginDiffs.Where(x => x.CompatibilityResult == compatibilityResult && (required == null || x.Required == required)).ToList();
                 if (plugins.Count == 0)

@@ -21,19 +21,19 @@ namespace LobbyCompatibility.Behaviours
         public static ModListTooltipPanel? Instance;
 
         // UI generation settings
-        private static readonly bool preventFromClosing = false; // for debugging visuals
-        private static readonly Vector2 notificationWidth = new Vector2(0.75f, 1.1f);
-        private static readonly float headerSpacing = 12f;
-        private static readonly float textSpacing = 11f;
-        private static readonly int maxLines = 10;
+        private static readonly bool PreventFromClosing = false; // for debugging visuals
+        private static readonly Vector2 NotificationWidth = new Vector2(0.75f, 1.1f);
+        private static readonly float HeaderSpacing = 12f;
+        private static readonly float TextSpacing = 11f;
+        private static readonly int MaxLines = 10;
 
-        private RectTransform? panelTransform;
-        private TextMeshProUGUI? titleText;
+        private RectTransform? _panelTransform;
+        private TextMeshProUGUI? _titleText;
 
         // Needed for mod diff text generation
-        private TextMeshProUGUI? headerTextTemplate;
-        private TextMeshProUGUI? textTemplate;
-        private List<TextMeshProUGUI> existingText = new();
+        private TextMeshProUGUI? _headerTextTemplate;
+        private TextMeshProUGUI? _textTemplate;
+        private List<TextMeshProUGUI> _existingText = new();
 
         private void Awake()
         {
@@ -51,54 +51,54 @@ namespace LobbyCompatibility.Behaviours
 
             // Find actual alert panel so we can modify it
             var panelImage = transform.Find("Panel")?.GetComponent<Image>();
-            panelTransform = panelImage?.rectTransform;
-            if (panelImage == null || panelTransform == null)
+            _panelTransform = panelImage?.rectTransform;
+            if (panelImage == null || _panelTransform == null)
                 return;
 
             // Increase panel opacity to 100% since we disabled the background image
             panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
-            panelTransform.anchorMin = new Vector2(0, 1);
-            panelTransform.anchorMax = new Vector2(0, 1);
+            _panelTransform.anchorMin = new Vector2(0, 1);
+            _panelTransform.anchorMax = new Vector2(0, 1);
 
             // Multiply panel element sizes to make the hover notification skinnier
-            UIHelper.TryMultiplySizeDelta(panelTransform, notificationWidth);
-            UIHelper.TryMultiplySizeDelta(panelTransform.Find("Image"), notificationWidth);
-            UIHelper.TryMultiplySizeDelta(panelTransform.Find("NotificationText"), notificationWidth);
+            UIHelper.TryMultiplySizeDelta(_panelTransform, NotificationWidth);
+            UIHelper.TryMultiplySizeDelta(_panelTransform.Find("Image"), NotificationWidth);
+            UIHelper.TryMultiplySizeDelta(_panelTransform.Find("NotificationText"), NotificationWidth);
 
             // Remove "dismiss" button
-            panelTransform.Find("ResponseButton")?.gameObject.SetActive(false);
+            _panelTransform.Find("ResponseButton")?.gameObject.SetActive(false);
 
             // Set to screen's top left corner temporarily and disable panel
-            panelTransform.anchoredPosition = new Vector2(panelTransform.sizeDelta.x / 2, -panelTransform.sizeDelta.y / 2);
-            panelTransform.gameObject.SetActive(false);
+            _panelTransform.anchoredPosition = new Vector2(_panelTransform.sizeDelta.x / 2, -_panelTransform.sizeDelta.y / 2);
+            _panelTransform.gameObject.SetActive(false);
 
-            SetupText(panelTransform);
+            SetupText(_panelTransform);
         }
 
         // This could/should eventually be moved to a UIHelper method if we want this to look identical to the full modlist panel
         private void SetupText(RectTransform panelTransform)
         {
-            titleText = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
-            if (titleText == null)
+            _titleText = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
+            if (_titleText == null)
                 return;
 
-            titleText.fontSizeMax = 13f;
-            titleText.fontSizeMin = 12f;
-            titleText.rectTransform.anchoredPosition = new Vector2(0, 95f);
+            _titleText.fontSizeMax = 13f;
+            _titleText.fontSizeMin = 12f;
+            _titleText.rectTransform.anchoredPosition = new Vector2(0, 95f);
 
             // Setup text as template
-            headerTextTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Center);
-            textTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Left);
+            _headerTextTemplate = UIHelper.SetupTextAsTemplate(_titleText, _titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Center);
+            _textTemplate = UIHelper.SetupTextAsTemplate(_titleText, _titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Left);
 
             // Make the title wrap with compact line spacing
-            titleText.lineSpacing = -20f;
-            titleText.horizontalAlignment = HorizontalAlignmentOptions.Left;
-            titleText.rectTransform.sizeDelta = new Vector2(170f, 75f);
+            _titleText.lineSpacing = -20f;
+            _titleText.horizontalAlignment = HorizontalAlignmentOptions.Left;
+            _titleText.rectTransform.sizeDelta = new Vector2(170f, 75f);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff, RectTransform elementTransform, Transform elementContainerTransform)
         {
-            if (panelTransform == null)
+            if (_panelTransform == null)
                 return;
 
             // Turn relative position into something we can use
@@ -109,7 +109,7 @@ namespace LobbyCompatibility.Behaviours
             bool alignWithBottom = hoverPanelPosition.y > -190f;
 
             // Add the panel's width/height so it's not offset
-            hoverPanelPosition += new Vector2(panelTransform.sizeDelta.x, alignWithBottom ? -panelTransform.sizeDelta.y : 0);
+            hoverPanelPosition += new Vector2(_panelTransform.sizeDelta.x, alignWithBottom ? -_panelTransform.sizeDelta.y : 0);
 
             // Add the button size as an additional offset so it's not in the center of the button
             hoverPanelPosition += new Vector2(elementTransform.sizeDelta.x / 2, alignWithBottom ? -elementTransform.sizeDelta.y / 2 : 0);
@@ -117,50 +117,50 @@ namespace LobbyCompatibility.Behaviours
             // Add a very small amount of padding
             // TODO: Replace this with a non-magic number
             hoverPanelPosition += new Vector2(-15f, alignWithBottom ? 4f : 6f);
-            panelTransform.anchoredPosition = hoverPanelPosition;
-            panelTransform.gameObject.SetActive(true);
+            _panelTransform.anchoredPosition = hoverPanelPosition;
+            _panelTransform.gameObject.SetActive(true);
 
             DisplayModList(lobbyDiff);
         }
 
         private void DisplayModList(LobbyDiff lobbyDiff)
         {
-            if (panelTransform == null || titleText == null || headerTextTemplate == null || textTemplate == null)
+            if (_panelTransform == null || _titleText == null || _headerTextTemplate == null || _textTemplate == null)
                 return;
 
             var incompatibleMods = lobbyDiff.PluginDiffs.Where(x => x.Required && x.CompatibilityResult != CompatibilityResult.Compatible).ToList();
-            titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: ({incompatibleMods.Count})\n========================";
+            _titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: ({incompatibleMods.Count})\n========================";
 
             // clear old text
-            foreach (var text in existingText)
+            foreach (var text in _existingText)
             {
                 if (text == null)
                     continue;
 
                 Destroy(text.gameObject);
             }
-            existingText.Clear();
+            _existingText.Clear();
 
             // Generate text based on LobbyDiff
-            var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing, -51.5f, true, maxLines);
+            var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, _textTemplate, _headerTextTemplate, TextSpacing, HeaderSpacing, -51.5f, true, MaxLines);
 
             // Add cutoff text if necessary
             var remainingPlugins = lobbyDiff.PluginDiffs.Count - pluginsShown;
-            if (newText.Count >= maxLines && remainingPlugins > 0)
+            if (newText.Count >= MaxLines && remainingPlugins > 0)
             {
-                var cutoffText = UIHelper.CreateTextFromTemplate(textTemplate, $"{lobbyDiff.PluginDiffs.Count - pluginsShown} more mods...", -padding, Color.gray);
+                var cutoffText = UIHelper.CreateTextFromTemplate(_textTemplate, $"{lobbyDiff.PluginDiffs.Count - pluginsShown} more mods...", -padding, Color.gray);
                 newText.Add(cutoffText);
             }
 
-            existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
+            _existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
         }
 
         public void HideNotification()
         {
-            if (panelTransform == null || preventFromClosing)
+            if (_panelTransform == null || PreventFromClosing)
                 return;
 
-            panelTransform.gameObject.SetActive(false);
+            _panelTransform.gameObject.SetActive(false);
         }
     }
 }

@@ -21,20 +21,20 @@ namespace LobbyCompatibility.Behaviours
     {
         public static ModListPanel? Instance;
 
-        private static readonly Vector2 notificationWidth = new Vector2(1.25f, 1.75f);
-        private static readonly float headerSpacing = 20f;
-        private static readonly float textSpacing = 15f;
+        private static readonly Vector2 NotificationWidth = new Vector2(1.25f, 1.75f);
+        private static readonly float HeaderSpacing = 20f;
+        private static readonly float TextSpacing = 15f;
 
-        private RectTransform? panelTransform;
-        private TextMeshProUGUI? titleText;
+        private RectTransform? _panelTransform;
+        private TextMeshProUGUI? _titleText;
 
         // Needed for scrolling / content size recalculation
-        private ScrollRect? scrollView;
+        private ScrollRect? _scrollView;
 
         // Needed for mod diff text generation
-        private TextMeshProUGUI? headerTextTemplate;
-        private TextMeshProUGUI? textTemplate;
-        private List<TextMeshProUGUI> existingText = new();
+        private TextMeshProUGUI? _headerTextTemplate;
+        private TextMeshProUGUI? _textTemplate;
+        private List<TextMeshProUGUI> _existingText = new();
 
         private void Awake()
         {
@@ -44,33 +44,33 @@ namespace LobbyCompatibility.Behaviours
         public void SetupPanel(GameObject panel, Transform scrollViewTemplate)
         {
             var panelImage = panel.transform.Find("Panel")?.GetComponent<Image>();
-            panelTransform = panelImage?.rectTransform;
-            if (panelImage == null || panelTransform == null)
+            _panelTransform = panelImage?.rectTransform;
+            if (panelImage == null || _panelTransform == null)
                 return;
 
             // Get "dismiss" button so we can inject some custom behaviour
-            var button = panelTransform.Find("ResponseButton")?.GetComponent<Button>();
+            var button = _panelTransform.Find("ResponseButton")?.GetComponent<Button>();
             var buttonTransform = button?.GetComponent<RectTransform>();
             if (button == null || buttonTransform == null)
                 return;
 
-            titleText = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
-            if (titleText == null)
+            _titleText = _panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
+            if (_titleText == null)
                 return;
 
             // Move header up
-            titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
+            _titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
 
             // Initialize scroll view by taking the game's lobby list and modifying it
-            SetupScrollView(panelTransform, scrollViewTemplate, titleText.color);
+            SetupScrollView(_panelTransform, scrollViewTemplate, _titleText.color);
 
             // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
             panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
 
             // Multiply panel element sizes to make the hover notification skinnier
-            UIHelper.TryMultiplySizeDelta(panelTransform, notificationWidth);
-            UIHelper.TryMultiplySizeDelta(panelTransform.Find("Image"), notificationWidth);
-            UIHelper.TryMultiplySizeDelta(panelTransform.Find("NotificationText"), notificationWidth);
+            UIHelper.TryMultiplySizeDelta(_panelTransform, NotificationWidth);
+            UIHelper.TryMultiplySizeDelta(_panelTransform.Find("Image"), NotificationWidth);
+            UIHelper.TryMultiplySizeDelta(_panelTransform.Find("NotificationText"), NotificationWidth);
 
             // Set button to be consistently spaced from the bottom of the panel 
             // This is the exact pixel distance the "Back" button is from the bottom on normal panels. TODO: do this dynamically based on notificationWidth
@@ -88,9 +88,9 @@ namespace LobbyCompatibility.Behaviours
             // Setup ScrollView for panel
             var scrollViewObject = Instantiate(scrollViewTemplate, panelTransform);
             var scrollViewTransform = scrollViewObject.GetComponent<RectTransform>();
-            scrollView = scrollViewObject.GetComponent<ScrollRect>();
+            _scrollView = scrollViewObject.GetComponent<ScrollRect>();
             var text = scrollViewObject.GetComponentInChildren<TextMeshProUGUI>();
-            if (scrollViewTransform == null || scrollView == null || text == null)
+            if (scrollViewTransform == null || _scrollView == null || text == null)
                 return;
 
             // Delete lobby manager (not sure why it's on this object?)
@@ -103,60 +103,59 @@ namespace LobbyCompatibility.Behaviours
             scrollViewTransform.sizeDelta = new Vector2(-30f, -100f);
 
             // Reset scroll to default position
-            scrollView.verticalNormalizedPosition = 1f;
+            _scrollView.verticalNormalizedPosition = 1f;
 
             // Setup text as template
             text.gameObject.SetActive(false);
-            headerTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Center);
-            textTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Left);
+            _headerTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Center);
+            _textTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Left);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff)
         {
-            if (scrollView == null)
+            if (_scrollView == null)
                 return;
 
             // Set scroll to zero
-            scrollView.verticalNormalizedPosition = 1f;
+            _scrollView.verticalNormalizedPosition = 1f;
             SetPanelActive(true);
             // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
 
             DisplayModList(lobbyDiff);
-
         }
 
         private void DisplayModList(LobbyDiff lobbyDiff)
         {
-            if (panelTransform == null || scrollView?.content == null || titleText == null || headerTextTemplate == null || textTemplate == null)
+            if (_panelTransform == null || _scrollView?.content == null || _titleText == null || _headerTextTemplate == null || _textTemplate == null)
                 return;
 
-            titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
+            _titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
 
             // clear old text
-            foreach (var text in existingText)
+            foreach (var text in _existingText)
             {
                 if (text == null)
                     continue;
 
                 Destroy(text.gameObject);
             }
-            existingText.Clear();
+            _existingText.Clear();
 
             // Generate text based on LobbyDiff
-            var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing);
-            existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
+            var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, _textTemplate, _headerTextTemplate, TextSpacing, HeaderSpacing);
+            _existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
 
             // Resize ScrollView to not extend far past the content
-            scrollView.content.sizeDelta = new Vector2(0, padding + headerSpacing); // could probably be done natively with a contentsizefilter. don't wanna look into it rn
+            _scrollView.content.sizeDelta = new Vector2(0, padding + HeaderSpacing); // could probably be done natively with a contentsizefilter. don't wanna look into it rn
         }
 
         private void SetPanelActive(bool active)
         {
-            if (panelTransform == null)
+            if (_panelTransform == null)
                 return;
 
             // Disable the parent because it also contains a background image used for blocking raycasts
-            panelTransform.parent.gameObject.SetActive(active);
+            _panelTransform.parent.gameObject.SetActive(active);
         }
     }
 }

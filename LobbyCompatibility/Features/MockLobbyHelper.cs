@@ -16,7 +16,7 @@ namespace LobbyCompatibility.Features
     internal static class MockLobbyHelper
     {
         // enum GetValues but cached
-        private static List<CompatibilityResult> possibleResults = new List<CompatibilityResult>()
+        private static readonly List<CompatibilityResult> PossibleResults = new List<CompatibilityResult>()
         {
             CompatibilityResult.Compatible,
             CompatibilityResult.ServerMissingMod,
@@ -27,7 +27,7 @@ namespace LobbyCompatibility.Features
 
         // for mock name generation
         // giving myself a pat on the back, this name generation is pretty funny
-        private static List<string> modPrefixes = new List<string>()
+        private static readonly List<string> ModPrefixes = new List<string>()
         {
             "LateGame",
             "More",
@@ -53,7 +53,7 @@ namespace LobbyCompatibility.Features
             "SCP"
         };
 
-        private static List<string> modSuffixes = new List<string>()
+        private static readonly List<string> ModSuffixes = new List<string>()
         {
             "Upgrades",
             "Lobby",
@@ -105,7 +105,7 @@ namespace LobbyCompatibility.Features
         private static PluginDiff GenerateRandomPluginDiff()
         {
             int resultType = Random.Range(0, 5);
-            var result = possibleResults[resultType];
+            var result = PossibleResults[resultType];
 
             // 50% chance to be required
             bool required = Random.Range(0, 2) == 0;
@@ -130,7 +130,7 @@ namespace LobbyCompatibility.Features
 
 
             // random name
-            var name = $"{modPrefixes[Random.Range(0, modPrefixes.Count)]}{modSuffixes[Random.Range(0, modSuffixes.Count)]}";
+            var name = $"{ModPrefixes[Random.Range(0, ModPrefixes.Count)]}{ModSuffixes[Random.Range(0, ModSuffixes.Count)]}";
 
             return new PluginDiff(result, required, name, version, requiredVersion);
         }

@@ -18,25 +18,25 @@ namespace LobbyCompatibility.Behaviours
 {
     public class ModdedLobbySlot : MonoBehaviour
     {
-        private LobbySlot? lobbySlot;
-        private LobbyDiff? lobbyDiff;
-        private Transform? parentContainer;
-        private RectTransform? buttonTransform;
-        private ButtonEventHandler? buttonEventHandler;
+        private LobbySlot? _lobbySlot;
+        private LobbyDiff? _lobbyDiff;
+        private Transform? _parentContainer;
+        private RectTransform? _buttonTransform;
+        private ButtonEventHandler? _buttonEventHandler;
 
         // Runs after LobbySlot data set
         private void Start()
         {
             // Not 100% ideal, but I don't want to mess with IL/stack weirdness too much right now
-            lobbySlot = GetComponent<LobbySlot>();
-            if (lobbySlot == null) 
+            _lobbySlot = GetComponent<LobbySlot>();
+            if (_lobbySlot == null) 
                 return;
 
             // Get the "diff" of the lobby - mock data right now
-            lobbyDiff = MockLobbyHelper.GetDiffFromLobby(lobbySlot.thisLobby);
+            _lobbyDiff = MockLobbyHelper.GetDiffFromLobby(_lobbySlot.thisLobby);
 
             // Find player count text (could be moved/removed in a future update, but unlikely)
-            var playerCount = lobbySlot.playerCount;
+            var playerCount = _lobbySlot.playerCount;
             if (playerCount == null)
                 return;
 
@@ -46,27 +46,27 @@ namespace LobbyCompatibility.Behaviours
                 return;
 
             // Get button sprites (depending on the lobby type/status, sometimes it will need to be a warning/alert for incompatible lobbies)
-            var sprite = GetLobbySprite(lobbyDiff.LobbyType);
-            var invertedSprite = GetLobbySprite(lobbyDiff.LobbyType, true);
+            var sprite = GetLobbySprite(_lobbyDiff.LobbyType);
+            var invertedSprite = GetLobbySprite(_lobbyDiff.LobbyType, true);
 
-            if (joinButton != null && sprite != null && invertedSprite != null && lobbySlot.LobbyName != null)
+            if (joinButton != null && sprite != null && invertedSprite != null && _lobbySlot.LobbyName != null)
             {
                 // Shift player count to the right to make space for our "Mod Settings" button
                 playerCount.transform.localPosition = new Vector3(32f, playerCount.transform.localPosition.y, playerCount.transform.localPosition.z);
 
                 // Create the actual modlist button to the left of the player count text
-                CreateModListButton(joinButton, sprite, invertedSprite, lobbySlot.LobbyName.color, playerCount.transform);
+                CreateModListButton(joinButton, sprite, invertedSprite, _lobbySlot.LobbyName.color, playerCount.transform);
             }
         }
 
         // Unsubscribe to button events when destroyed
         private void OnDestroy()
         {
-            if (buttonEventHandler == null) 
+            if (_buttonEventHandler == null) 
                 return;
 
-            buttonEventHandler.OnHoverStateChanged -= OnModListHoverStateChanged;
-            buttonEventHandler.OnClick -= OnModListClick;
+            _buttonEventHandler.OnHoverStateChanged -= OnModListHoverStateChanged;
+            _buttonEventHandler.OnClick -= OnModListClick;
         }
 
         /// <summary>
@@ -75,22 +75,22 @@ namespace LobbyCompatibility.Behaviours
         /// <param name="transform"> The LobbySlot's parent container. Equivalent to the ScrollRect's viewport. </param>
         public void SetParentContainer(Transform transform)
         {
-            parentContainer = transform;
+            _parentContainer = transform;
         }
 
         // Clone the "Join" button into a new modlist button we can use
         private Button? CreateModListButton(Button original, Sprite sprite, Sprite invertedSprite, Color color, Transform parent)
         {
             var button = Instantiate(original, parent);
-            buttonTransform = button.GetComponent<RectTransform>();
+            _buttonTransform = button.GetComponent<RectTransform>();
 
             var buttonImageTransform = button.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
             var buttonImage = buttonImageTransform?.GetComponent<Image>();
 
-            if (buttonTransform == null || buttonImageTransform == null || buttonImage == null) 
+            if (_buttonTransform == null || buttonImageTransform == null || buttonImage == null) 
                 return null;
 
-            SetupButtonPositioning(buttonTransform);
+            SetupButtonPositioning(_buttonTransform);
             SetupButtonImage(buttonImageTransform, buttonImage);
 
             // Disable "Join" text
@@ -108,31 +108,31 @@ namespace LobbyCompatibility.Behaviours
             button.animator.enabled = false;
 
             // Inject custom event handling
-            buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
-            buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, color, color);
-            buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
-            buttonEventHandler.OnClick += OnModListClick;
+            _buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
+            _buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, color, color);
+            _buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
+            _buttonEventHandler.OnClick += OnModListClick;
 
             return button;
         }
 
         private void OnModListClick()
         {
-            if (lobbyDiff == null || ModListPanel.Instance == null)
+            if (_lobbyDiff == null || ModListPanel.Instance == null)
                 return;
 
-            ModListPanel.Instance.DisplayNotification(lobbyDiff);
+            ModListPanel.Instance.DisplayNotification(_lobbyDiff);
         }
 
         // Handles displaying tooltips
         private void OnModListHoverStateChanged(bool hovered)
         {
-            if (lobbyDiff == null || buttonTransform == null || parentContainer == null || ModListTooltipPanel.Instance == null)
+            if (_lobbyDiff == null || _buttonTransform == null || _parentContainer == null || ModListTooltipPanel.Instance == null)
                 return;
 
             if (hovered)
             {
-                ModListTooltipPanel.Instance.DisplayNotification(lobbyDiff, buttonTransform, parentContainer);
+                ModListTooltipPanel.Instance.DisplayNotification(_lobbyDiff, _buttonTransform, _parentContainer);
             }
             else
             {
