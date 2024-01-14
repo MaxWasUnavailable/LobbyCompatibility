@@ -97,7 +97,14 @@ namespace LobbyCompatibility.Features
 
         // generatedText, distance
         // TODO: Replace with pooling if we need the performance from rapid scrolling
-        public static (List<TextMeshProUGUI>, float) GenerateTextFromDiff(LobbyDiff lobbyDiff, TextMeshProUGUI textTemplate, TextMeshProUGUI headerTextTemplate, float textSpacing, float headerSpacing, float? startPadding = null)
+        public static (List<TextMeshProUGUI>, float) GenerateTextFromDiff(
+            LobbyDiff lobbyDiff, 
+            TextMeshProUGUI textTemplate, 
+            TextMeshProUGUI headerTextTemplate, 
+            float textSpacing, 
+            float headerSpacing, 
+            float? startPadding = null,
+            bool compactText = false)
         {
             List<TextMeshProUGUI> generatedText = new();
             float padding = startPadding ?? 0f;
@@ -119,7 +126,7 @@ namespace LobbyCompatibility.Features
                 // Add each plugin
                 foreach (var plugin in plugins)
                 {
-                    var modText = CreateTextFromTemplate(textTemplate, plugin.DisplayName, -padding, plugin.TextColor);
+                    var modText = CreateTextFromTemplate(textTemplate, compactText ? plugin.Name : plugin.DisplayName, -padding, plugin.TextColor);
                     generatedText.Add(modText);
 
                     padding += textSpacing;

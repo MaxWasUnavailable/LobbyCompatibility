@@ -22,8 +22,8 @@ namespace LobbyCompatibility.Behaviours
 
         // UI generation settings
         private static readonly bool preventFromClosing = true; // for debugging visuals
-        private static readonly Vector2 notificationWidth = new Vector2(0.6f, 1f);
-        private static readonly float headerSpacing = 13f;
+        private static readonly Vector2 notificationWidth = new Vector2(0.75f, 1f);
+        private static readonly float headerSpacing = 12f;
         private static readonly float textSpacing = 11f;
 
         private RectTransform? panelTransform;
@@ -81,13 +81,18 @@ namespace LobbyCompatibility.Behaviours
             if (titleText == null)
                 return;
 
-            titleText.fontSizeMax = 15f;
+            titleText.fontSizeMax = 13f;
             titleText.fontSizeMin = 12f;
-            titleText.rectTransform.anchoredPosition = new Vector2(-2f, 75f);
+            titleText.rectTransform.anchoredPosition = new Vector2(-2f, 85f);
 
             // Setup text as template
-            headerTextTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(145f, 75f), 14.1f, 2f, HorizontalAlignmentOptions.Center);
-            textTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(145f, 75f), 14.1f, 2f, HorizontalAlignmentOptions.Left);
+            headerTextTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Center);
+            textTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Left);
+
+            // Make the title wrap with compact line spacing
+            titleText.lineSpacing = -20f;
+            titleText.horizontalAlignment = HorizontalAlignmentOptions.Left;
+            titleText.rectTransform.sizeDelta = new Vector2(170f, 75f);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff, RectTransform elementTransform, Transform elementContainerTransform)
@@ -120,7 +125,8 @@ namespace LobbyCompatibility.Behaviours
             if (panelTransform == null || titleText == null || headerTextTemplate == null || textTemplate == null)
                 return;
 
-            titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
+            var incompatibleMods = lobbyDiff.PluginDiffs.Where(x => x.Required && x.CompatibilityResult != CompatibilityResult.Compatible).ToList();
+            titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nIncompatible Mods: ({incompatibleMods.Count})\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\n==========================";
 
             // clear old text
             foreach (var text in existingText)
@@ -133,7 +139,7 @@ namespace LobbyCompatibility.Behaviours
             existingText.Clear();
 
             // Generate text based on LobbyDiff
-            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing, -45f);
+            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing, -43f, true);
             existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
         }
 
