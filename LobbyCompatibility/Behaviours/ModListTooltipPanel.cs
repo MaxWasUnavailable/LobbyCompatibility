@@ -105,7 +105,8 @@ namespace LobbyCompatibility.Behaviours
             Vector2 hoverPanelPosition = RectTransformUtility.CalculateRelativeRectTransformBounds(elementContainerTransform, elementTransform).center;
 
             // If the element is more than ~halfway down the screen, the tooltip should go upwards instead of down
-            bool alignWithBottom = hoverPanelPosition.y > -200f;
+            // TODO: Remove magic number
+            bool alignWithBottom = hoverPanelPosition.y > -190f;
 
             // Add the panel's width/height so it's not offset
             hoverPanelPosition += new Vector2(panelTransform.sizeDelta.x, alignWithBottom ? -panelTransform.sizeDelta.y : 0);
