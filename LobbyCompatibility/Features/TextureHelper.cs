@@ -25,7 +25,7 @@ namespace LobbyCompatibility.Features
         /// </summary>
         /// <param name="path"> The path of the embedded sprite. </param>
         /// <param name="assembly"> The assembly from which to load the embedded resource (Current assembly by default). </param>
-        /// <returns> A <see cref="Sprite"/> created from the embedded image file, null otherwise. </returns>
+        /// <returns> A <see cref="Sprite" /> created from the embedded image file, null otherwise. </returns>
         public static Sprite? FindSpriteInAssembly(string path, Assembly? assembly = null)
         {
             if (SpriteCache.ContainsKey(path))
@@ -72,6 +72,12 @@ namespace LobbyCompatibility.Features
             return memoryStream.ToArray();
         }
 
+        /// <summary>
+        ///     Gets a sprite from the content of a byte array containing an image.
+        /// </summary>
+        /// <param name="image"> Byte array containing an image. </param>
+        /// <param name="pixelsPerUnit"> PixelsPerUnit to use in the generated texture. </param>
+        /// <returns> A <see cref="Sprite" /> created from the byte array, null otherwise. </returns>
         public static Sprite? LoadSpriteRaw(byte[] image, float pixelsPerUnit = 100.0f)
         {
             var spriteTexture = LoadTextureRaw(image);
@@ -81,6 +87,11 @@ namespace LobbyCompatibility.Features
             return LoadSpriteFromTexture(spriteTexture, pixelsPerUnit);
         }
 
+        /// <summary>
+        ///     Gets a texture from the content of a byte array.
+        /// </summary>
+        /// <param name="file"> Byte array containing an image. </param>
+        /// <returns> A <see cref="Texture2D" /> created from the byte array, null otherwise. </returns>
         public static Texture2D? LoadTextureRaw(byte[] file)
         {
             if (file.Length > 0)
@@ -95,6 +106,12 @@ namespace LobbyCompatibility.Features
             return null;
         }
 
+        /// <summary>
+        ///     Creates a sprite from a <see cref="Texture2D" />.
+        /// </summary>
+        /// <param name="image"> Texture to convert into a sprite. </param>
+        /// <param name="pixelsPerUnit"> PixelsPerUnit to use in the generated texture. </param>
+        /// <returns> A <see cref="Sprite"/> created from the <see cref="Texture2D" />, null otherwise. </returns>
         public static Sprite? LoadSpriteFromTexture(Texture2D spriteTexture, float pixelsPerUnit = 100.0f)
         {
             if (spriteTexture == null)

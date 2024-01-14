@@ -27,7 +27,7 @@ namespace LobbyCompatibility.Features
 
         // for mock name generation
         // giving myself a pat on the back, this name generation is pretty funny
-        public static List<string> modPrefixes = new List<string>()
+        private static List<string> modPrefixes = new List<string>()
         {
             "LateGame",
             "More",
@@ -53,7 +53,7 @@ namespace LobbyCompatibility.Features
             "SCP"
         };
 
-        public static List<string> modSuffixes = new List<string>()
+        private static List<string> modSuffixes = new List<string>()
         {
             "Upgrades",
             "Lobby",
@@ -133,21 +133,6 @@ namespace LobbyCompatibility.Features
             var name = $"{modPrefixes[Random.Range(0, modPrefixes.Count)]}{modSuffixes[Random.Range(0, modSuffixes.Count)]}";
 
             return new PluginDiff(result, required, name, version, requiredVersion);
-        }
-
-        // Enum.GetName is slow
-        public static string GetModdedLobbyText(ModdedLobbyType lobbyType)
-        {
-            switch (lobbyType)
-            {
-                case ModdedLobbyType.Compatible:
-                    return "Compatible";
-                case ModdedLobbyType.Incompatible:
-                    return "Incompatible";
-                case ModdedLobbyType.Unknown:
-                default:
-                    return "Unknown";
-            }
         }
 
         // i am very tired. this is good enough for now.

@@ -153,7 +153,6 @@ namespace LobbyCompatibility.Behaviours
             }
 
             existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
-
         }
 
         public void HideNotification()

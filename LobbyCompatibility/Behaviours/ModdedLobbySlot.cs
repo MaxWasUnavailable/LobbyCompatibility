@@ -59,7 +59,7 @@ namespace LobbyCompatibility.Behaviours
             }
         }
 
-        // Unsubscribe to button events
+        // Unsubscribe to button events when destroyed
         private void OnDestroy()
         {
             if (buttonEventHandler == null) 

@@ -61,7 +61,16 @@ namespace LobbyCompatibility.Features
             rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x * multiplier.x, rectTransform.sizeDelta.y * multiplier.y);
         }
 
-        public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, UnityEngine.Color color, Vector2 size, float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
+        /// <summary>
+        ///     Creates a new <see cref="TextMeshProUGUI" /> to be used as a template. Intended to be used as a modlist template.
+        /// </summary>
+        /// <param name="template"> The <see cref="TextMeshProUGUI" /> to base the template off of. </param>
+        /// <param name="color"> Text color. </param>
+        /// <param name="size"> The sizeDelta of the text's RectTransform. </param>
+        /// <param name="maxFontSize"> The font's maximum size. </param>
+        /// <param name="minFontSize"> The font's minimum size. </param>
+        /// <param name="alignment"> How to align the text. </param>
+        public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, Color color, Vector2 size, float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
         {
             var text = UnityEngine.Object.Instantiate(template, template.transform.parent);
 
@@ -80,7 +89,13 @@ namespace LobbyCompatibility.Features
             return text;
         }
 
-        // Fairly slow but it is what it is 
+        /// <summary>
+        ///     Creates a new <see cref="TextMeshProUGUI" /> from a template. Intended to be used with the modlist.
+        /// </summary>
+        /// <param name="template"> The <see cref="TextMeshProUGUI" /> to use as a template. </param>
+        /// <param name="content"> The text's content. </param>
+        /// <param name="yPosition"> Sets the text's <see cref="RectTransform.anchoredPosition.y" />. </param>
+        /// <param name="overrideColor"> A color to override the template color with. </param>
         public static TextMeshProUGUI CreateTextFromTemplate(TextMeshProUGUI template, string content, float yPosition, Color? overrideColor = null)
         {
             var text = UnityEngine.Object.Instantiate(template, template.transform.parent);
@@ -95,9 +110,17 @@ namespace LobbyCompatibility.Features
             return text;
         }
 
-        // generatedText, distance, pluginsShown
-        // TODO: Replace with pooling if we need the performance from rapid scrolling
-        // TODO: Replace this return type with an actual type lol
+        /// <summary>
+        ///     Creates a list of <see cref="TextMeshProUGUI" /> from a <see cref="LobbyDiff" />'s plugins
+        /// </summary>
+        /// <param name="textTemplate"> The <see cref="TextMeshProUGUI" /> to use for the mod text. </param>
+        /// <param name="headerTextTemplate"> The <see cref="TextMeshProUGUI" /> to use for the category header text. </param>
+        /// <param name="textSpacing"> The amount of spacing around mod text. </param>
+        /// <param name="headerSpacing"> The amount of padding around category header text. </param>
+        /// <param name="startPadding"> The amount of padding to start with. </param>
+        /// <param name="compactText"> Whether to remove versions from mod names. </param>
+        /// <param name="maxLines"> The maximum amount of total text lines to generate. </param>
+        /// <returns> The <see cref="TextMeshProUGUI" /> list, the total UI length, and the amount of plugins used in generation. </returns>
         public static (List<TextMeshProUGUI>, float, int) GenerateTextFromDiff(
             LobbyDiff lobbyDiff, 
             TextMeshProUGUI textTemplate, 
@@ -108,6 +131,9 @@ namespace LobbyCompatibility.Features
             bool compactText = false,
             int? maxLines = null)
         {
+            // TODO: Replace with pooling if we need the performance from rapid scrolling
+            // TODO: Replace this return type with an actual type lol. Need to refactor this a bit
+
             List<TextMeshProUGUI> generatedText = new();
             float padding = startPadding ?? 0f;
             int lines = 0;
