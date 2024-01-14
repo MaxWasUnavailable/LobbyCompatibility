@@ -1,5 +1,7 @@
 ﻿using BepInEx;
 using LobbyCompatibility.Attributes;
+using LobbyCompatibility.Enums;
+using LobbyCompatibility.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace LobbyCompatibility.Features
 {
@@ -16,6 +19,20 @@ namespace LobbyCompatibility.Features
     /// </summary>
     internal static class UIHelper
     {
+        // Kind of a stupid way to do sorted load order but it works for now
+        // (CompatibilityResult, Required)
+        // required = null means merge all required/nonrequired into one category
+        private static List<(CompatibilityResult, bool?)> sortedCategoryLoadOrder = new List<(CompatibilityResult, bool?)>()
+        {
+            (CompatibilityResult.ClientMissingMod, true),
+            (CompatibilityResult.ServerMissingMod, true),
+            (CompatibilityResult.ClientModOutdated, true),
+            (CompatibilityResult.ServerModOutdated, true),
+            (CompatibilityResult.ClientMissingMod, false),
+            (CompatibilityResult.ServerMissingMod, false),
+            (CompatibilityResult.Compatible, null)
+        };
+
         /// <summary>
         ///     Multiplies a <see cref="Transform" />'s sizeDelta as a <see cref="RectTransform" />. Returns false if transform is invalid.
         /// </summary>
@@ -76,6 +93,40 @@ namespace LobbyCompatibility.Features
             text.gameObject.SetActive(true);
             
             return text;
+        }
+
+        // generatedText, distance
+        // TODO: Replace with pooling if we need the performance from rapid scrolling
+        public static (List<TextMeshProUGUI>, float) GenerateTextFromDiff(LobbyDiff lobbyDiff, TextMeshProUGUI textTemplate, TextMeshProUGUI headerTextTemplate, float textSpacing, float headerSpacing)
+        {
+            List<TextMeshProUGUI> generatedText = new();
+            float padding = 0f;
+
+            foreach (var (compatibilityResult, required) in sortedCategoryLoadOrder)
+            {
+                var plugins = lobbyDiff.PluginDiffs.Where(x => x.CompatibilityResult == compatibilityResult && (required == null || x.Required == required)).ToList();
+                if (plugins.Count == 0)
+                    continue;
+
+                // adds a few units of extra header padding
+                padding += headerSpacing - textSpacing;
+
+                // Create the category header
+                var headerText = CreateTextFromTemplate(headerTextTemplate, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true), -padding);
+                generatedText.Add(headerText);
+                padding += headerSpacing;
+
+                // Add each plugin
+                foreach (var plugin in plugins)
+                {
+                    var modText = CreateTextFromTemplate(textTemplate, plugin.DisplayName, -padding, plugin.TextColor);
+                    generatedText.Add(modText);
+
+                    padding += textSpacing;
+                }
+            }
+
+            return (generatedText, padding);
         }
     }
 }

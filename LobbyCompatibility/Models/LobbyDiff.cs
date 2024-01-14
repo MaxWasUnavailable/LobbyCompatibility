@@ -13,16 +13,29 @@ namespace LobbyCompatibility.Models
     // should be easy to swap out with a new/better impl if needed
     public class LobbyDiff
     {
-        public List<PluginDiff> PluginDiffs { get; set; }
-        public Lobby Lobby { get; set; }
+        public List<PluginDiff> PluginDiffs { get; }
+        public Lobby Lobby { get; }
+        public ModdedLobbyType LobbyType { get; }
+        public string LobbyCompatibilityName => LobbyType switch
+        {
+            ModdedLobbyType.Compatible => nameof(ModdedLobbyType.Compatible),
+            ModdedLobbyType.Incompatible => nameof(ModdedLobbyType.Incompatible),
+            ModdedLobbyType.Unknown => nameof(ModdedLobbyType.Unknown),
+            _ => nameof(ModdedLobbyType.Unknown),
+        };
+
+        public string LobbyCompatibilityDisplayName => $"Mod Status: {LobbyCompatibilityName}";
 
         public LobbyDiff(List<PluginDiff> pluginDiffs, Lobby lobby)
         {
             PluginDiffs = pluginDiffs;
             Lobby = lobby;
+
+            // assuming this lobby never changes, we can just immediately calculate the type of lobby
+            LobbyType = GetModdedLobbyType();
         }
 
-        public ModdedLobbyType GetModdedLobbyType() 
+        private ModdedLobbyType GetModdedLobbyType() 
         {  
             // unknown lobbies have zero plugins / don't hook into the mod
             // could be either vanilla or a modded user without the mod

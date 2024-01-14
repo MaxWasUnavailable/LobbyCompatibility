@@ -111,18 +111,17 @@ namespace LobbyCompatibility.Behaviours
             modTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Left);
         }
 
-        private void GenerateTextFromDiff(LobbyDiff lobbyDiff)
+        public void DisplayNotification(LobbyDiff lobbyDiff)
         {
-            if (titleText == null || scrollView?.content == null)
+            if (panelTransform == null || scrollView?.content == null || titleText == null || headerTextTemplate == null || modTextTemplate == null)
                 return;
 
-            titleText.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
+            // Set scroll to zero
+            scrollView.verticalNormalizedPosition = 1f;
 
-            // sort in the following order:
-            // ClientMissingMod -> ServerMissingMod -> ClientModOutdated -> ServerModOutdated -> Compatible
-            // Required -> not required
-            // i mostly just made that up but it makes sense to me
-            // NOTE: All ServerModOutdated/ClientModOutdated results WILL be required
+            SetPanelActive(true);
+            titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
+            // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
 
             // clear old text
             foreach (var text in existingText)
@@ -134,59 +133,11 @@ namespace LobbyCompatibility.Behaviours
             }
             existingText.Clear();
 
-            float padding = 0f;
-            // should probably be a list
-            // padding doesn't really need to be a ref
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientMissingMod, true, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerMissingMod, true, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientModOutdated, true, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerModOutdated, true, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ClientMissingMod, false, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.ServerMissingMod, false, ref padding);
-            CreateTextFromDiffCategory(lobbyDiff, CompatibilityResult.Compatible, null, ref padding);
+            // Generate text based on LobbyDiff
+            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, modTextTemplate, headerTextTemplate, textSpacing, headerSpacing);
+            existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
 
-            scrollView.content.sizeDelta = new Vector2(0, padding + headerSpacing);
-        }
-
-        private void CreateTextFromDiffCategory(LobbyDiff lobbyDiff, CompatibilityResult compatibilityResult, bool? required, ref float padding)
-        {
-            if (headerTextTemplate == null || modTextTemplate == null)
-                return;
-
-            // if required == null, any value is fine
-            var plugins = lobbyDiff.PluginDiffs.Where(x => x.CompatibilityResult == compatibilityResult && (required == null || x.Required == required)).ToList();
-            if (plugins.Count == 0) 
-                return;
-
-            // adds a few units of extra header padding
-            padding += headerSpacing - textSpacing;
-
-            // Create the category header
-            var headerText = UIHelper.CreateTextFromTemplate(headerTextTemplate, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true), -padding);
-            existingText.Add(headerText);
-            padding += headerSpacing;
-
-            // Add each plugin
-            foreach (var plugin in plugins)
-            {
-                var modText = UIHelper.CreateTextFromTemplate(modTextTemplate, plugin.DisplayName, -padding, plugin.TextColor);
-                existingText.Add(modText);
-
-                padding += textSpacing;
-            }
-        }
-
-        public void DisplayNotification(LobbyDiff lobbyDiff)
-        {
-            if (panelTransform == null || scrollView == null)
-                return;
-
-            // Set scroll to zero
-            scrollView.verticalNormalizedPosition = 1f;
-
-            SetPanelActive(true);
-            // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
-            GenerateTextFromDiff(lobbyDiff);
+            scrollView.content.sizeDelta = new Vector2(0, padding + headerSpacing); // could probably be done natively with a contentsizefilter. don't wanna look into it rn
         }
 
         private void SetPanelActive(bool active)

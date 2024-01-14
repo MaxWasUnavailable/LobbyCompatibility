@@ -34,7 +34,6 @@ namespace LobbyCompatibility.Behaviours
 
             // Get the "diff" of the lobby - mock data right now
             lobbyDiff = MockLobbyHelper.GetDiffFromLobby(lobbySlot.thisLobby);
-            var lobbyType = lobbyDiff.GetModdedLobbyType();
 
             // Find player count text (could be moved/removed in a future update, but unlikely)
             var playerCount = lobbySlot.playerCount;
@@ -47,8 +46,8 @@ namespace LobbyCompatibility.Behaviours
                 return;
 
             // Get button sprites (depending on the lobby type/status, sometimes it will need to be a warning/alert for incompatible lobbies)
-            var sprite = GetLobbySprite(lobbyType);
-            var invertedSprite = GetLobbySprite(lobbyType, true);
+            var sprite = GetLobbySprite(lobbyDiff.LobbyType);
+            var invertedSprite = GetLobbySprite(lobbyDiff.LobbyType, true);
 
             if (joinButton != null && sprite != null && invertedSprite != null && lobbySlot.LobbyName != null)
             {

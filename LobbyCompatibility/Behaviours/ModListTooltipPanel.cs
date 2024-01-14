@@ -102,7 +102,7 @@ namespace LobbyCompatibility.Behaviours
             // TODO: set text based on lobby data here
             if (text != null)
             {
-                text.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.GetModdedLobbyType())}";
+                text.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.LobbyType)}";
             }
         }
 
