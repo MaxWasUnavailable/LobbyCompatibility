@@ -21,10 +21,11 @@ namespace LobbyCompatibility.Behaviours
         public static ModListTooltipPanel? Instance;
 
         // UI generation settings
-        private static readonly bool preventFromClosing = true; // for debugging visuals
-        private static readonly Vector2 notificationWidth = new Vector2(0.75f, 1f);
+        private static readonly bool preventFromClosing = false; // for debugging visuals
+        private static readonly Vector2 notificationWidth = new Vector2(0.75f, 1.1f);
         private static readonly float headerSpacing = 12f;
         private static readonly float textSpacing = 11f;
+        private static readonly int maxLines = 10;
 
         private RectTransform? panelTransform;
         private TextMeshProUGUI? titleText;
@@ -83,7 +84,7 @@ namespace LobbyCompatibility.Behaviours
 
             titleText.fontSizeMax = 13f;
             titleText.fontSizeMin = 12f;
-            titleText.rectTransform.anchoredPosition = new Vector2(-2f, 85f);
+            titleText.rectTransform.anchoredPosition = new Vector2(0, 95f);
 
             // Setup text as template
             headerTextTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(165f, 75f), 13f, 2f, HorizontalAlignmentOptions.Center);
@@ -113,7 +114,8 @@ namespace LobbyCompatibility.Behaviours
             hoverPanelPosition += new Vector2(elementTransform.sizeDelta.x / 2, alignWithBottom ? -elementTransform.sizeDelta.y / 2 : 0);
 
             // Add a very small amount of padding
-            hoverPanelPosition += new Vector2(4f, alignWithBottom ? -4f : -4f);
+            // TODO: Replace this with a non-magic number
+            hoverPanelPosition += new Vector2(-15f, alignWithBottom ? 4f : 6f);
             panelTransform.anchoredPosition = hoverPanelPosition;
             panelTransform.gameObject.SetActive(true);
 
@@ -126,7 +128,7 @@ namespace LobbyCompatibility.Behaviours
                 return;
 
             var incompatibleMods = lobbyDiff.PluginDiffs.Where(x => x.Required && x.CompatibilityResult != CompatibilityResult.Compatible).ToList();
-            titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nIncompatible Mods: ({incompatibleMods.Count})\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\n==========================";
+            titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: ({incompatibleMods.Count})\n========================";
 
             // clear old text
             foreach (var text in existingText)
@@ -134,13 +136,23 @@ namespace LobbyCompatibility.Behaviours
                 if (text == null)
                     continue;
 
-                Destroy(text);
+                Destroy(text.gameObject);
             }
             existingText.Clear();
 
             // Generate text based on LobbyDiff
-            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing, -43f, true);
+            var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing, -51.5f, true, maxLines);
+
+            // Add cutoff text if necessary
+            var remainingPlugins = lobbyDiff.PluginDiffs.Count - pluginsShown;
+            if (newText.Count >= maxLines && remainingPlugins > 0)
+            {
+                var cutoffText = UIHelper.CreateTextFromTemplate(textTemplate, $"{lobbyDiff.PluginDiffs.Count - pluginsShown} more mods...", -padding, Color.gray);
+                newText.Add(cutoffText);
+            }
+
             existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
+
         }
 
         public void HideNotification()

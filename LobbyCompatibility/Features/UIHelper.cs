@@ -95,19 +95,23 @@ namespace LobbyCompatibility.Features
             return text;
         }
 
-        // generatedText, distance
+        // generatedText, distance, pluginsShown
         // TODO: Replace with pooling if we need the performance from rapid scrolling
-        public static (List<TextMeshProUGUI>, float) GenerateTextFromDiff(
+        // TODO: Replace this return type with an actual type lol
+        public static (List<TextMeshProUGUI>, float, int) GenerateTextFromDiff(
             LobbyDiff lobbyDiff, 
             TextMeshProUGUI textTemplate, 
             TextMeshProUGUI headerTextTemplate, 
             float textSpacing, 
             float headerSpacing, 
             float? startPadding = null,
-            bool compactText = false)
+            bool compactText = false,
+            int? maxLines = null)
         {
             List<TextMeshProUGUI> generatedText = new();
             float padding = startPadding ?? 0f;
+            int lines = 0;
+            int pluginLines = 0;
 
             foreach (var (compatibilityResult, required) in sortedCategoryLoadOrder)
             {
@@ -118,22 +122,30 @@ namespace LobbyCompatibility.Features
                 // adds a few units of extra header padding
                 padding += headerSpacing - textSpacing;
 
+                if (maxLines != null && lines > maxLines - 1) // end linecount sooner if we're about to create a header - no point in showing a blank header
+                    break;
+
                 // Create the category header
-                var headerText = CreateTextFromTemplate(headerTextTemplate, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true), -padding);
+                var headerText = CreateTextFromTemplate(headerTextTemplate, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true) + ":", -padding);
                 generatedText.Add(headerText);
                 padding += headerSpacing;
+                lines++;
 
                 // Add each plugin
                 foreach (var plugin in plugins)
                 {
+                    if (maxLines != null && lines > maxLines)
+                        break;
+
                     var modText = CreateTextFromTemplate(textTemplate, compactText ? plugin.Name : plugin.DisplayName, -padding, plugin.TextColor);
                     generatedText.Add(modText);
-
                     padding += textSpacing;
+                    lines++;
+                    pluginLines++;
                 }
             }
 
-            return (generatedText, padding);
+            return (generatedText, padding, pluginLines);
         }
     }
 }

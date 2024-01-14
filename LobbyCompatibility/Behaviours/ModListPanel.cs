@@ -138,12 +138,12 @@ namespace LobbyCompatibility.Behaviours
                 if (text == null)
                     continue;
 
-                Destroy(text);
+                Destroy(text.gameObject);
             }
             existingText.Clear();
 
             // Generate text based on LobbyDiff
-            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing);
+            var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing);
             existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
 
             // Resize ScrollView to not extend far past the content
