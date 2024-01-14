@@ -164,6 +164,7 @@ namespace LobbyCompatibility.Features
                         break;
 
                     var modText = CreateTextFromTemplate(textTemplate, compactText ? plugin.Name : plugin.DisplayName, -padding, plugin.TextColor);
+                    modText.richText = false; // Disable rich text to avoid people injecting weird text into the modlist
                     generatedText.Add(modText);
                     padding += textSpacing;
                     lines++;
