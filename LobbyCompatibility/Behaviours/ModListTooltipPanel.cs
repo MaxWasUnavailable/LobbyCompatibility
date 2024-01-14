@@ -128,8 +128,14 @@ namespace LobbyCompatibility.Behaviours
             if (_panelTransform == null || _titleText == null || _headerTextTemplate == null || _textTemplate == null)
                 return;
 
-            var incompatibleMods = lobbyDiff.PluginDiffs.Where(x => x.Required && x.CompatibilityResult != CompatibilityResult.Compatible).ToList();
-            _titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: ({incompatibleMods.Count})\n========================";
+            var incompatibleModsCount = lobbyDiff.PluginDiffs.Where(x => x.Required && x.CompatibilityResult != CompatibilityResult.Compatible).ToList().Count;
+            var incompatibleMods = $"({incompatibleModsCount})";
+            
+            // Make the incompatible count red if there are any incompatible mods
+            if (incompatibleModsCount > 0)
+                incompatibleMods = $"<color=red>{incompatibleMods}</color>";
+
+            _titleText.text = $"{lobbyDiff.LobbyCompatibilityDisplayName}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: {incompatibleMods}\n========================";
 
             // clear old text
             foreach (var text in _existingText)
