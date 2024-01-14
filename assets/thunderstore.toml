@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = ""
+namespace = "BMX"
 name = "LobbyCompatibility"
 description = "Towards a future with fewer lobby incompatibility errors."
 websiteUrl = "https://github.com/MaxWasUnavailable/LobbyCompatibility"
