@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 namespace LobbyCompatibility.Features
@@ -41,6 +42,40 @@ namespace LobbyCompatibility.Features
         public static void MultiplySizeDelta(RectTransform rectTransform, Vector2 multiplier)
         {
             rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x * multiplier.x, rectTransform.sizeDelta.y * multiplier.y);
+        }
+
+        public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, UnityEngine.Color color, Vector2 size, float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
+        {
+            var text = UnityEngine.Object.Instantiate(template, template.transform.parent);
+
+            // Set text alignment / formatting options
+            text.rectTransform.anchoredPosition = new Vector2(0f, 0f);
+            text.rectTransform.sizeDelta = size;
+            text.horizontalAlignment = alignment;
+            text.enableAutoSizing = true;
+            text.fontSizeMax = maxFontSize;
+            text.fontSizeMin = minFontSize;
+            text.enableWordWrapping = false;
+            text.color = color;
+
+            // Deactivate so we can use as a template later
+            text.gameObject.SetActive(false);
+            return text;
+        }
+
+        // Fairly slow but it is what it is 
+        public static TextMeshProUGUI CreateTextFromTemplate(TextMeshProUGUI template, string content, float yPosition, Color? overrideColor = null)
+        {
+            var text = UnityEngine.Object.Instantiate(template, template.transform.parent);
+
+            if (overrideColor != null)
+                text.color = overrideColor!.Value;
+
+            text.rectTransform.anchoredPosition = new Vector2(0f, yPosition);
+            text.text = content;
+            text.gameObject.SetActive(true);
+            
+            return text;
         }
     }
 }

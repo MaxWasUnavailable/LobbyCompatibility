@@ -25,7 +25,7 @@ namespace LobbyCompatibility.Behaviours
 
         public static ModListPanel? Instance;
 
-        private List<GameObject> existingText = new();
+        private List<TextMeshProUGUI> existingText = new();
 
         private RectTransform? panelTransform;
         private TextMeshProUGUI? titleText;
@@ -34,8 +34,8 @@ namespace LobbyCompatibility.Behaviours
         private ScrollRect? scrollView;
 
         // Needed for mod diff text generation
-        private TextMeshProUGUI? contentTextTemplate;
-        private Color defaultTextColor;
+        private TextMeshProUGUI? headerTextTemplate;
+        private TextMeshProUGUI? modTextTemplate;
 
         private void Awake()
         {
@@ -60,13 +60,10 @@ namespace LobbyCompatibility.Behaviours
             if (titleText == null)
                 return;
 
-            // set default text color
-            defaultTextColor = titleText.color;
-
             // Move header up
             titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
 
-            SetupScrollView(panelTransform, scrollViewTemplate);
+            SetupScrollView(panelTransform, scrollViewTemplate, titleText.color);
 
             // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
             panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
@@ -86,7 +83,7 @@ namespace LobbyCompatibility.Behaviours
             SetPanelActive(false);
         }
 
-        private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate)
+        private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate, Color defaultTextColor)
         {
             // Setup ScrollView for panel
             var scrollViewObject = Instantiate(scrollViewTemplate, panelTransform);
@@ -108,9 +105,10 @@ namespace LobbyCompatibility.Behaviours
             // Set scroll to zero
             scrollView.verticalNormalizedPosition = 1f;
 
-            // Use text as template
+            // Setup text as template
             text.gameObject.SetActive(false);
-            contentTextTemplate = text;
+            headerTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Center);
+            modTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Left);
         }
 
         private void GenerateTextFromDiff(LobbyDiff lobbyDiff)
@@ -152,7 +150,7 @@ namespace LobbyCompatibility.Behaviours
 
         private void CreateTextFromDiffCategory(LobbyDiff lobbyDiff, CompatibilityResult compatibilityResult, bool? required, ref float padding)
         {
-            if (contentTextTemplate == null)
+            if (headerTextTemplate == null || modTextTemplate == null)
                 return;
 
             // if required == null, any value is fine
@@ -164,64 +162,18 @@ namespace LobbyCompatibility.Behaviours
             padding += headerSpacing - textSpacing;
 
             // Create the category header
-            AddText(contentTextTemplate, contentTextTemplate.transform.parent, defaultTextColor, -padding, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true), HorizontalAlignmentOptions.Center);
+            var headerText = UIHelper.CreateTextFromTemplate(headerTextTemplate, MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, required ?? true), -padding);
+            existingText.Add(headerText);
             padding += headerSpacing;
 
             // Add each plugin
             foreach (var plugin in plugins)
             {
-                var color = GetTextColorFromPluginDiff(plugin);
-                AddText(contentTextTemplate, contentTextTemplate.transform.parent, color, -padding, GetModNameFromPluginDiff(plugin), HorizontalAlignmentOptions.Left);
+                var modText = UIHelper.CreateTextFromTemplate(modTextTemplate, plugin.DisplayName, -padding, plugin.TextColor);
+                existingText.Add(modText);
+
                 padding += textSpacing;
             }
-        }
-
-        private string GetModNameFromPluginDiff(PluginDiff pluginDiff)
-        {
-            var name = $"{pluginDiff.Name}-{pluginDiff.Version}";
-
-            // Add the required version to version-based conflicts
-            if ((pluginDiff.CompatibilityResult == CompatibilityResult.ServerModOutdated || pluginDiff.CompatibilityResult == CompatibilityResult.ClientModOutdated) && pluginDiff.RequiredVersion != null)
-            {
-                name += $" (Need {pluginDiff.RequiredVersion})";
-            }
-            return name;
-        }
-
-        private Color GetTextColorFromPluginDiff(PluginDiff pluginDiff)
-        {
-            // Nice and bright green if we're compatible
-            if (pluginDiff.CompatibilityResult == CompatibilityResult.Compatible)
-                return Color.green;
-
-            // Red if we're required and not compatible
-            if (pluginDiff.Required)
-                return Color.red;
-
-            // Gray if it's not required, but also not compatible
-            return Color.gray;
-        }
-
-        // Fairly slow but it is what it is 
-        private void AddText(TextMeshProUGUI template, Transform parent, Color color, float yPosition, string content, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
-        {
-            var text = Instantiate(template, parent);
-            text.rectTransform.anchoredPosition = new Vector2(0f, yPosition);
-
-            // Set size to not quite take up the full box
-            text.rectTransform.sizeDelta = new Vector2(290f, 30f);
-            text.text = content;
-            text.color = color;
-
-            // Set text alignment / formatting options
-            text.horizontalAlignment = alignment;
-            text.enableAutoSizing = true;
-            text.fontSizeMax = 18.35f;
-            text.fontSizeMin = 2f;
-            text.enableWordWrapping = false;
-
-            text.gameObject.SetActive(true);
-            existingText.Add(text.gameObject);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff)
