@@ -12,17 +12,27 @@ using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
 using LobbyCompatibility.Models;
+using UnityEngine.UIElements;
 
 namespace LobbyCompatibility.Behaviours
 {
     public class ModListTooltipPanel : MonoBehaviour
     {
-        private static readonly Vector2 notificationWidth = new Vector2(0.6f, 1f);
-
         public static ModListTooltipPanel? Instance;
 
+        // UI generation settings
+        private static readonly bool preventFromClosing = true; // for debugging visuals
+        private static readonly Vector2 notificationWidth = new Vector2(0.6f, 1f);
+        private static readonly float headerSpacing = 13f;
+        private static readonly float textSpacing = 11f;
+
         private RectTransform? panelTransform;
-        private TextMeshProUGUI? text;
+        private TextMeshProUGUI? titleText;
+
+        // Needed for mod diff text generation
+        private TextMeshProUGUI? headerTextTemplate;
+        private TextMeshProUGUI? textTemplate;
+        private List<TextMeshProUGUI> existingText = new();
 
         private void Awake()
         {
@@ -67,14 +77,17 @@ namespace LobbyCompatibility.Behaviours
         // This could/should eventually be moved to a UIHelper method if we want this to look identical to the full modlist panel
         private void SetupText(RectTransform panelTransform)
         {
-            text = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
-            if (text != null)
-            {
-                // Move text up & make smaller
-                text.fontSizeMax = 15f;
-                text.fontSizeMin = 12f;
-                text.rectTransform.anchoredPosition = new Vector2(-2f, 75f);
-            }
+            titleText = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
+            if (titleText == null)
+                return;
+
+            titleText.fontSizeMax = 15f;
+            titleText.fontSizeMin = 12f;
+            titleText.rectTransform.anchoredPosition = new Vector2(-2f, 75f);
+
+            // Setup text as template
+            headerTextTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(145f, 75f), 14.1f, 2f, HorizontalAlignmentOptions.Center);
+            textTemplate = UIHelper.SetupTextAsTemplate(titleText, titleText.color, new Vector2(145f, 75f), 14.1f, 2f, HorizontalAlignmentOptions.Left);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff, RectTransform elementTransform, Transform elementContainerTransform)
@@ -99,16 +112,34 @@ namespace LobbyCompatibility.Behaviours
             panelTransform.anchoredPosition = hoverPanelPosition;
             panelTransform.gameObject.SetActive(true);
 
-            // TODO: set text based on lobby data here
-            if (text != null)
+            DisplayModList(lobbyDiff);
+        }
+
+        private void DisplayModList(LobbyDiff lobbyDiff)
+        {
+            if (panelTransform == null || titleText == null || headerTextTemplate == null || textTemplate == null)
+                return;
+
+            titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
+
+            // clear old text
+            foreach (var text in existingText)
             {
-                text.text = $"Mod Status: {MockLobbyHelper.GetModdedLobbyText(lobbyDiff.LobbyType)}";
+                if (text == null)
+                    continue;
+
+                Destroy(text);
             }
+            existingText.Clear();
+
+            // Generate text based on LobbyDiff
+            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing, -45f);
+            existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
         }
 
         public void HideNotification()
         {
-            if (panelTransform == null)
+            if (panelTransform == null || preventFromClosing)
                 return;
 
             panelTransform.gameObject.SetActive(false);

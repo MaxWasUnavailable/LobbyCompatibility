@@ -19,13 +19,11 @@ namespace LobbyCompatibility.Behaviours
 {
     public class ModListPanel : MonoBehaviour
     {
+        public static ModListPanel? Instance;
+
         private static readonly Vector2 notificationWidth = new Vector2(1.25f, 1.75f);
         private static readonly float headerSpacing = 20f;
         private static readonly float textSpacing = 15f;
-
-        public static ModListPanel? Instance;
-
-        private List<TextMeshProUGUI> existingText = new();
 
         private RectTransform? panelTransform;
         private TextMeshProUGUI? titleText;
@@ -35,7 +33,8 @@ namespace LobbyCompatibility.Behaviours
 
         // Needed for mod diff text generation
         private TextMeshProUGUI? headerTextTemplate;
-        private TextMeshProUGUI? modTextTemplate;
+        private TextMeshProUGUI? textTemplate;
+        private List<TextMeshProUGUI> existingText = new();
 
         private void Awake()
         {
@@ -46,7 +45,6 @@ namespace LobbyCompatibility.Behaviours
         {
             var panelImage = panel.transform.Find("Panel")?.GetComponent<Image>();
             panelTransform = panelImage?.rectTransform;
-
             if (panelImage == null || panelTransform == null)
                 return;
 
@@ -63,6 +61,7 @@ namespace LobbyCompatibility.Behaviours
             // Move header up
             titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
 
+            // Initialize scroll view by taking the game's lobby list and modifying it
             SetupScrollView(panelTransform, scrollViewTemplate, titleText.color);
 
             // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
@@ -76,6 +75,7 @@ namespace LobbyCompatibility.Behaviours
             // Set button to be consistently spaced from the bottom of the panel 
             // This is the exact pixel distance the "Back" button is from the bottom on normal panels. TODO: do this dynamically based on notificationWidth
             buttonTransform.anchoredPosition = new Vector2(buttonTransform.anchoredPosition.x, -110.5f);
+
             // Inject custom button behaviour so it doesn't force you back to the main menu
             button.onClick.m_PersistentCalls.Clear();
             button.onClick.AddListener(() => { SetPanelActive(false); });
@@ -102,26 +102,35 @@ namespace LobbyCompatibility.Behaviours
             scrollViewTransform.anchoredPosition = new Vector2(15f, -30f);
             scrollViewTransform.sizeDelta = new Vector2(-30f, -100f);
 
-            // Set scroll to zero
+            // Reset scroll to default position
             scrollView.verticalNormalizedPosition = 1f;
 
             // Setup text as template
             text.gameObject.SetActive(false);
             headerTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Center);
-            modTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Left);
+            textTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f, HorizontalAlignmentOptions.Left);
         }
 
         public void DisplayNotification(LobbyDiff lobbyDiff)
         {
-            if (panelTransform == null || scrollView?.content == null || titleText == null || headerTextTemplate == null || modTextTemplate == null)
+            if (scrollView == null)
                 return;
 
             // Set scroll to zero
             scrollView.verticalNormalizedPosition = 1f;
-
             SetPanelActive(true);
-            titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
             // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
+
+            DisplayModList(lobbyDiff);
+
+        }
+
+        private void DisplayModList(LobbyDiff lobbyDiff)
+        {
+            if (panelTransform == null || scrollView?.content == null || titleText == null || headerTextTemplate == null || textTemplate == null)
+                return;
+
+            titleText.text = lobbyDiff.LobbyCompatibilityDisplayName;
 
             // clear old text
             foreach (var text in existingText)
@@ -134,9 +143,10 @@ namespace LobbyCompatibility.Behaviours
             existingText.Clear();
 
             // Generate text based on LobbyDiff
-            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, modTextTemplate, headerTextTemplate, textSpacing, headerSpacing);
+            var (newText, padding) = UIHelper.GenerateTextFromDiff(lobbyDiff, textTemplate, headerTextTemplate, textSpacing, headerSpacing);
             existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
 
+            // Resize ScrollView to not extend far past the content
             scrollView.content.sizeDelta = new Vector2(0, padding + headerSpacing); // could probably be done natively with a contentsizefilter. don't wanna look into it rn
         }
 

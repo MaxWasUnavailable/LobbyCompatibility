@@ -97,10 +97,10 @@ namespace LobbyCompatibility.Features
 
         // generatedText, distance
         // TODO: Replace with pooling if we need the performance from rapid scrolling
-        public static (List<TextMeshProUGUI>, float) GenerateTextFromDiff(LobbyDiff lobbyDiff, TextMeshProUGUI textTemplate, TextMeshProUGUI headerTextTemplate, float textSpacing, float headerSpacing)
+        public static (List<TextMeshProUGUI>, float) GenerateTextFromDiff(LobbyDiff lobbyDiff, TextMeshProUGUI textTemplate, TextMeshProUGUI headerTextTemplate, float textSpacing, float headerSpacing, float? startPadding = null)
         {
             List<TextMeshProUGUI> generatedText = new();
-            float padding = 0f;
+            float padding = startPadding ?? 0f;
 
             foreach (var (compatibilityResult, required) in sortedCategoryLoadOrder)
             {
