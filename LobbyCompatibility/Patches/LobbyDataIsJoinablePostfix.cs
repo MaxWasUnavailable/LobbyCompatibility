@@ -20,7 +20,7 @@ internal static class LobbyDataIsJoinablePostfix
     [HarmonyPostfix]
     private static bool Postfix(bool isJoinable, ref Lobby lobby)
     {
-        // If original result was false, return false
+        // If original result was false, return false -- if lobby is modded through our mod, it will be Joinable || JoinableModded
         if (!isJoinable)
             return false;
 
@@ -44,7 +44,7 @@ internal static class LobbyDataIsJoinablePostfix
         if (!matchesPluginRequirements)
         {
             LobbyCompatibilityPlugin.Logger?.LogWarning("You are missing required plugins to join this lobby.");
-            Object.FindObjectOfType<MenuManager>().SetLoadingScreen(
+            Object.FindObjectOfType<MenuManager>().SetLoadingScreen( // TODO: Improve error message (diff?)
                 false,
                 RoomEnter.Error,
                 "You are missing required mods to join this lobby.");
