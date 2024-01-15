@@ -2,7 +2,7 @@
     
     <!-- .NET Info -->
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFrameworks>netstandard2.1;net472</TargetFrameworks>
         <AssemblyName>max.lc.LobbyCompatibility</AssemblyName>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
@@ -88,7 +88,7 @@
     <Target
             Name="ThunderstorePack"
             AfterTargets="PostBuildEvent"
-            Condition="$(TargetFramework) == 'net48' and $(Configuration) == 'Release'"
+            Condition="$(TargetFramework) == 'netstandard2.1' and $(Configuration) == 'Release'"
             DependsOnTargets="SetPluginVersion"
     >
         <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)"/>
