@@ -47,7 +47,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
             // Find the AsyncStateMachine class from target method
             .GetCustomAttribute<AsyncStateMachineAttribute>()
             // Get the struct type (random compiler junk)
-            .StateMachineType.GetMethod("MoveNext", (BindingFlags)60);
+            .StateMachineType.GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
     }
 
     public void PatchAll()
