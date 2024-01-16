@@ -24,10 +24,16 @@ internal static class LobbyDataIsJoinablePostfix
         if (!isJoinable)
             return false;
 
-        // If the lobby is not modded, return original result
+        // If the lobby is not modded, return original result if client doesn't have required plugins
         if (lobby.GetData(LobbyMetadata.Modded) != "true")
-            return isJoinable;
-
+        {
+            Object.FindObjectOfType<MenuManager>().SetLoadingScreen(
+                false,
+                RoomEnter.NotAllowed,
+                "You are using mods which aren't strictly client-side, but the lobby is not modded.");
+            return PluginHelper.CanJoinVanillaLobbies() && isJoinable;
+        }
+        
         var lobbyPluginString = lobby.GetData(LobbyMetadata.Plugins);
 
         // If the lobby does not have any plugin information, return original result (since we can't check anything)
