@@ -139,4 +139,13 @@ internal static class PluginHelper
 
         return true;
     }
+    
+    /// <summary>
+    ///     Checks if client is allowed to join vanilla lobbies.
+    /// </summary>
+    /// <returns> True if client is allowed to join vanilla lobbies, false otherwise. </returns>
+    internal static bool CanJoinVanillaLobbies()
+    {
+        return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel == CompatibilityLevel.ClientOnly);
+    }
 }
