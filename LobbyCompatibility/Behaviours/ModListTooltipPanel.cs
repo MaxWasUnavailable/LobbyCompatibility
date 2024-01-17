@@ -1,18 +1,12 @@
 ﻿using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
-using Steamworks.Data;
-using System;
+using LobbyCompatibility.Models;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
-using LobbyCompatibility.Models;
-using UnityEngine.UIElements;
 
 namespace LobbyCompatibility.Behaviours
 {

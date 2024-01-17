@@ -1,13 +1,6 @@
-﻿using System.Linq;
-using HarmonyLib;
+﻿using HarmonyLib;
 using LobbyCompatibility.Behaviours;
-using LobbyCompatibility.Enums;
-using LobbyCompatibility.Features;
-using Steamworks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using Color = UnityEngine.Color;
 
 namespace LobbyCompatibility.Patches;
 

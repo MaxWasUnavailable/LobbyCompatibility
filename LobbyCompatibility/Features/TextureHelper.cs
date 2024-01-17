@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 namespace LobbyCompatibility.Features

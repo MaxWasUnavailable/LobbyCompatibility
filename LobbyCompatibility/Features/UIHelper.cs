@@ -1,15 +1,9 @@
-﻿using BepInEx;
-using LobbyCompatibility.Attributes;
-using LobbyCompatibility.Enums;
+﻿using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace LobbyCompatibility.Features
 {
