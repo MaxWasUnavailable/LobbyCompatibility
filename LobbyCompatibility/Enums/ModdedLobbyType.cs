@@ -19,5 +19,5 @@ public enum ModdedLobbyType
     ///     Mod list does not exist, and lobby might be compatible.
     ///     Also applies to vanilla lobbies.
     /// </summary>
-    Unknown = 2,
+    Unknown = 2
 }
