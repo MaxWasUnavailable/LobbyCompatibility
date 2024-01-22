@@ -45,7 +45,8 @@ namespace LobbyCompatibility.Behaviours
             if (joinButton != null && sprite != null && invertedSprite != null && _lobbySlot.LobbyName != null)
             {
                 // Shift player count to the right to make space for our "Mod Settings" button
-                playerCount.transform.localPosition = new Vector3(32f, playerCount.transform.localPosition.y, playerCount.transform.localPosition.z);
+                var localPosition = playerCount.transform.localPosition;
+                playerCount.transform.localPosition = new Vector3(32f, localPosition.y, localPosition.z);
 
                 // Create the actual modlist button to the left of the player count text
                 CreateModListButton(joinButton, sprite, invertedSprite, _lobbySlot.LobbyName.color, playerCount.transform);
