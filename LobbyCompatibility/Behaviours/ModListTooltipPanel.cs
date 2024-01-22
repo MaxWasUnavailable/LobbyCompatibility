@@ -63,7 +63,8 @@ namespace LobbyCompatibility.Behaviours
             _panelTransform.Find("ResponseButton")?.gameObject.SetActive(false);
 
             // Set to screen's top left corner temporarily and disable panel
-            _panelTransform.anchoredPosition = new Vector2(_panelTransform.sizeDelta.x / 2, -_panelTransform.sizeDelta.y / 2);
+            var sizeDelta = _panelTransform.sizeDelta;
+            _panelTransform.anchoredPosition = new Vector2(sizeDelta.x / 2, -sizeDelta.y / 2);
             _panelTransform.gameObject.SetActive(false);
 
             SetupText(_panelTransform);
@@ -103,7 +104,8 @@ namespace LobbyCompatibility.Behaviours
             bool alignWithBottom = hoverPanelPosition.y > -190f;
 
             // Add the panel's width/height so it's not offset
-            hoverPanelPosition += new Vector2(_panelTransform.sizeDelta.x, alignWithBottom ? -_panelTransform.sizeDelta.y : 0);
+            var sizeDelta = _panelTransform.sizeDelta;
+            hoverPanelPosition += new Vector2(sizeDelta.x, alignWithBottom ? -sizeDelta.y : 0);
 
             // Add the button size as an additional offset so it's not in the center of the button
             hoverPanelPosition += new Vector2(elementTransform.sizeDelta.x / 2, alignWithBottom ? -elementTransform.sizeDelta.y / 2 : 0);
