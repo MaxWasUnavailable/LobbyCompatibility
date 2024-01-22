@@ -66,10 +66,10 @@ namespace LobbyCompatibility.Behaviours
         /// <summary>
         ///     Registers the parent container of the LobbySlot. Required for tooltip position math.
         /// </summary>
-        /// <param name="transform"> The LobbySlot's parent container. Equivalent to the ScrollRect's viewport. </param>
-        public void SetParentContainer(Transform transform)
+        /// <param name="parentTransform"> The LobbySlot's parent container. Equivalent to the ScrollRect's viewport. </param>
+        public void SetParentContainer(Transform parentTransform)
         {
-            _parentContainer = transform;
+            _parentContainer = parentTransform;
         }
 
         // Clone the "Join" button into a new modlist button we can use
