@@ -52,7 +52,8 @@ namespace LobbyCompatibility.Features
         /// <param name="multiplier"> Amount to multiply the sizeDelta by. </param>
         public static void MultiplySizeDelta(RectTransform rectTransform, Vector2 multiplier)
         {
-            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x * multiplier.x, rectTransform.sizeDelta.y * multiplier.y);
+            var sizeDelta = rectTransform.sizeDelta;
+            rectTransform.sizeDelta = new Vector2(sizeDelta.x * multiplier.x, sizeDelta.y * multiplier.y);
         }
 
         /// <summary>
