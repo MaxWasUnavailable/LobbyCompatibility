@@ -12,11 +12,19 @@ public record LobbyDiff(List<PluginDiff> PluginDiffs)
 {
     private LobbyDiffResult? _cachedResult;
 
+    /// <summary>
+    ///     The text to display for this lobby in the UI.
+    /// </summary>
+    /// <returns> The text to display for this lobby in the UI. </returns>
     public string GetDisplayText()
     {
         return $"Mod Status: {nameof(GetModdedLobbyType)}";
     }
 
+    /// <summary>
+    ///     The color of the text to display for this lobby.
+    /// </summary>
+    /// <returns> The color of the text to display for this lobby. </returns>
     internal LobbyDiffResult GetModdedLobbyType()
     {
         if (_cachedResult != null)
