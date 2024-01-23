@@ -3,62 +3,89 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace LobbyCompatibility.Behaviours
+namespace LobbyCompatibility.Behaviours;
+
+/// <summary>
+///     Extends UnityEngine.Button events. Needed to run custom code on hover
+///     Instead of opting to use button.onClick events, we might as well just use IPointerClickHandler since we're here
+///     already.
+/// </summary>
+public class ButtonEventHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    // Extends UnityEngine.Button events. Needed to run custom code on hover
-    // Instead of opting to use button.onClick events, we might as well just use IPointerClickHandler since we're here already.
-    public class ButtonEventHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+    private Color? _highlightedColor;
+    private Sprite? _highlightedSprite;
+
+    private Image? _image;
+    private Color? _normalColor;
+    private Sprite? _normalSprite;
+
+    /// <summary>
+    ///     Called when the button is clicked
+    /// </summary>
+    /// <param name="eventData"> Pointer event data </param>
+    public void OnPointerClick(PointerEventData eventData)
     {
-        public event Action<bool>? OnHoverStateChanged;
-        public event Action? OnClick;
+        OnClick?.Invoke();
+    }
 
-        private Image? _image;
-        private Sprite? _normalSprite;
-        private Sprite? _highlightedSprite;
-        private Color? _normalColor;
-        private Color? _highlightedColor;
+    /// <summary>
+    ///     Called when the mouse enters the button
+    /// </summary>
+    /// <param name="eventData"> Pointer event data </param>
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        OnHoverStateChanged?.Invoke(true);
+        SetHighlighted(true);
+    }
 
-        public void SetButtonImageData(Image image, Sprite normalSprite, Sprite highlightedSprite, Color normalColor, Color highlightedColor)
-        {
-            _image = image;
-            _normalSprite = normalSprite;
-            _highlightedSprite = highlightedSprite;
-            _normalColor = normalColor;
-            _highlightedColor = highlightedColor;
+    /// <summary>
+    ///     Called when the mouse exits the button
+    /// </summary>
+    /// <param name="eventData"> Pointer event data </param>
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        OnHoverStateChanged?.Invoke(false);
+        SetHighlighted(false);
+    }
 
-            SetVisuals(false);
-        }
+    public event Action<bool>? OnHoverStateChanged;
+    public event Action? OnClick;
 
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            OnClick?.Invoke();
-        }
+    /// <summary>
+    ///     Sets the button's image data
+    /// </summary>
+    /// <param name="image"> Image component </param>
+    /// <param name="normalSprite"> Sprite to use when the button is not highlighted </param>
+    /// <param name="highlightedSprite"> Sprite to use when the button is highlighted </param>
+    /// <param name="normalColor"> Color to use when the button is not highlighted </param>
+    /// <param name="highlightedColor"> Color to use when the button is highlighted </param>
+    public void SetButtonImageData(Image image, Sprite normalSprite, Sprite highlightedSprite, Color normalColor,
+        Color highlightedColor)
+    {
+        _image = image;
+        _normalSprite = normalSprite;
+        _highlightedSprite = highlightedSprite;
+        _normalColor = normalColor;
+        _highlightedColor = highlightedColor;
 
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            OnHoverStateChanged?.Invoke(false);
-            SetVisuals(false);
-        }
+        SetHighlighted(false);
+    }
 
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            OnHoverStateChanged?.Invoke(true);
-            SetVisuals(true);
-        }
+    /// <summary>
+    ///     If button is highlighted, set the image to the highlighted sprite/color. Otherwise use the normal sprite/color
+    /// </summary>
+    /// <param name="highlighted"> Whether the button is highlighted </param>
+    private void SetHighlighted(bool highlighted)
+    {
+        if (_image == null)
+            return;
 
-        // If button is highlighted, set the image to the highlighted sprite/color. Otherwise use the normal sprite/color
-        private void SetVisuals(bool highlighted)
-        {
-            if (_image == null) 
-                return;
+        _image.sprite = highlighted ? _highlightedSprite : _normalSprite;
 
-            _image.sprite = highlighted ? _highlightedSprite : _normalSprite;
+        var color = highlighted ? _highlightedColor : _normalColor;
+        if (color == null)
+            return;
 
-            var color = highlighted ? _highlightedColor : _normalColor;
-            if (color == null) 
-                return;
-
-            _image.color = color.Value;
-        }
+        _image.color = color.Value;
     }
 }
