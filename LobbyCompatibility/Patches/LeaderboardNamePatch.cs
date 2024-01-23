@@ -9,7 +9,7 @@ namespace LobbyCompatibility.Patches;
 [HarmonyWrapSafe]
 internal class LeaderboardNamePatch
 {
-    [HarmonyPatch(nameof(ISteamUserStats), nameof(ISteamUserStats.FindOrCreateLeaderboard))]
+    [HarmonyPatch(typeof(ISteamUserStats), nameof(ISteamUserStats.FindOrCreateLeaderboard))]
     [HarmonyPrefix]
     private static void SavePrefix(ref string pchLeaderboardName)
     {
