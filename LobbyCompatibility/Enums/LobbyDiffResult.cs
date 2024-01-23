@@ -1,23 +1,24 @@
 ﻿namespace LobbyCompatibility.Enums;
 
 /// <summary>
-///     Specifies the mod compatibility level of a lobby.
+///     The result of a lobby diff.
+///     Indicates for a comparison between a server and client mod list, what the result of the comparison is.
 /// </summary>
-public enum ModdedLobbyType
+public enum LobbyDiffResult
 {
     /// <summary>
     ///     Mod list contains no conflicts, and lobby should be fully compatible.
     /// </summary>
-    Compatible = 0,
+    Compatible,
 
     /// <summary>
     ///     Mod list has explicit conflicts, and lobby is not compatible.
     /// </summary>
-    Incompatible = 1,
+    Incompatible,
 
     /// <summary>
     ///     Mod list does not exist, and lobby might be compatible.
     ///     Also applies to vanilla lobbies.
     /// </summary>
-    Unknown = 2
+    Unknown
 }
