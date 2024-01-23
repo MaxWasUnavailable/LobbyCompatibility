@@ -1,62 +1,48 @@
-﻿using LobbyCompatibility.Enums;
-using System;
+﻿using System;
+using LobbyCompatibility.Enums;
 using UnityEngine;
 
-namespace LobbyCompatibility.Models
+// ReSharper disable InconsistentNaming
+
+namespace LobbyCompatibility.Models;
+
+/// <summary>
+///     Diff between two plugins.
+/// </summary>
+/// <param name="PluginDiffResult"> The compatibility result of the plugin. </param>
+/// <param name="GUID"> The GUID of the plugin. </param>
+/// <param name="Version"> The version of the plugin. </param>
+/// <param name="RequiredVersion"> The required version of the plugin (null if not required) </param>
+public record PluginDiff(
+    PluginDiffResult PluginDiffResult,
+    string GUID,
+    Version Version,
+    Version? RequiredVersion)
 {
-    // just my temporarily implementation of how a diff *could* look 
-    // done to get UI logic in place
-    // should be easy to swap out with a new/better impl if needed
-    public class PluginDiff
+    /// <summary>
+    ///     The text to display for this plugin in the UI.
+    /// </summary>
+    public string GetDisplayText()
     {
-        public CompatibilityResult CompatibilityResult { get; }
-        public bool Required { get; }
-        public string Name { get; }
-        public Version Version { get; }
-        public Version? RequiredVersion { get; } // only applicable when ServerModOutdated / ClientModOutdated
-        public string NameAndVersion => $"{Name}-{Version}";
+        var name = $"{GUID}-{Version}";
 
-        // Used for compatibility colors in modlist UI
-        public Color TextColor
+        if (RequiredVersion != null)
+            name += $" — v{RequiredVersion} was required";
+
+        return name;
+    }
+
+    /// <summary>
+    ///     The color of the text to display for this plugin.
+    /// </summary>
+    public Color GetTextColor()
+    {
+        return PluginDiffResult switch
         {
-            get
-            {
-                // Nice and bright green if we're compatible
-                if (CompatibilityResult == CompatibilityResult.Compatible)
-                    return Color.green;
-
-                // Red if we're required and not compatible
-                if (Required)
-                    return Color.red;
-
-                // Gray if it's not required, but also not compatible
-                return Color.gray;
-            }
-        }
-
-        // Display a "Need (version)" prompt for version conflicts in proper full modlist
-        public string DisplayName 
-        {
-            get
-            {
-                var name = $"{Name}-{Version}";
-
-                // Add the required version to version-based conflicts
-                if ((CompatibilityResult == CompatibilityResult.ServerModOutdated || CompatibilityResult == CompatibilityResult.ClientModOutdated) && RequiredVersion != null)
-                {
-                    name += $" (Need {RequiredVersion})";
-                }
-                return name;
-            }
-        }
-
-        public PluginDiff(CompatibilityResult compatibilityResult, bool required, string name, Version version, Version? requiredVersion = null) 
-        {
-            CompatibilityResult = compatibilityResult;
-            Required = required;
-            Name = name;
-            Version = version;
-            RequiredVersion = requiredVersion;
-        }
+            PluginDiffResult.Compatible => Color.green,
+            PluginDiffResult.ClientMissingMod or PluginDiffResult.ServerMissingMod => Color.red,
+            PluginDiffResult.ClientModOutdated or PluginDiffResult.ServerModOutdated => Color.yellow,
+            _ => Color.gray
+        };
     }
 }
