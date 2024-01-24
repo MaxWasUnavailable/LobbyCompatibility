@@ -18,7 +18,7 @@ public record LobbyDiff(List<PluginDiff> PluginDiffs)
     /// <returns> The text to display for this lobby in the UI. </returns>
     public string GetDisplayText()
     {
-        return $"Mod Status: {nameof(GetModdedLobbyType)}";
+        return $"Mod Status: {GetModdedLobbyType().ToString()}";
     }
 
     /// <summary>
