@@ -53,8 +53,8 @@ internal static class PluginHelper
     {
         return GetCompatibilityPlugins().Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version,
-                GetCompatibilityAttribute(plugin.Instance)?.CompatibilityLevel ?? CompatibilityLevel.ClientOnly,
-                GetCompatibilityAttribute(plugin.Instance)?.VersionStrictness ?? VersionStrictness.None));
+                GetCompatibilityAttribute(plugin.Instance)?.CompatibilityLevel ?? null,
+                GetCompatibilityAttribute(plugin.Instance)?.VersionStrictness ?? null));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ internal static class PluginHelper
     /// <param name="source"> The source plugin. </param>
     /// <param name="target"> The target plugin. </param>
     /// <returns> True if the plugin matches the version of the target, false otherwise. </returns>
-    private static bool MatchesVersion(PluginInfoRecord source, PluginInfoRecord target)
+    internal static bool MatchesVersion(PluginInfoRecord source, PluginInfoRecord target)
     {
         if (source.VersionStrictness == VersionStrictness.None)
             return true;
