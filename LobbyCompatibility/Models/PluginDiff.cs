@@ -44,7 +44,7 @@ public record PluginDiff(
         {
             PluginDiffResult.Compatible => Color.green,
             PluginDiffResult.ClientMissingMod or PluginDiffResult.ServerMissingMod => Color.red,
-            PluginDiffResult.ClientModOutdated or PluginDiffResult.ServerModOutdated => Color.yellow,
+            PluginDiffResult.ModVersionMismatch => Color.yellow,
             _ => Color.gray
         };
     }
