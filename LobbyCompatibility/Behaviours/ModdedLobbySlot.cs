@@ -31,7 +31,7 @@ public class ModdedLobbySlot : MonoBehaviour
             return;
 
         // Get the "diff" of the lobby - mock data right now
-        _lobbyDiff = MockLobbyHelper.GetDiffFromLobby(_lobbySlot.thisLobby);
+        _lobbyDiff = LobbyHelper.GetLobbyDiff(_lobbySlot.thisLobby);
 
         // Find player count text (could be moved/removed in a future update, but unlikely)
         var playerCount = _lobbySlot.playerCount;

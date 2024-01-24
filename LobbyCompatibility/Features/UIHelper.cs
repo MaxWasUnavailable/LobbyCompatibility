@@ -142,7 +142,8 @@ internal static class UIHelper
 
             // Create the category header
             var headerText = CreateTextFromTemplate(headerTextTemplate,
-                MockLobbyHelper.GetCompatibilityCategoryName(compatibilityResult, true) + ":", -padding);
+                LobbyHelper.GetCompatibilityHeader(compatibilityResult) + ":", -padding);
+            
             generatedText.Add(headerText);
             padding += headerSpacing;
             lines++;
