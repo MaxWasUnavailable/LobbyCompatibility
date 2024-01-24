@@ -25,12 +25,7 @@ public enum PluginDiffResult
     ClientMissingMod,
 
     /// <summary>
-    ///     Server has an outdated version of a mod that the client has.
+    ///     Mods are incompatible due to a version mismatch.
     /// </summary>
-    ServerModOutdated,
-
-    /// <summary>
-    ///     Client has an outdated version of a mod that the server has.
-    /// </summary>
-    ClientModOutdated
+    ModVersionMismatch
 }
