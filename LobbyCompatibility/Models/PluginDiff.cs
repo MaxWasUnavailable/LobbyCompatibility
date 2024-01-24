@@ -16,7 +16,7 @@ namespace LobbyCompatibility.Models;
 public record PluginDiff(
     PluginDiffResult PluginDiffResult,
     string GUID,
-    Version Version,
+    Version? Version,
     Version? RequiredVersion)
 {
     /// <summary>
@@ -24,7 +24,10 @@ public record PluginDiff(
     /// </summary>
     public string GetDisplayText()
     {
-        var name = $"{GUID}-{Version}";
+        var name = $"{GUID}";
+        
+        if (Version != null)
+            name += $"-v{Version}";
 
         if (RequiredVersion != null)
             name += $" — v{RequiredVersion} was required";
