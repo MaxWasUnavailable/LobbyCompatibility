@@ -19,6 +19,6 @@ public record PluginInfoRecord(
     string GUID,
     [property: JsonConverter(typeof(VersionConverter))]
     Version Version,
-    CompatibilityLevel CompatibilityLevel,
-    VersionStrictness VersionStrictness
+    CompatibilityLevel? CompatibilityLevel,
+    VersionStrictness? VersionStrictness
 );

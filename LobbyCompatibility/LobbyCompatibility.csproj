@@ -46,6 +46,24 @@
 
     <!-- Import Package References -->
     <ItemGroup>
+      <None Remove="Resources\InvertedModSettings.png" />
+      <None Remove="Resources\InvertedModSettingsExclamationPoint.png" />
+      <None Remove="Resources\InvertedModSettingsQuestionMark.png" />
+      <None Remove="Resources\ModSettings.png" />
+      <None Remove="Resources\ModSettingsExclamationPoint.png" />
+      <None Remove="Resources\ModSettingsQuestionMark.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\InvertedModSettings.png" />
+      <EmbeddedResource Include="Resources\InvertedModSettingsExclamationPoint.png" />
+      <EmbeddedResource Include="Resources\InvertedModSettingsQuestionMark.png" />
+      <EmbeddedResource Include="Resources\ModSettings.png" />
+      <EmbeddedResource Include="Resources\ModSettingsExclamationPoint.png" />
+      <EmbeddedResource Include="Resources\ModSettingsQuestionMark.png" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
         <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all"/>
         <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" PrivateAssets="all"/>
@@ -55,7 +73,7 @@
     </ItemGroup>
     
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
     </ItemGroup>
 
     <!-- IDE Assemblies - Easier to Find Source Code -->
@@ -68,6 +86,12 @@
         </Reference>
         <Reference Include="Facepunch.Steamworks.64" Publicize="true" PrivateAssets="all">
             <HintPath>$(DependenciesDirecory)Facepunch.Steamworks.64.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.TextMeshPro" PrivateAssets="all">
+            <HintPath>$(DependenciesDirecory)Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI" PrivateAssets="all">
+            <HintPath>$(DependenciesDirecory)UnityEngine.UI.dll</HintPath>
         </Reference>
     </ItemGroup>
 
