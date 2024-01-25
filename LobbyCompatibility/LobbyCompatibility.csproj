@@ -81,17 +81,20 @@
         <Reference Include="Assembly-CSharp" Publicize="true" PrivateAssets="all">
             <HintPath>$(DependenciesDirectory)Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="Assembly-CSharp-firstpass" Publicize="true" PrivateAssets="all">
+            <HintPath>$(DependenciesDirectory)Assembly-CSharp-firstpass.dll</HintPath>
+        </Reference>
         <Reference Include="Newtonsoft.Json" PrivateAssets="all">
             <HintPath>$(DependenciesDirectory)Newtonsoft.Json.dll</HintPath>
         </Reference>
-        <Reference Include="Facepunch.Steamworks.64" Publicize="true" PrivateAssets="all">
-            <HintPath>$(DependenciesDirecory)Facepunch.Steamworks.64.dll</HintPath>
+        <Reference Include="Facepunch.Steamworks.Win64" Publicize="true" PrivateAssets="all">
+            <HintPath>$(DependenciesDirectory)Facepunch.Steamworks.Win64.dll</HintPath>
         </Reference>
         <Reference Include="Unity.TextMeshPro" PrivateAssets="all">
-            <HintPath>$(DependenciesDirecory)Unity.TextMeshPro.dll</HintPath>
+            <HintPath>$(DependenciesDirectory)Unity.TextMeshPro.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.UI" PrivateAssets="all">
-            <HintPath>$(DependenciesDirecory)UnityEngine.UI.dll</HintPath>
+            <HintPath>$(DependenciesDirectory)UnityEngine.UI.dll</HintPath>
         </Reference>
     </ItemGroup>
 
