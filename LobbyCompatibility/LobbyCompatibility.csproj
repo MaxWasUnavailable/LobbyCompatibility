@@ -2,8 +2,12 @@
 
     <!-- .NET Info -->
     <PropertyGroup>
+        <!-- 
+            Target both netstandard2.1 and net472 to achieve the widest possible support for mods.
+            We can't target netstandard2.0 due to the game assemblies targeting netstandard2.1.
+        -->
         <TargetFrameworks>netstandard2.1;net472</TargetFrameworks>
-        <AssemblyName>Max.lc.LobbyCompatibility</AssemblyName>
+        <AssemblyName>BMX.LC.LobbyCompatibility</AssemblyName>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
@@ -11,9 +15,13 @@
             https://api.nuget.org/v3/index.json;
             https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
+        
         <!-- Auto Versioning -->
         <MinVerDefaultPreReleaseIdentifiers>dev</MinVerDefaultPreReleaseIdentifiers>
         <MinVerTagPrefix>v</MinVerTagPrefix>
+        
+        <!-- Prevent Publicizer Warnings from Showing -->
+        <NoWarn>$(NoWarn);CS0436</NoWarn>
     </PropertyGroup>
 
     <!-- BepInEx Info -->
@@ -38,13 +46,12 @@
         <None Include="$(ProjectDir)../README.md" Pack="true" PackagePath="/"/>
     </ItemGroup>
 
-    <!-- Embedded Debug - Can Remove -->
+    <!-- Embedded Debug -->
     <PropertyGroup>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
     </PropertyGroup>
-
-    <!-- Import Package References -->
+    
     <ItemGroup>
         <None Remove="Resources\InvertedModSettings.png"/>
         <None Remove="Resources\InvertedModSettingsExclamationPoint.png"/>
@@ -63,6 +70,7 @@
         <EmbeddedResource Include="Resources\ModSettingsQuestionMark.png"/>
     </ItemGroup>
 
+    <!-- Import Package References -->
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
         <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all"/>
