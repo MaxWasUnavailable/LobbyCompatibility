@@ -25,11 +25,11 @@ public record PluginDiff(
     public string GetDisplayText()
     {
         var name = $"{GUID}";
-        
+
         if (Version != null)
             name += $"-v{Version}";
 
-        if (RequiredVersion != null)
+        if (PluginDiffResult == PluginDiffResult.ModVersionMismatch && RequiredVersion != null)
             name += $" — v{RequiredVersion} was required";
 
         return name;
