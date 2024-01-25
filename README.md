@@ -1,10 +1,32 @@
 # Lobby Compatibility
 
+[![Build](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
+[![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
+[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatiblity?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatiblity)
+
 This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
 ## For Players
 
 ### Lobby Browser
+
+This mod lets you know when a lobby is incompatible with your currently installed mods, and will let you know what you need to update, downgrade, download, or remove to join that lobby.
+
+You will notice an icon at the bottom left of every game, and you can see if the lobby is incompatible or not by hovering over it.
+
+![Hovering over the Lobby Compatibility icon.]()
+
+If you then click on the icon, you can then see an in-depth view of the mod list, with a scrollbar to view all mods required to connect to that server.
+
+![The Lobby Compatibility modal.]()
+
+If you then attempt to connect to a server - either public or private - with incompatible or missing mods, an error will display telling you that you are missing required mods.
+
+![Lobby connection error due to incompatible/missing mods.]()
+
+### Modded Leaderboards
+
+This mod adds a separate modded leaderboard to better compare to your friends!
 
 ## For Developers
 
@@ -12,7 +34,7 @@ To use this, you need to add a package reference to `Max.LobbyCompatibility` in 
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Max.LobbyCompatibility" PrivateAssets="all" />
+    <PackageReference Include="Max.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
 </ItemGroup>
 ```
 
@@ -23,8 +45,12 @@ You can also use your IDE's interface to add the reference. For Visual Studio 20
 Simply add `[LobbyCompatibility(CompatibilityLevel, VersionStrictness)]` above your `Plugin` class like so:
 
 ```csharp
+// ...
+[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 [LobbyCompatibility(CompatibilityLevel = CompatibilityLevel.Everyone, VersionStrictness = VersionStrictness.Minor)]
 class MyPlugin : BaseUnityPlugin
+{
+    // ...
 ```
 
 The following enums are usable:
@@ -52,10 +78,10 @@ If the Compatibility Level is not specified, it will result in no checking.
 If the Version Strictness is not specified, it will default to `None`.
 
 - `None`
-    - No version check is done
+  - No version check is done
 - `Major`
-    - Mod must have the same Major version (1.x.x)
+  - Mod must have the same Major version (1.x.x)
 - `Minor`
-    - Mods must have the same Minor version (x.1.x)
+  - Mods must have the same Minor version (x.1.x)
 - `Patch`
-    - Mods must have the same Patch version (x.x.1)
+  - Mods must have the same Patch version (x.x.1)
