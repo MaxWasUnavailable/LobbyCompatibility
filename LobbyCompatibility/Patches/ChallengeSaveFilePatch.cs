@@ -1,5 +1,4 @@
-﻿using System;
-using HarmonyLib;
+﻿using HarmonyLib;
 
 namespace LobbyCompatibility.Patches;
 
@@ -9,9 +8,9 @@ namespace LobbyCompatibility.Patches;
 internal class ChallengeSaveFilePatch
 {
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(ES3Settings), MethodType.Constructor, new Type[] { typeof(string), typeof(ES3Settings) })]
+    [HarmonyPatch(typeof(ES3Settings), MethodType.Constructor, typeof(string), typeof(ES3Settings))]
     private static void FileSettings(ref string path, ES3Settings settings)
     {
-        path = (path == "LCChallengeFile") ? "LCModdedChallengeFile" : path;
+        path = path == "LCChallengeFile" ? "LCModdedChallengeFile" : path;
     }
 }

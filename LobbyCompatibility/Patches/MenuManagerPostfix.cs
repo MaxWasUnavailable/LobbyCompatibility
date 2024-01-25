@@ -28,12 +28,14 @@ internal static class MenuManagerPostfix
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
 
         // Setup hover notification/tooltip UI
-        var modListTooltipPanel = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+        var modListTooltipPanel =
+            Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
         modListTooltipPanel.AddComponent<ModListTooltipPanel>();
         modListTooltipPanel.SetActive(true);
 
         // Setup modlist panel
-        var modListPanelNotification = Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+        var modListPanelNotification =
+            Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
 
         // Create actual panel handler (needs to be a seperate object because of the way notifications are structured)
         var modListPanelObject = new GameObject("ModListPanel Handler");

@@ -6,6 +6,6 @@
     </PropertyGroup>
 
     <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExportDirectory)" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExportDirectory)"/>
     </Target>
 </Project>

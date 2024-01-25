@@ -137,13 +137,13 @@ internal static class UIHelper
             padding += headerSpacing - textSpacing;
 
             // end linecount sooner if we're about to create a header - no point in showing a blank header
-            if (maxLines != null && lines > maxLines -1)
+            if (maxLines != null && lines > maxLines - 1)
                 break;
 
             // Create the category header
             var headerText = CreateTextFromTemplate(headerTextTemplate,
                 LobbyHelper.GetCompatibilityHeader(compatibilityResult) + ":", -padding);
-            
+
             generatedText.Add(headerText);
             padding += headerSpacing;
             lines++;

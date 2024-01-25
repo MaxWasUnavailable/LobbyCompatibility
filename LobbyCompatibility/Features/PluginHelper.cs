@@ -139,7 +139,7 @@ internal static class PluginHelper
 
         return true;
     }
-    
+
     /// <summary>
     ///     Checks if client is allowed to join vanilla lobbies.
     /// </summary>
