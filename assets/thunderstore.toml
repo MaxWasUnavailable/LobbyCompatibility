@@ -1,0 +1,34 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "BMX"
+name = "LobbyCompatibility"
+description = "Towards a future with fewer lobby incompatibility errors."
+websiteUrl = "https://github.com/MaxWasUnavailable/LobbyCompatibility"
+containsNsfwContent = false
+[package.dependencies]
+BepInEx-BepInExPack = "5.4.2100"
+
+[build]
+icon = "icon.png"
+readme = "../README.md"
+outdir = "../dist"
+
+[[build.copy]]
+source = "../LICENSE"
+target = "/"
+
+[[build.copy]]
+source = "../CHANGELOG.md"
+target = "/"
+
+[[build.copy]]
+source = "../LobbyCompatiblity/bin/Release/netstandard2.1/LobbyCompatiblity.dll"
+target = "/BepInEx/plugins/LobbyCompatiblity/"
+
+[publish]
+communities = [ "lethal-company", ]
+repository = "https://thunderstore.io"
+[publish.categories]
+lethal-company = [ "bepinex", "mods", "libraries", "misc", "serverside", "clientside" ]

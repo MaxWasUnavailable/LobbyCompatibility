@@ -5,20 +5,20 @@ public enum VersionStrictness
     /// <summary>
     ///     No version check is done
     /// </summary>
-    None = 0,
+    None,
 
     /// <summary>
     ///     Mod must have the same Major version
     /// </summary>
-    Major = 1,
+    Major,
 
     /// <summary>
     ///     Mods must have the same Minor version
     /// </summary>
-    Minor = 2,
+    Minor,
 
     /// <summary>
     ///     Mods must have the same Patch version
     /// </summary>
-    Patch = 3
+    Patch
 }

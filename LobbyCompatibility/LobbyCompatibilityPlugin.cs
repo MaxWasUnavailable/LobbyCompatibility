@@ -15,7 +15,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
     private Harmony? Harmony { get; set; }
     internal new static ManualLogSource? Logger { get; set; }
     public static LobbyCompatibilityPlugin? Instance { get; private set; }
-    
+
     private void Awake()
     {
         // Set instance
@@ -23,10 +23,10 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
 
         // Init logger
         Logger = base.Logger;
-        
+
         // Patch using Harmony
         PatchAll();
-        
+
         // Plugin startup logic
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
@@ -61,7 +61,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
         Logger?.LogDebug("Patching...");
 
         Harmony ??= new Harmony(PluginInfo.PLUGIN_GUID);
-        
+
         Harmony.PatchAll();
         _isPatched = true;
 
