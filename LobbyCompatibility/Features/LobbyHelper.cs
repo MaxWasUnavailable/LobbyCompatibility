@@ -13,6 +13,8 @@ internal static class LobbyHelper
 {
     private static List<PluginInfoRecord>? _clientPlugins;
 
+    public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
+
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
     /// </summary>
@@ -51,8 +53,10 @@ internal static class LobbyHelper
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ServerMissingMod, clientPlugin.GUID,
                     clientPlugin.Version, null));
         }
+        
+        LatestLobbyDiff = new LobbyDiff(pluginDiffs);
 
-        return new LobbyDiff(pluginDiffs);
+        return LatestLobbyDiff;
     }
 
     public static string GetCompatibilityHeader(PluginDiffResult pluginDiffResult)
