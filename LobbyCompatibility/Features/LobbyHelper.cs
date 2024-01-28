@@ -53,7 +53,7 @@ internal static class LobbyHelper
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ServerMissingMod, clientPlugin.GUID,
                     clientPlugin.Version, null));
         }
-        
+
         LatestLobbyDiff = new LobbyDiff(pluginDiffs);
 
         return LatestLobbyDiff;
