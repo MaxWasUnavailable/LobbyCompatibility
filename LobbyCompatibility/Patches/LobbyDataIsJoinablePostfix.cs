@@ -36,6 +36,9 @@ internal static class LobbyDataIsJoinablePostfix
 
         var lobbyPluginString = lobby.GetData(LobbyMetadata.Plugins);
 
+        // Create lobby diff so LatestLobbyDiff is set
+        LobbyHelper.GetLobbyDiff(lobby);
+
         // If the lobby does not have any plugin information, return original result (since we can't check anything)
         if (string.IsNullOrEmpty(lobbyPluginString))
         {
@@ -43,7 +46,6 @@ internal static class LobbyDataIsJoinablePostfix
             return isJoinable;
         }
 
-        // TODO: Should probably return a "result" instead of a bool, so we can build a diff / UI / whatever for the user to see what's missing
         var matchesPluginRequirements =
             PluginHelper.MatchesTargetRequirements(PluginHelper.ParseLobbyPluginsMetadata(lobbyPluginString));
 
