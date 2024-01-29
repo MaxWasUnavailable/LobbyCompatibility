@@ -27,5 +27,10 @@ public enum PluginDiffResult
     /// <summary>
     ///     Mods are incompatible due to a version mismatch.
     /// </summary>
-    ModVersionMismatch
+    ModVersionMismatch,
+    
+    /// <summary>
+    ///     It is unknown if the mods are compatible.
+    /// </summary>
+    Unknown
 }
