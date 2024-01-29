@@ -34,17 +34,17 @@ This mod adds a separate modded leaderboard to better compare to your friends!
 
 ## For Developers
 
-To use this, you need to add a package reference to `Max.LobbyCompatibility` in your `.csproj` file. You can use the
+To use this, you need to add a package reference to `LethalCompany.LobbyCompatibility` in your `.csproj` file. You can use the
 following code:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="BMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="LethalCompany.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
 </ItemGroup>
 ```
 
 You can also use your IDE's interface to add the reference. For Visual Studio 2022, you do so by clicking on
-the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `Max.LobbyCompatibility` and add
+the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `LethalCompany.LobbyCompatibility` and add
 it from there.
 
 ### Usage
