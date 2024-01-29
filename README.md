@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
 [![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
-[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatiblity?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatiblity)
+[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
 
 This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
