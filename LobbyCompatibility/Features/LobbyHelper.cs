@@ -32,7 +32,7 @@ internal static class LobbyHelper
         {
             var clientPlugin = _clientPlugins.FirstOrDefault(plugin => plugin.GUID == lobbyPlugin.GUID);
 
-            if (clientPlugin == null)
+            if (clientPlugin == null && lobbyPlugin.CompatibilityLevel == CompatibilityLevel.Everyone)
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ClientMissingMod, lobbyPlugin.GUID, null,
                     lobbyPlugin.Version));
 
@@ -49,7 +49,8 @@ internal static class LobbyHelper
         {
             var lobbyPlugin = lobbyPlugins.FirstOrDefault(plugin => plugin.GUID == clientPlugin.GUID);
 
-            if (lobbyPlugin == null)
+            if (lobbyPlugin == null &&
+                clientPlugin.CompatibilityLevel is CompatibilityLevel.Everyone or CompatibilityLevel.ClientOptional)
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ServerMissingMod, clientPlugin.GUID,
                     clientPlugin.Version, null));
         }
