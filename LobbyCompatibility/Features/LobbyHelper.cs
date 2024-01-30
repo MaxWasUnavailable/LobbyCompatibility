@@ -57,7 +57,8 @@ internal static class LobbyHelper
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ModVersionMismatch, lobbyPlugin.GUID,
                     clientPlugin.Version, lobbyPlugin.Version));
 
-            else if (!PluginHelper.MatchesVersion(clientPlugin, lobbyPlugin))
+            else if (clientPlugin.CompatibilityLevel != CompatibilityLevel.ClientOnly &&
+                     !PluginHelper.MatchesVersion(clientPlugin, lobbyPlugin))
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ModVersionMismatch, lobbyPlugin.GUID,
                     clientPlugin.Version, lobbyPlugin.Version));
 
