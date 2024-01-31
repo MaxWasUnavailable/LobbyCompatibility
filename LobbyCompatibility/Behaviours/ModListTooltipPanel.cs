@@ -132,7 +132,8 @@ public class ModListTooltipPanel : MonoBehaviour
             return;
 
         var incompatibleModsCount = lobbyDiff.PluginDiffs
-            .Where(pluginDiff => pluginDiff.PluginDiffResult != PluginDiffResult.Compatible).ToList().Count;
+            .Where(pluginDiff => pluginDiff.PluginDiffResult != PluginDiffResult.Compatible &&
+                                 pluginDiff.PluginDiffResult != PluginDiffResult.Unknown).ToList().Count;
         var incompatibleMods = $"({incompatibleModsCount})";
 
         // Make the incompatible count red if there are any incompatible mods

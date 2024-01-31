@@ -125,7 +125,8 @@ public class ModListPanel : MonoBehaviour
     ///     Open the panel and display a lobby's mod list diff
     /// </summary>
     /// <param name="lobbyDiff"> The lobby diff to display </param>
-    public void DisplayNotification(LobbyDiff lobbyDiff)
+    /// <param name="titleOverride"> Override the title text of the mod list panel </param>
+    public void DisplayNotification(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
         if (_scrollView == null)
             return;
@@ -135,20 +136,21 @@ public class ModListPanel : MonoBehaviour
         SetPanelActive(true);
         // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
 
-        DisplayModList(lobbyDiff);
+        DisplayModList(lobbyDiff, titleOverride);
     }
 
     /// <summary>
     ///     Display a lobby's mod list diff through the mod list panel
     /// </summary>
     /// <param name="lobbyDiff"> The lobby diff to display </param>
-    private void DisplayModList(LobbyDiff lobbyDiff)
+    /// <param name="titleOverride"> Override the title text of the mod list panel </param>
+    private void DisplayModList(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
         if (_panelTransform == null || _scrollView?.content == null || _titleText == null ||
             _headerTextTemplate == null || _textTemplate == null)
             return;
 
-        _titleText.text = lobbyDiff.GetDisplayText();
+        _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
 
         // clear old text
         foreach (var text in _existingText)

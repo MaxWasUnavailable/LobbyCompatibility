@@ -51,10 +51,21 @@ internal static class PluginHelper
     /// <returns> An IEnumerable of plugins in the <see cref="PluginInfoRecord" /> format. </returns>
     internal static IEnumerable<PluginInfoRecord> GetAllPluginInfo()
     {
-        return GetCompatibilityPlugins().Select(plugin =>
+        var pluginInfos = new List<PluginInfoRecord>();
+
+        var compatibilityPlugins = GetCompatibilityPlugins().ToList();
+        var nonCompatibilityPlugins = Chainloader.PluginInfos.Where(plugin =>
+            !HasCompatibilityAttribute(plugin.Value.Instance)).Select(plugin => plugin.Value).ToList();
+
+        pluginInfos.AddRange(compatibilityPlugins.Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version,
                 GetCompatibilityAttribute(plugin.Instance)?.CompatibilityLevel ?? null,
-                GetCompatibilityAttribute(plugin.Instance)?.VersionStrictness ?? null));
+                GetCompatibilityAttribute(plugin.Instance)?.VersionStrictness ?? null)));
+
+        pluginInfos.AddRange(nonCompatibilityPlugins.Select(plugin =>
+            new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version, null, null)));
+
+        return pluginInfos;
     }
 
     /// <summary>
@@ -146,6 +157,6 @@ internal static class PluginHelper
     /// <returns> True if client is allowed to join vanilla lobbies, false otherwise. </returns>
     internal static bool CanJoinVanillaLobbies()
     {
-        return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel == CompatibilityLevel.ClientOnly);
+        return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ClientOnly or null);
     }
 }

@@ -32,11 +32,33 @@ internal static class LobbyHelper
         {
             var clientPlugin = _clientPlugins.FirstOrDefault(plugin => plugin.GUID == lobbyPlugin.GUID);
 
-            if (clientPlugin == null)
-                pluginDiffs.Add(new PluginDiff(PluginDiffResult.ClientMissingMod, lobbyPlugin.GUID, null,
+            if (lobbyPlugin.CompatibilityLevel == null || lobbyPlugin.VersionStrictness == null)
+            {
+                var clientVersion = clientPlugin?.Version;
+                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, lobbyPlugin.GUID, clientVersion,
                     lobbyPlugin.Version));
+                continue;
+            }
 
-            else if (!PluginHelper.MatchesVersion(clientPlugin, lobbyPlugin))
+            if (clientPlugin == null)
+            {
+                if (lobbyPlugin.CompatibilityLevel == CompatibilityLevel.Everyone)
+                    pluginDiffs.Add(new PluginDiff(PluginDiffResult.ClientMissingMod, lobbyPlugin.GUID, null,
+                        lobbyPlugin.Version));
+
+                else
+                    pluginDiffs.Add(new PluginDiff(PluginDiffResult.Compatible, lobbyPlugin.GUID, null,
+                        lobbyPlugin.Version));
+
+                continue;
+            }
+
+            if (clientPlugin.CompatibilityLevel != lobbyPlugin.CompatibilityLevel)
+                pluginDiffs.Add(new PluginDiff(PluginDiffResult.ModVersionMismatch, lobbyPlugin.GUID,
+                    clientPlugin.Version, lobbyPlugin.Version));
+
+            else if (clientPlugin.CompatibilityLevel != CompatibilityLevel.ClientOnly &&
+                     !PluginHelper.MatchesVersion(clientPlugin, lobbyPlugin))
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ModVersionMismatch, lobbyPlugin.GUID,
                     clientPlugin.Version, lobbyPlugin.Version));
 
@@ -49,8 +71,22 @@ internal static class LobbyHelper
         {
             var lobbyPlugin = lobbyPlugins.FirstOrDefault(plugin => plugin.GUID == clientPlugin.GUID);
 
-            if (lobbyPlugin == null)
+            if (clientPlugin.CompatibilityLevel == null || clientPlugin.VersionStrictness == null)
+            {
+                var lobbyVersion = lobbyPlugin?.Version;
+                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, clientPlugin.GUID, clientPlugin.Version,
+                    lobbyVersion));
+                continue;
+            }
+
+            if (lobbyPlugin != null) continue;
+
+            if (clientPlugin.CompatibilityLevel is CompatibilityLevel.Everyone or CompatibilityLevel.ClientOptional)
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.ServerMissingMod, clientPlugin.GUID,
+                    clientPlugin.Version, null));
+
+            else
+                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Compatible, clientPlugin.GUID,
                     clientPlugin.Version, null));
         }
 

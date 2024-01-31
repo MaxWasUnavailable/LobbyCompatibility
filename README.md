@@ -10,16 +10,16 @@ This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
 ### Lobby Browser
 
-This mod lets you know when a lobby is incompatible with your currently installed mods, and will let you know what you
-need to update, downgrade, download, or remove to join that lobby.
+This mod lets you know when a lobby is incompatible with your currently installed mods, and will let you know what mods
+you need to update, downgrade, download, or remove to join that lobby.
 
-You will notice an icon at the bottom left of every game, and you can see if the lobby is incompatible or not by
-hovering over it.
+You will notice an icon at the bottom left of every lobby in the lobby browser, and you can see more information (such
+as whether it's incompatible, and what mods are causing it) by hovering over it.
 
 ![Hovering over the Lobby Compatibility icon.]()
 
-If you then click on the icon, you can then see an in-depth view of the mod list, with a scrollbar to view all mods
-required to connect to that server.
+If you click on the icon, you can then see an in-depth view of the mod list, with a scrollbar to view all mods required
+to connect to that server. Note that this only works if the server is running this mod.
 
 ![The Lobby Compatibility modal.]()
 
@@ -30,7 +30,9 @@ display telling you that you are missing required mods.
 
 ### Modded Leaderboards
 
-This mod adds a separate modded leaderboard to better compare to your friends!
+This mod adds a separate modded leaderboard to better compare to your friends! The intent is to help split up vanilla
+and modded leaderboard listings, so modded runs (which might be easier or harder than vanilla runs) don't get mixed in
+with vanilla runs.
 
 ## For Developers
 
@@ -58,17 +60,16 @@ Simply add `[LobbyCompatibility(CompatibilityLevel, VersionStrictness)]` above y
 class MyPlugin : BaseUnityPlugin
 {
     // ...
+}
 ```
 
-The following enums are usable:
+The enums used are as follows:
 
 #### `CompatibilityLevel`
 
-If the Compatibility Level is not specified, it will result in no checking.
-
 - `ClientOnly`
     - Mod only impacts the client.
-    - Mod is not checked at all, VersionStrictness does not apply.
+    - Mod is not checked at all (i.e. you can join vanilla lobbies), VersionStrictness does not apply.
 - `ServerOnly`
     - Mod only impacts the server, and might implicitly impact the client without the client needing to have it
       installed for it to work.
@@ -83,13 +84,11 @@ If the Compatibility Level is not specified, it will result in no checking.
 
 #### `VersionStrictness`
 
-If the Version Strictness is not specified, it will default to `None`.
-
 - `None`
-    - No version check is done
+    - No version check is done (x.x.x)
 - `Major`
     - Mod must have the same Major version (1.x.x)
 - `Minor`
-    - Mods must have the same Minor version (x.1.x)
+    - Mods must have the same Minor and Major version (1.1.x)
 - `Patch`
-    - Mods must have the same Patch version (x.x.1)
+    - Mods must have the same Patch, Minor, and Major version (1.1.1)

@@ -36,7 +36,8 @@ public record LobbyDiff(List<PluginDiff> PluginDiffs)
             return LobbyDiffResult.Unknown;
         }
 
-        if (PluginDiffs.Any(pluginDiff => pluginDiff.PluginDiffResult != PluginDiffResult.Compatible))
+        if (PluginDiffs.Any(pluginDiff => pluginDiff.PluginDiffResult != PluginDiffResult.Compatible &&
+                                          pluginDiff.PluginDiffResult != PluginDiffResult.Unknown))
         {
             _cachedResult = LobbyDiffResult.Incompatible;
             return LobbyDiffResult.Incompatible;

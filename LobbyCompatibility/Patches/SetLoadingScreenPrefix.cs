@@ -29,7 +29,7 @@ internal static class SetLoadingScreenPrefix
         __instance.loadingScreen.SetActive(false);
         __instance.serverListUIContainer.SetActive(false);
 
-        ModListPanel.Instance.DisplayNotification(LobbyHelper.LatestLobbyDiff);
+        ModListPanel.Instance.DisplayNotification(LobbyHelper.LatestLobbyDiff, "Error while joining...");
         
         return false;
     }
