@@ -1,6 +1,7 @@
 ﻿using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
 using LobbyCompatibility.Models;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +16,7 @@ namespace LobbyCompatibility.Behaviours;
 /// </summary>
 public class ModdedLobbySlot : MonoBehaviour
 {
-    private ButtonEventHandler? _buttonEventHandler;
+    private List<ButtonEventHandler> _buttonEventHandlers = new();
     private RectTransform? _buttonTransform;
     private LobbyDiff? _lobbyDiff;
     private LobbySlot? _lobbySlot;
@@ -30,7 +31,7 @@ public class ModdedLobbySlot : MonoBehaviour
         if (_lobbySlot == null)
             return;
 
-        // Get the "diff" of the lobby - mock data right now
+        // Get the "diff" of the lobby
         _lobbyDiff = LobbyHelper.GetLobbyDiff(_lobbySlot.thisLobby);
 
         // Find player count text (could be moved/removed in a future update, but unlikely)
@@ -47,7 +48,7 @@ public class ModdedLobbySlot : MonoBehaviour
         var sprite = GetLobbySprite(_lobbyDiff.GetModdedLobbyType());
         var invertedSprite = GetLobbySprite(_lobbyDiff.GetModdedLobbyType(), true);
 
-        if (joinButton != null && sprite != null && invertedSprite != null && _lobbySlot.LobbyName != null)
+        if (sprite != null && invertedSprite != null && _lobbySlot.LobbyName != null)
         {
             // Shift player count to the right to make space for our "Mod Settings" button
             var localPosition = playerCount.transform.localPosition;
@@ -56,6 +57,15 @@ public class ModdedLobbySlot : MonoBehaviour
             // Create the actual modlist button to the left of the player count text
             CreateModListButton(joinButton, sprite, invertedSprite, _lobbySlot.LobbyName.color, playerCount.transform);
         }
+
+        // If lobby is incompatible, disable the join button (because it won't work)
+        if (_lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Incompatible)
+        {
+            joinButton.interactable = false;
+
+            // Turn joinButton into a modlist button, so we can get the modlist on hover
+            SetupModListButtonEvents(joinButton);
+        }
     }
 
     /// <summary>
@@ -63,11 +73,19 @@ public class ModdedLobbySlot : MonoBehaviour
     /// </summary>
     private void OnDestroy()
     {
-        if (_buttonEventHandler == null)
+        if (_buttonEventHandlers.Count == 0)
             return;
 
-        _buttonEventHandler.OnHoverStateChanged -= OnModListHoverStateChanged;
-        _buttonEventHandler.OnClick -= OnModListClick;
+        foreach (var buttonEventHandler in _buttonEventHandlers)
+        {
+            if (buttonEventHandler == null)
+                continue;
+
+            buttonEventHandler.OnHoverStateChanged -= OnModListHoverStateChanged;
+            buttonEventHandler.OnClick -= OnModListClick;
+        }
+
+        _buttonEventHandlers.Clear();
     }
 
     /// <summary>
@@ -121,12 +139,10 @@ public class ModdedLobbySlot : MonoBehaviour
         var incompatibleColor = buttonText?.color ?? color;
 
         // Inject custom event handling
-        _buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
-        _buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite,
+        var buttonEventHandler = SetupModListButtonEvents(button);
+        buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite,
             _lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Compatible ? color : incompatibleColor,
             _lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Compatible ? color : incompatibleColor);
-        _buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
-        _buttonEventHandler.OnClick += OnModListClick;
 
         return button;
     }
@@ -156,6 +172,21 @@ public class ModdedLobbySlot : MonoBehaviour
             ModListTooltipPanel.Instance.DisplayNotification(_lobbyDiff, _buttonTransform, _parentContainer);
         else
             ModListTooltipPanel.Instance.HideNotification();
+    }
+
+    /// <summary>
+    ///     Sets up event handling on a modlist button, allowing it to show the modlist on hover and click.
+    /// </summary>
+    /// <param name="button"> The button. </param>
+    /// <returns> The ButtonEventHandler added to the button. </returns>
+    private ButtonEventHandler SetupModListButtonEvents(Button button)
+    {
+        // Inject custom event handling
+        var buttonEventHandler = button.gameObject.AddComponent<ButtonEventHandler>();
+        buttonEventHandler.OnHoverStateChanged += OnModListHoverStateChanged;
+        buttonEventHandler.OnClick += OnModListClick;
+        _buttonEventHandlers.Add(buttonEventHandler);
+        return buttonEventHandler;
     }
 
     /// <summary>

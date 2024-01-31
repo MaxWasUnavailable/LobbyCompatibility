@@ -4,10 +4,12 @@ using System.Runtime.CompilerServices;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using LobbyCompatibility.Patches;
+using LobbyCompatibility.Attributes;
+using LobbyCompatibility.Enums;
 
 namespace LobbyCompatibility;
 
+[LobbyCompatibility(CompatibilityLevel.ClientOnly, VersionStrictness.Minor)]
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class LobbyCompatibilityPlugin : BaseUnityPlugin
 {
