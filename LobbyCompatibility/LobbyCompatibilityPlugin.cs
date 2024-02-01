@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using LobbyCompatibility.Attributes;
