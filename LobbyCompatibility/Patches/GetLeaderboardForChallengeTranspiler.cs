@@ -1,10 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
-using LobbyCompatibility.Enums;
-using Steamworks.Data;
 
 namespace LobbyCompatibility.Patches;
 
