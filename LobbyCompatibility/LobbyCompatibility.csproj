@@ -7,7 +7,7 @@
             We can't target netstandard2.0 due to the game assemblies targeting netstandard2.1.
         -->
         <TargetFrameworks>netstandard2.1;net472</TargetFrameworks>
-        <AssemblyName>BMX.LC.LobbyCompatibility</AssemblyName>
+        <AssemblyName>BMX.LobbyCompatibility</AssemblyName>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
@@ -26,14 +26,14 @@
 
     <!-- BepInEx Info -->
     <PropertyGroup>
-        <Product>LobbyCompatiblity</Product>
+        <Product>LobbyCompatibility</Product>
         <Description>Towards a future with fewer lobby incompatibility errors.</Description>
     </PropertyGroup>
 
     <!-- NuGet Package Info -->
     <PropertyGroup>
         <Authors>MaxWasUnavailable,legoandmars,Xilophor</Authors>
-        <PackageId>LethalCompany.LobbyCompatiblity</PackageId>
+        <PackageId>LethalCompany.LobbyCompatibility</PackageId>
         <PackageProjectUrl>https://github.com/MaxWasUnavailable/LobbyCompatibility</PackageProjectUrl>
         <RepositoryUrl>https://github.com/MaxWasUnavailable/LobbyCompatibility</RepositoryUrl>
         <RepositoryType>git</RepositoryType>

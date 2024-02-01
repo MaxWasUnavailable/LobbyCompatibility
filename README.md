@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
 [![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
-[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatiblity?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatiblity)
+[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
 
 This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
@@ -36,17 +36,17 @@ with vanilla runs.
 
 ## For Developers
 
-To use this, you first need to add a package reference to `BMX.LobbyCompatibility` in your `.csproj` file. Simply add
-the following lines:
+To use this, you need to add a package reference to `LethalCompany.LobbyCompatibility` in your `.csproj` file. You can use the
+following code:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="BMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="LethalCompany.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
 </ItemGroup>
 ```
 
 You can also use your IDE's interface to add the reference. For Visual Studio 2022, you do so by clicking on
-the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `BMX.LobbyCompatibility` and add
+the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `LethalCompany.LobbyCompatibility` and add
 it from there.
 
 ### Usage

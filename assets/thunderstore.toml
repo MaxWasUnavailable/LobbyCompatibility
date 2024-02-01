@@ -24,7 +24,7 @@ source = "../CHANGELOG.md"
 target = "/"
 
 [[build.copy]]
-source = "../LobbyCompatibility/bin/Release/netstandard2.1/BMX.LC.LobbyCompatibility.dll"
+source = "../LobbyCompatibility/bin/Release/netstandard2.1/BMX.LobbyCompatibility.dll"
 target = "/BepInEx/plugins/LobbyCompatiblity/"
 
 [publish]
