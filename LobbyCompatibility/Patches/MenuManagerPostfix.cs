@@ -1,6 +1,10 @@
 ﻿using HarmonyLib;
 using LobbyCompatibility.Behaviours;
+using LobbyCompatibility.Features;
+using System.IO;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LobbyCompatibility.Patches;
 
@@ -42,5 +46,9 @@ internal static class MenuManagerPostfix
         modListPanelObject.transform.SetParent(__instance.menuNotification.transform.parent);
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
         modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView);
+
+        var refreshButton = __instance.serverListUIContainer.transform.Find("ListPanel/RefreshButton")?.GetComponent<Button>();
+        if (refreshButton != null)
+            UIHelper.ReskinRefreshButton(refreshButton);
     }
 }

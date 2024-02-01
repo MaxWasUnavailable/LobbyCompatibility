@@ -5,6 +5,7 @@ using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace LobbyCompatibility.Features;
@@ -165,5 +166,41 @@ internal static class UIHelper
         }
 
         return (generatedText, padding, pluginLines);
+    }
+
+    /// <summary>
+    ///     Reskins the lobby list's "[Refresh]" button to use an image instead of text.
+    ///     Used to increase the amount of usable space for the filter dropdowns.
+    /// </summary>
+    /// <param name="refreshButton"> The <see cref="Button" /> the game uses to refresh the lobby list. </param>
+    public static void ReskinRefreshButton(Button refreshButton)
+    {
+        // Setup necessary references for modifying the refresh button
+        var text = refreshButton?.transform.Find("Text (TMP)")?.GetComponent<TextMeshProUGUI>();
+        var selectionHighlightTransform = refreshButton?.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
+        var selectionHighlightImage = selectionHighlightTransform?.GetComponent<Image>();
+
+        if (refreshButton == null || text == null || selectionHighlightTransform == null || selectionHighlightImage == null)
+            return;
+
+        // Set new positioning
+        selectionHighlightTransform.anchoredPosition = new Vector2(140f, 17.5f);
+        selectionHighlightTransform.sizeDelta = new Vector2(34, 43.5f);
+
+        // Create a new image to use instead of the [Refresh] text
+        var buttonImageTransform = Object.Instantiate(selectionHighlightTransform, text.transform.parent, false);
+        var buttonImage = buttonImageTransform.GetComponent<Image>();
+        buttonImageTransform.SetSiblingIndex(0);
+
+        // Change new image color to opaque
+        var color = buttonImage.color;
+        buttonImage.color = new Color(color.r, color.g, color.b, 1);
+
+        // Setup sprites on images
+        buttonImage.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Refresh.png");
+        selectionHighlightTransform.GetComponent<Image>().sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedRefresh.png");
+
+        // Disable text so we can use our new image for the click/hover hitbox
+        text.enabled = false;
     }
 }
