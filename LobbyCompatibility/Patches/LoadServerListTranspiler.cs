@@ -32,24 +32,15 @@ public class LoadServerListTranspiler
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
     {
-        var searchRequestMethod = AccessTools.Method(typeof(LobbyQuery), nameof(LobbyQuery.RequestAsync));
         var searchCoroutineMethod = AccessTools.Method(typeof(MonoBehaviour), nameof(MonoBehaviour.StartCoroutine), new [] { typeof(IEnumerator) });
         
-        var filterMethod = AccessTools.Method(typeof(LoadServerListTranspiler), nameof(FilterCompatibility));
         var postfixMethod = AccessTools.Method(typeof(LoadServerListTranspiler), nameof(LoadListPostfix));
 
         var loadVarInstruction = new CodeInstruction(OpCodes.Ldloc_1);
-        var postfixInstruction = new CodeInstruction(OpCodes.Call, postfixMethod);
         
         // Does the following:
         // - Runs FilterCompatibility on lobbyQuery2
         var codeMatcher = new CodeMatcher(instructions, ilGenerator)
-            .SearchForward(inst => inst.Calls(searchRequestMethod))
-            .ThrowIfInvalid("Unable to find RequestAsync.")
-            .InsertAndAdvance([
-                new CodeInstruction(OpCodes.Call, filterMethod),
-                new CodeInstruction(OpCodes.Ldloca_S, 3),
-            ])
             .SearchForward(inst => inst.Calls(searchCoroutineMethod))
             .ThrowIfInvalid("Unable to find StartCoroutine.")
             .Advance(1)
@@ -60,7 +51,8 @@ public class LoadServerListTranspiler
             .SearchForward(inst => inst.opcode == OpCodes.Leave)
             .InsertAndAdvance([
                 loadVarInstruction,
-                postfixInstruction
+                new CodeInstruction(OpCodes.Ldloc_3),
+                new CodeInstruction(OpCodes.Call, postfixMethod)
             ]);
 
         codeMatcher.Instruction.MoveLabelsTo(loadVarInstruction);
@@ -76,11 +68,8 @@ public class LoadServerListTranspiler
 
     internal static void FilterCompatibility(ref LobbyQuery lobbyQuery)
     {
-        if (_secondPass || PluginHelper.GetRequiredPluginsChecksum() == "")
-        {
-            _secondPass = false;
+        if (PluginHelper.GetRequiredPluginsChecksum() == "")
             return;
-        }
         
         lobbyQuery.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.GetRequiredPluginsChecksum());
     }
@@ -89,41 +78,28 @@ public class LoadServerListTranspiler
     {
         LobbyCompatibilityPlugin.Logger!.LogDebug("Running LoadServerList Postfix");
 
-        if (_secondPass)
-        {
-            _secondPass = false;
-            
-            if (steamLobbyManager.currentLobbyList != null)
-                _allLobbies.UnionWith(steamLobbyManager.currentLobbyList);
+        var query = lobbyQuery;
+        
+        FilterCompatibility(ref query);
 
-            steamLobbyManager.currentLobbyList = _allLobbies.ToArray();
-            
-            LobbyCompatibilityPlugin.Logger.LogError("Finished second pass, loading lobby list now!");
+        var lobbyArray = await query.RequestAsync();//queryTask.Result;
         
-            if (steamLobbyManager.currentLobbyList.Length != 0)
-                steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager.StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
-            
-            return;
-        }
-        
-        if (steamLobbyManager.currentLobbyList is { Length: >= 35 })
-        {
-            steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager.StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
-            return;
-        }
-        
-        LobbyCompatibilityPlugin.Logger.LogError("Attempting second pass!");
+        List<Lobby> allLobbies = [];
 
-        _allLobbies = [];
-        
-        if (steamLobbyManager.currentLobbyList != null)
-            _allLobbies.UnionWith(steamLobbyManager.currentLobbyList);
+        if (lobbyArray != null)
+            allLobbies.AddRange(lobbyArray);
+        else
+            LobbyCompatibilityPlugin.Logger!.LogDebug("No compatible modded lobbies found!");
 
-        _secondPass = true;
-            
-        steamLobbyManager.LoadServerList();
+        var nonDuplicates = steamLobbyManager.currentLobbyList.Where(lobby => !allLobbies.Any(check => lobby.Equals(check)));
+
+        allLobbies.AddRange(nonDuplicates);
+        
+        allLobbies.Do(lobby => LobbyCompatibilityPlugin.Logger.LogWarning(lobby.GetData("name")));
+        LobbyCompatibilityPlugin.Logger.LogError(allLobbies.Count);
+
+        steamLobbyManager.currentLobbyList = allLobbies.ToArray();
+
+        steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager.StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
     }
-
-    private static bool _secondPass;
-    private static HashSet<Lobby> _allLobbies = [];
 }
