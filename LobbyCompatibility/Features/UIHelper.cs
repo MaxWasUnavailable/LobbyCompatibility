@@ -273,7 +273,7 @@ internal static class UIHelper
         {
             new OptionData("Mods: Compatible first"),
             new OptionData("Mods: Compatible only"),
-            new OptionData("Mods: Unmodded only"),
+            new OptionData("Mods: Vanilla and Unknown only"),
             new OptionData("Mods: All"),
         });
 

@@ -23,7 +23,7 @@ public enum ModdedLobbyFilter
     /// <remarks>
     ///     Could contain modded lobbies that don't have LobbyCompatibility installed.
     /// </remarks>
-    UnmoddedOnly,
+    VanillaAndUnknownOnly,
 
     /// <summary>
     ///     Shows all modded lobbies, regardless of compatibility state.

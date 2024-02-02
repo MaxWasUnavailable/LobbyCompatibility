@@ -83,7 +83,7 @@ public class LoadServerListTranspiler
         
         // Add Modded filter if we are filtering for "vanilla" lobbies only,
         // otherwise add Checksum filter
-        if (currentFilter == ModdedLobbyFilter.UnmoddedOnly)
+        if (currentFilter == ModdedLobbyFilter.VanillaAndUnknownOnly)
             query.WithKeyValue(LobbyMetadata.Modded, "true");
         else if (PluginHelper.Checksum != "")
             query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
@@ -116,7 +116,7 @@ public class LoadServerListTranspiler
                     allLobbies.AddRange(filteredLobbies);
                 
                 break;
-            case ModdedLobbyFilter.UnmoddedOnly:
+            case ModdedLobbyFilter.VanillaAndUnknownOnly:
                 serverListBlankText = "No available vanilla\nservers to join.";
                 
                 // Add all lobbies
