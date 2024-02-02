@@ -1,15 +1,11 @@
-﻿using LobbyCompatibility.Configuration;
-using LobbyCompatibility.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LobbyCompatibility.Enums;
 using TMPro;
 using UnityEngine;
 
 namespace LobbyCompatibility.Behaviours
 {
     /// <summary>
-    ///     Used to broadcast the <see cref="ModdedLobbyFilter"/> to use when searching for lobbies.
+    ///     Used to handle any changes to the <see cref="ModdedLobbyFilter"/> when searching for lobbies.
     /// </summary>
     internal class ModdedLobbyFilterDropdown : MonoBehaviour
     {

@@ -1,13 +1,16 @@
 ﻿using BepInEx.Configuration;
 using LobbyCompatibility.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LobbyCompatibility.Configuration
 {
+    /// <summary>
+    ///     BepInEx Config used to handle any configurable mod values.
+    /// </summary>
     public class Config
     {
+        /// <summary>
+        ///     Default <see cref="ModdedLobbyFilter"/> value for public lobby sorting.
+        /// </summary>
         public ConfigEntry<ModdedLobbyFilter> DefaultModdedLobbyFilter;
 
         public Config(ConfigFile configFile)
