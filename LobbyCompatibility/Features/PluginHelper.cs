@@ -209,10 +209,6 @@ internal static class PluginHelper
         foreach (var checksumByte in checksum)
             stringBuilder.Append(checksumByte.ToString("X2"));
         
-#if DEBUG
-        LobbyCompatibilityPlugin.Logger!.LogError($"Required Mods Checksum: {stringBuilder}");
-#endif
-        
         return _cachedChecksum = stringBuilder.ToString();
     }
 
