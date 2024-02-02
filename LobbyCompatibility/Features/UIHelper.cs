@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using TMPro;
@@ -263,13 +264,22 @@ internal static class UIHelper
         customDropdown.captionText.fontSize = 10f;
         customDropdown.itemText.fontSize = 10f;
 
-        // Set custom dropdown options
+        // Set custom dropdown options based on Enums/ModdedLobbyFilter
         customDropdown.ClearOptions();
         customDropdown.AddOptions(new List<OptionData>()
         {
             new OptionData("Mods: Compatible first"),
             new OptionData("Mods: Compatible only"),
+            new OptionData("Mods: Unmodded only"),
             new OptionData("Mods: All"),
         });
+
+        // Add custom component so we can actually use the filter value
+        var moddedLobbyFilterDropdown = customDropdown.gameObject.AddComponent<ModdedLobbyFilterDropdown>();
+        moddedLobbyFilterDropdown.SetDropdown(customDropdown);
+
+        // Redirect the "On Value Changed" event to go towards our new custom component
+        customDropdown.onValueChanged.m_PersistentCalls.Clear();
+        customDropdown.onValueChanged.AddListener(moddedLobbyFilterDropdown.ChangeFilterType);
     }
 }
