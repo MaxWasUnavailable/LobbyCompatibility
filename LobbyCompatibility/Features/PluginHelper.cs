@@ -159,4 +159,71 @@ internal static class PluginHelper
     {
         return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ClientOnly or null);
     }
+
+    /// <summary>
+    ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone"/> level plugins at their lowest acceptable version.
+    /// </summary>
+    /// <returns> The generated filter checksum of installed plugins </returns>
+    internal static string GetRequiredPluginsChecksum()
+    {
+        // After initial generation, return the cached checksum.
+        if (_cachedChecksum != null)
+            return _cachedChecksum;
+        
+        // Get the required plugins and sort to guarantee consistency between all clients.
+        var requiredPlugins = GetAllPluginInfo()
+            .Where(plugin => plugin.CompatibilityLevel is CompatibilityLevel.Everyone)
+            .OrderBy(plugin => plugin.GUID, StringComparer.Ordinal).ToList();
+
+        if (!requiredPlugins.Any())
+            return _cachedChecksum = "";
+
+        var pluginString = "";
+
+        foreach (var plugin in requiredPlugins)
+        {
+            pluginString += plugin.GUID;
+            
+            // ReSharper disable twice RedundantCaseLabel
+            switch (plugin.VersionStrictness)
+            {
+                case VersionStrictness.Major:
+#if DEBUG
+                    LobbyCompatibilityPlugin.Logger!.LogDebug(new Version(plugin.Version.Major, 0, 0).ToString());
+#endif
+                    pluginString += new Version(plugin.Version.Major, 0, 0).ToString();
+                    break;
+                case VersionStrictness.Minor:
+#if DEBUG
+                    LobbyCompatibilityPlugin.Logger!.LogDebug(new Version(plugin.Version.Major, plugin.Version.Minor, 0).ToString());
+#endif
+                    pluginString += new Version(plugin.Version.Major, plugin.Version.Minor, 0).ToString();
+                    break;
+                case VersionStrictness.Patch:
+#if DEBUG
+                    LobbyCompatibilityPlugin.Logger!.LogDebug(plugin.Version.ToString());
+#endif
+                    pluginString += plugin.Version.ToString();
+                    break;
+                case VersionStrictness.None:
+                case null:
+                default:
+                    break;
+            }
+        }
+        
+        var checksum = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(pluginString));
+        
+        var sb = new StringBuilder();
+        foreach (var checksumByte in checksum)
+            sb.Append(checksumByte.ToString("X2")); // Convert every byte to hexadecimal
+        
+#if DEBUG
+        LobbyCompatibilityPlugin.Logger!.LogError(sb.ToString());
+#endif
+        
+        return _cachedChecksum = sb.ToString();
+    }
+
+    private static string? _cachedChecksum;
 }
