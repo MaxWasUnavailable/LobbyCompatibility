@@ -1,10 +1,12 @@
 ﻿using HarmonyLib;
 using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Features;
+using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static TMPro.TMP_Dropdown;
 
 namespace LobbyCompatibility.Patches;
 
@@ -47,8 +49,26 @@ internal static class MenuManagerPostfix
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
         modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView);
 
+        // Make refresh button a more compact image so we have space for our custom dropdown
         var refreshButton = __instance.serverListUIContainer.transform.Find("ListPanel/RefreshButton")?.GetComponent<Button>();
         if (refreshButton != null)
             UIHelper.ReskinRefreshButton(refreshButton);
+
+        var dropdown = __instance.serverListUIContainer.transform.Find("ListPanel/Dropdown");
+        var customDropdownTransform = UnityEngine.Object.Instantiate(dropdown, dropdown.parent, false);
+        var customDropdown = customDropdownTransform.GetComponent<TMP_Dropdown>();
+        var customDropdownRect = customDropdownTransform.GetComponent<RectTransform>();
+
+        customDropdownRect.anchoredPosition = new Vector2(0f, customDropdownRect.anchoredPosition.y);
+
+        customDropdown.captionText.fontSize = 10f;
+        customDropdown.itemText.fontSize = 10f;
+        customDropdown.ClearOptions();
+        customDropdown.AddOptions(new List<OptionData>()
+        {
+            new OptionData("Mods: Compatible first"),
+            new OptionData("Mods: Compatible only"),
+            new OptionData("Mods: All"),
+        });
     }
 }
