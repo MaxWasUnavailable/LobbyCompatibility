@@ -35,6 +35,9 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
         // Set the joinable modded metadata to the same value as the original joinable metadata, in case it wasn't originally joinable
         lobby.SetData(LobbyMetadata.JoinableModded, lobby.GetData(LobbyMetadata.Joinable));
 
+        // Add checksum metadata to the lobby so steamworks can filter out incompatible lobbies.
+        lobby.SetData(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
+
         // Add a prefix to the lobby name to indicate that it's modded, if it doesn't already have some kind of modded mention
         if (pluginInfo.Any(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ServerOnly
                 or CompatibilityLevel.Everyone or CompatibilityLevel.ClientOptional) &&
