@@ -55,11 +55,11 @@ public class LoadServerListTranspiler
             .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Br, label))
             .SearchForward(inst => inst.opcode == OpCodes.Leave)
             .ThrowIfInvalid("Unable to find leave instruction.")
-            .InsertAndAdvance([
+            .InsertAndAdvance(new[] {
                 loadVarInstruction = new CodeInstruction(OpCodes.Ldloc_1),
                 new CodeInstruction(OpCodes.Ldloc_3),
                 new CodeInstruction(OpCodes.Call, postfixMethod)
-            ]);
+            });
 
         codeMatcher.Instruction.MoveLabelsTo(loadVarInstruction);
 
@@ -89,7 +89,7 @@ public class LoadServerListTranspiler
             query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
 
         var filteredLobbies = await query.RequestAsync();
-        List<Lobby> allLobbies = [];
+        List<Lobby> allLobbies = new();
         var serverListBlankText = "";
         
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
@@ -136,7 +136,7 @@ public class LoadServerListTranspiler
         }
         else
         {
-            steamLobbyManager.currentLobbyList = [];
+            steamLobbyManager.currentLobbyList = new Lobby[0];
             steamLobbyManager.serverListBlankText.text = serverListBlankText;
             return;
         }

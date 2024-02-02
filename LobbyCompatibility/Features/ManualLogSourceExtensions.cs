@@ -9,9 +9,14 @@ namespace LobbyCompatibility.Features;
 
 public static class ManualLogSourceExtensions
 {
-    class CodeInstructionFormatter(int instructionCount)
+    class CodeInstructionFormatter
     {
-        private int _instructionIndexPadLength = instructionCount.ToString().Length;
+        private int _instructionIndexPadLength;
+
+        public CodeInstructionFormatter(int instructionCount)
+        {
+            _instructionIndexPadLength = instructionCount.ToString().Length;
+        }
 
         public string Format(CodeInstruction instruction, int index)
             => $"    IL_{index.ToString().PadLeft(_instructionIndexPadLength, '0')}: {instruction}";
