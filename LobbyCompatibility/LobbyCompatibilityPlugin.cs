@@ -5,6 +5,7 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using LobbyCompatibility.Attributes;
+using LobbyCompatibility.Configuration;
 using LobbyCompatibility.Enums;
 
 namespace LobbyCompatibility;
@@ -17,6 +18,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
     private Harmony? Harmony { get; set; }
     internal new static ManualLogSource? Logger { get; set; }
     public static LobbyCompatibilityPlugin? Instance { get; private set; }
+    public new static Config? Config { get; private set; }
 
     private void Awake()
     {
@@ -25,6 +27,9 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
 
         // Init logger
         Logger = base.Logger;
+
+        // Init config
+        Config = new(base.Config);
 
         // Patch using Harmony
         PatchAll();

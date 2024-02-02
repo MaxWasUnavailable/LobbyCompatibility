@@ -1,4 +1,5 @@
-﻿using LobbyCompatibility.Enums;
+﻿using LobbyCompatibility.Configuration;
+using LobbyCompatibility.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,8 +18,7 @@ namespace LobbyCompatibility.Behaviours
 
         public void Awake()
         {
-            // TODO: Add defaults to a config file
-            LobbyFilter = ModdedLobbyFilter.CompatibleFirst;
+            LobbyFilter = LobbyCompatibilityPlugin.Config?.DefaultModdedLobbyFilter.Value ?? ModdedLobbyFilter.CompatibleFirst;
 
             if (_dropdown != null)
                 _dropdown.SetValueWithoutNotify((int)LobbyFilter);

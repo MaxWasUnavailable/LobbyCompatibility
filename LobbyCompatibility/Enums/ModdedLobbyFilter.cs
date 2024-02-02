@@ -1,7 +1,7 @@
 ﻿namespace LobbyCompatibility.Enums;
 
 /// <summary>
-///     Specifies what type of modded lobbies to search for when looking for a public lobby.
+///     Specifies what type of filter to apply when searching for a public lobby.
 /// </summary>
 public enum ModdedLobbyFilter
 {
@@ -17,12 +17,13 @@ public enum ModdedLobbyFilter
     /// </summary>
     CompatibleOnly,
 
-
     /// <summary>
     ///     Do not show any lobbies that register as modded.
     ///     Does not use the hashfilter.
-    ///     NOTE: *Could* contain modded lobbies without LobbyCompatibility installed.
     /// </summary>
+    /// <remarks>
+    ///     Could contain modded lobbies that don't have LobbyCompatibility installed.
+    /// </remarks>
     UnmoddedOnly,
 
     /// <summary>
