@@ -214,15 +214,17 @@ internal static class UIHelper
         // Create a new image to use instead of the [Refresh] text
         var buttonImageTransform = Object.Instantiate(selectionHighlightTransform, text.transform.parent, false);
         var buttonImage = buttonImageTransform.GetComponent<Image>();
+
+        // Move the image below the highlight so the hover highlight will always render on top
         buttonImageTransform.SetSiblingIndex(0);
 
-        // Change new image color to opaque
+        // Set the image color to be opaque instead of the default semi-transparent
         var color = buttonImage.color;
         buttonImage.color = new Color(color.r, color.g, color.b, 1);
 
         // Setup sprites on images
         buttonImage.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Refresh.png");
-        selectionHighlightTransform.GetComponent<Image>().sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedRefresh.png");
+        selectionHighlightImage.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedRefresh.png");
 
         // Disable text so we can use our new image for the click/hover hitbox
         text.enabled = false;
@@ -245,21 +247,22 @@ internal static class UIHelper
         if (dropdown == null || toggleChallengeSort == null || serverTagInputField == null || serverTagPlaceholderText == null)
             return;
 
-        // Resize sorting/filtering objects to make room for our new dropdown
+        // Resize other filtering UI options to make room for our new dropdown
         AddToAnchoredPosition(dropdown, new Vector2(adjustment, 0f));
         AddToAnchoredPosition(toggleChallengeSort, new Vector2(adjustment, 0f));
 
         // Make "Server tag" input box smaller
         serverTagInputField.offsetMax = new Vector2(serverTagInputField.offsetMax.x + adjustment, serverTagInputField.offsetMax.y);
 
-        // Replace placeholder text to be more compact
+        // Replace "Enter server tag..." with something more compact
         serverTagPlaceholderText.text = "Server tag...";
 
         // Initalize our custom dropdown
-        var customDropdownTransform = UnityEngine.Object.Instantiate(dropdown, dropdown.parent, false);
+        var customDropdownTransform = Object.Instantiate(dropdown, dropdown.parent, false);
         var customDropdown = customDropdownTransform.GetComponent<TMP_Dropdown>();
         var customDropdownRect = customDropdownTransform.GetComponent<RectTransform>();
 
+        // Move our custom dropdown to the very right side of the panel
         customDropdownRect.anchoredPosition = new Vector2(adjustment, customDropdownRect.anchoredPosition.y);
         customDropdown.captionText.fontSize = 10f;
         customDropdown.itemText.fontSize = 10f;
