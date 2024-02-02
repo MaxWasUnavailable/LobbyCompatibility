@@ -12,8 +12,7 @@ public enum ModdedLobbyFilter
     CompatibleFirst,
 
     /// <summary>
-    ///     Only shows explicitly compatible lobbies.
-    ///     Uses the hashfilter.
+    ///     Uses the hashfilter (if applicable) to only show explicitly compatible lobbies.
     /// </summary>
     CompatibleOnly,
 
