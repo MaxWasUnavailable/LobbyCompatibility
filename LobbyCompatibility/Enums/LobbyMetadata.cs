@@ -41,4 +41,9 @@ public static class LobbyMetadata
     ///     The tag for plugin information.
     /// </summary>
     public const string Plugins = "plugins";
+
+    /// <summary>
+    ///     The required plugins checksum to filter against.
+    /// </summary>
+    public const string RequiredChecksum = "checksum";
 }

@@ -10,7 +10,9 @@ namespace LobbyCompatibility.Behaviours
     internal class ModdedLobbyFilterDropdown : MonoBehaviour
     {
         public ModdedLobbyFilter LobbyFilter { get; private set; }
-        private TMP_Dropdown? _dropdown; 
+        public static ModdedLobbyFilterDropdown? Instance { get; private set; }
+        private TMP_Dropdown? _dropdown;
+        private SteamLobbyManager? _steamLobbyManager;
 
         public void Awake()
         {
@@ -19,6 +21,9 @@ namespace LobbyCompatibility.Behaviours
 
             if (_dropdown != null)
                 _dropdown.SetValueWithoutNotify((int)LobbyFilter);
+
+            Instance = this;
+            _steamLobbyManager = FindObjectOfType<SteamLobbyManager>();
         }
 
         /// <summary>
@@ -37,6 +42,9 @@ namespace LobbyCompatibility.Behaviours
         public void ChangeFilterType(int index)
         {
             UpdateLobbyFilter((ModdedLobbyFilter)index);
+            
+            if (_steamLobbyManager != null)
+                _steamLobbyManager.RefreshServerListButton();
         }
 
         /// <summary>
@@ -47,8 +55,6 @@ namespace LobbyCompatibility.Behaviours
         private void UpdateLobbyFilter(ModdedLobbyFilter lobbyFilter)
         {
             LobbyFilter = lobbyFilter;
-
-            // TODO: Hook this up. Use a singleton or action or whatever
         }
     }
 }
