@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
 using Steamworks.Data;
@@ -67,40 +68,79 @@ public class LoadServerListTranspiler
 
     internal static async void LoadListPostfix(SteamLobbyManager steamLobbyManager, LobbyQuery lobbyQuery)
     {
-        // If we are not filtering & sorting, run the coroutine and skip postfix
-        if (false)
+        // If there is not a ModdedLobbyFilterDropdown Instance, treat as if we are doing no filtering
+        var currentFilter = ModdedLobbyFilterDropdown.Instance != null ? ModdedLobbyFilterDropdown.Instance.LobbyFilter : ModdedLobbyFilter.All;
+        
+        if (currentFilter == ModdedLobbyFilter.All)
         {
             steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager
                 .StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
-
             return;
         }
         
-        // Create local copy so IDE doesn't complain about the param not being ref
+        // Create a local reference so the IDE doesn't complain about the param not being marked ref
         var query = lobbyQuery;
         
-        // Add Checksum filter if we are not filtering for "vanilla" lobbies only, otherwise add Modded filter 
-        if (false)
+        // Add Modded filter if we are filtering for "vanilla" lobbies only,
+        // otherwise add Checksum filter
+        if (currentFilter == ModdedLobbyFilter.UnmoddedOnly)
             query.WithKeyValue(LobbyMetadata.Modded, "true");
-        else
-            query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.GetRequiredPluginsChecksum());
-
+        else if (PluginHelper.Checksum != "")
+            query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
 
         var filteredLobbies = await query.RequestAsync();
-        
         List<Lobby> allLobbies = [];
+        var serverListBlankText = "";
         
-        if (filteredLobbies != null)
-            allLobbies.AddRange(filteredLobbies);
+        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+        switch (currentFilter)
+        {
+            default:
+            case ModdedLobbyFilter.CompatibleFirst:
+                serverListBlankText = "No available servers to join.";
+                
+                // Add compatible lobbies first
+                if (filteredLobbies != null)
+                    allLobbies.AddRange(filteredLobbies);
+                
+                // Add the remaining incompatible lobbies
+                allLobbies.AddRange(steamLobbyManager.currentLobbyList
+                        .Where(lobby => !allLobbies.Any(check => lobby.Equals(check))));
+                
+                break;
+            case ModdedLobbyFilter.CompatibleOnly:
+                serverListBlankText = "No available compatible\nservers to join.";
+
+                // Add compatible lobbies only
+                if (filteredLobbies != null)
+                    allLobbies.AddRange(filteredLobbies);
+                
+                break;
+            case ModdedLobbyFilter.UnmoddedOnly:
+                serverListBlankText = "No available vanilla\nservers to join.";
+                
+                // Add all lobbies
+                allLobbies.AddRange(steamLobbyManager.currentLobbyList);
+                
+                // Remove lobbies marked as modded
+                if (filteredLobbies != null)
+                    allLobbies.RemoveAll(lobby => filteredLobbies.Any(check => lobby.Equals(check)));
+                
+                break;
+        }
+
+        if (allLobbies.Any())
+        {
+            // TODO: Add sorting of actual compatibility (server only version & client optional)
+            steamLobbyManager.currentLobbyList = allLobbies.Take(50).ToArray();
+        }
         else
-            LobbyCompatibilityPlugin.Logger!.LogDebug("No compatible modded lobbies found!");
-
-        var nonDuplicates = steamLobbyManager.currentLobbyList.Where(lobby => !allLobbies.Any(check => lobby.Equals(check)));
-
-        allLobbies.AddRange(nonDuplicates);
-
-        steamLobbyManager.currentLobbyList = allLobbies.ToArray();
-
+        {
+            steamLobbyManager.currentLobbyList = [];
+            steamLobbyManager.serverListBlankText.text = serverListBlankText;
+            return;
+        }
+        
         steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager.StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
     }
 }

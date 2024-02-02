@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using BepInEx;
 using BepInEx.Bootstrap;
 using LobbyCompatibility.Attributes;
@@ -164,12 +166,8 @@ internal static class PluginHelper
     ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone"/> level plugins at their lowest acceptable version.
     /// </summary>
     /// <returns> The generated filter checksum of installed plugins </returns>
-    internal static string GetRequiredPluginsChecksum()
+    private static string GetRequiredPluginsChecksum()
     {
-        // After initial generation, return the cached checksum.
-        if (_cachedChecksum != null)
-            return _cachedChecksum;
-        
         // Get the required plugins and sort to guarantee consistency between all clients.
         var requiredPlugins = GetAllPluginInfo()
             .Where(plugin => plugin.CompatibilityLevel is CompatibilityLevel.Everyone)
@@ -187,43 +185,42 @@ internal static class PluginHelper
             // ReSharper disable twice RedundantCaseLabel
             switch (plugin.VersionStrictness)
             {
+                default:
+                case null:
+                case VersionStrictness.None:
+                    break;
                 case VersionStrictness.Major:
-#if DEBUG
-                    LobbyCompatibilityPlugin.Logger!.LogDebug(new Version(plugin.Version.Major, 0, 0).ToString());
-#endif
-                    pluginString += new Version(plugin.Version.Major, 0, 0).ToString();
+                    pluginString += new Version(plugin.Version.Major, 0).ToString();
                     break;
                 case VersionStrictness.Minor:
-#if DEBUG
-                    LobbyCompatibilityPlugin.Logger!.LogDebug(new Version(plugin.Version.Major, plugin.Version.Minor, 0).ToString());
-#endif
-                    pluginString += new Version(plugin.Version.Major, plugin.Version.Minor, 0).ToString();
+                    pluginString += new Version(plugin.Version.Major, plugin.Version.Minor).ToString();
                     break;
                 case VersionStrictness.Patch:
-#if DEBUG
-                    LobbyCompatibilityPlugin.Logger!.LogDebug(plugin.Version.ToString());
-#endif
                     pluginString += plugin.Version.ToString();
-                    break;
-                case VersionStrictness.None:
-                case null:
-                default:
                     break;
             }
         }
         
         var checksum = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(pluginString));
         
-        var sb = new StringBuilder();
+        var stringBuilder = new StringBuilder();
+        
+        // Convert every byte to hexadecimal
         foreach (var checksumByte in checksum)
-            sb.Append(checksumByte.ToString("X2")); // Convert every byte to hexadecimal
+            stringBuilder.Append(checksumByte.ToString("X2"));
         
 #if DEBUG
-        LobbyCompatibilityPlugin.Logger!.LogError(sb.ToString());
+        LobbyCompatibilityPlugin.Logger!.LogError($"Required Mods Checksum: {stringBuilder}");
 #endif
         
-        return _cachedChecksum = sb.ToString();
+        return _cachedChecksum = stringBuilder.ToString();
     }
 
     private static string? _cachedChecksum;
+    
+    public static string Checksum
+    {
+        get => _cachedChecksum ?? GetRequiredPluginsChecksum();
+        internal set => _cachedChecksum = value;
+    }
 }
