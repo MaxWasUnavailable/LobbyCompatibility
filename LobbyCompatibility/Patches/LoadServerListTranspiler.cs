@@ -33,13 +33,17 @@ public class LoadServerListTranspiler
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
     {
         var searchCoroutineMethod = AccessTools.Method(typeof(MonoBehaviour), nameof(MonoBehaviour.StartCoroutine), new [] { typeof(IEnumerator) });
-        
         var postfixMethod = AccessTools.Method(typeof(LoadServerListTranspiler), nameof(LoadListPostfix));
 
-        var loadVarInstruction = new CodeInstruction(OpCodes.Ldloc_1);
+        CodeInstruction loadVarInstruction;
         
         // Does the following:
-        // - Runs FilterCompatibility on lobbyQuery2
+        // - Sets final instruction of the coroutine line to Nop
+        // - Sets the first instruction of the coroutine line to unconditionally branch to Nop
+        // - Moves to the end of the "try" section of the MoveNext method
+        // - Load steamLobbyManager variable
+        // - Load lobbyQuery2 variable
+        // - Call Postfix method
         var codeMatcher = new CodeMatcher(instructions, ilGenerator)
             .SearchForward(inst => inst.Calls(searchCoroutineMethod))
             .ThrowIfInvalid("Unable to find StartCoroutine.")
@@ -49,54 +53,51 @@ public class LoadServerListTranspiler
             .Advance(-7)
             .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Br, label))
             .SearchForward(inst => inst.opcode == OpCodes.Leave)
+            .ThrowIfInvalid("Unable to find leave instruction.")
             .InsertAndAdvance([
-                loadVarInstruction,
+                loadVarInstruction = new CodeInstruction(OpCodes.Ldloc_1),
                 new CodeInstruction(OpCodes.Ldloc_3),
                 new CodeInstruction(OpCodes.Call, postfixMethod)
             ]);
 
         codeMatcher.Instruction.MoveLabelsTo(loadVarInstruction);
-        
-        
-
-#if DEBUG
-        LobbyCompatibilityPlugin.Logger!.LogDebugInstructionsFrom(codeMatcher);
-#endif
 
         return codeMatcher.InstructionEnumeration();
     }
 
-    internal static void FilterCompatibility(ref LobbyQuery lobbyQuery)
-    {
-        if (PluginHelper.GetRequiredPluginsChecksum() == "")
-            return;
-        
-        lobbyQuery.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.GetRequiredPluginsChecksum());
-    }
-
     internal static async void LoadListPostfix(SteamLobbyManager steamLobbyManager, LobbyQuery lobbyQuery)
     {
-        LobbyCompatibilityPlugin.Logger!.LogDebug("Running LoadServerList Postfix");
+        // If we are not filtering & sorting, run the coroutine and skip postfix
+        if (false)
+        {
+            steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager
+                .StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
 
+            return;
+        }
+        
+        // Create local copy so IDE doesn't complain about the param not being ref
         var query = lobbyQuery;
         
-        FilterCompatibility(ref query);
+        // Add Checksum filter if we are not filtering for "vanilla" lobbies only, otherwise add Modded filter 
+        if (false)
+            query.WithKeyValue(LobbyMetadata.Modded, "true");
+        else
+            query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.GetRequiredPluginsChecksum());
 
-        var lobbyArray = await query.RequestAsync();//queryTask.Result;
+
+        var filteredLobbies = await query.RequestAsync();
         
         List<Lobby> allLobbies = [];
-
-        if (lobbyArray != null)
-            allLobbies.AddRange(lobbyArray);
+        
+        if (filteredLobbies != null)
+            allLobbies.AddRange(filteredLobbies);
         else
             LobbyCompatibilityPlugin.Logger!.LogDebug("No compatible modded lobbies found!");
 
         var nonDuplicates = steamLobbyManager.currentLobbyList.Where(lobby => !allLobbies.Any(check => lobby.Equals(check)));
 
         allLobbies.AddRange(nonDuplicates);
-        
-        allLobbies.Do(lobby => LobbyCompatibilityPlugin.Logger.LogWarning(lobby.GetData("name")));
-        LobbyCompatibilityPlugin.Logger.LogError(allLobbies.Count);
 
         steamLobbyManager.currentLobbyList = allLobbies.ToArray();
 
