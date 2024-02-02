@@ -6,6 +6,7 @@ using LobbyCompatibility.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static TMPro.TMP_Dropdown;
 using Object = UnityEngine.Object;
 
 namespace LobbyCompatibility.Features;
@@ -43,6 +44,28 @@ internal static class UIHelper
     {
         var sizeDelta = rectTransform.sizeDelta;
         rectTransform.sizeDelta = new Vector2(sizeDelta.x * multiplier.x, sizeDelta.y * multiplier.y);
+    }
+
+    /// <summary>
+    ///     Adds a Vector2 to a <see cref="RectTransform" />'s anchoredPosition.
+    ///     Automatically gets (and null checks) the RectTransform from the <see cref="Transform" />
+    /// </summary>
+    /// <param name="transform"> The <see cref="Transform" /> to modify. </param>
+    /// <param name="addition"> Amount to add to the <see cref="RectTransform" />'s anchoredPosition. </param>
+    public static void AddToAnchoredPosition(Transform? transform, Vector2 addition)
+    {
+        if (transform == null)
+            return;
+
+        // First try to parse the Transform as a rectTransform. If we fail, use GetComponent
+        // If we don't have a RectTransform at that point, it's safe to say this is not a UI object, and we can cancel.
+        if (transform is not RectTransform rectTransform)
+            rectTransform = transform.GetComponent<RectTransform>();
+
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x + addition.x, rectTransform.anchoredPosition.y + addition.y);
     }
 
     /// <summary>
@@ -202,5 +225,51 @@ internal static class UIHelper
 
         // Disable text so we can use our new image for the click/hover hitbox
         text.enabled = false;
+    }
+
+    /// <summary>
+    ///     Adds a custom dropdown filter to the LobbyList top panel.
+    ///     Also shifts all other filter UI elements to the left.
+    /// </summary>
+    /// <param name="listPanel"> The <see cref="Transform" /> that contains the UI elements for the LobbyList's filtering panel. </param>
+    /// <param name="adjustment"> How many units (<see cref="RectTransform.anchoredPosition"/>) to shift all other filter UI elements. </param>
+    public static void AddCustomFilterToLobbyList(Transform listPanel, float adjustment = -40f)
+    {
+        // Setup necessary references for modifying the lobbylist's positioning and creating a dropdown
+        var dropdown = listPanel.Find("Dropdown");
+        var toggleChallengeSort = listPanel.Find("ToggleChallengeSort");
+        var serverTagInputField = listPanel.Find("ServerTagInputField")?.GetComponent<RectTransform>();
+        var serverTagPlaceholderText = serverTagInputField?.Find("Text Area/Placeholder")?.GetComponent<TextMeshProUGUI>();
+
+        if (dropdown == null || toggleChallengeSort == null || serverTagInputField == null || serverTagPlaceholderText == null)
+            return;
+
+        // Resize sorting/filtering objects to make room for our new dropdown
+        AddToAnchoredPosition(dropdown, new Vector2(adjustment, 0f));
+        AddToAnchoredPosition(toggleChallengeSort, new Vector2(adjustment, 0f));
+
+        // Make "Server tag" input box smaller
+        serverTagInputField.offsetMax = new Vector2(serverTagInputField.offsetMax.x + adjustment, serverTagInputField.offsetMax.y);
+
+        // Replace placeholder text to be more compact
+        serverTagPlaceholderText.text = "Server tag...";
+
+        // Initalize our custom dropdown
+        var customDropdownTransform = UnityEngine.Object.Instantiate(dropdown, dropdown.parent, false);
+        var customDropdown = customDropdownTransform.GetComponent<TMP_Dropdown>();
+        var customDropdownRect = customDropdownTransform.GetComponent<RectTransform>();
+
+        customDropdownRect.anchoredPosition = new Vector2(adjustment, customDropdownRect.anchoredPosition.y);
+        customDropdown.captionText.fontSize = 10f;
+        customDropdown.itemText.fontSize = 10f;
+
+        // Set custom dropdown options
+        customDropdown.ClearOptions();
+        customDropdown.AddOptions(new List<OptionData>()
+        {
+            new OptionData("Mods: Compatible first"),
+            new OptionData("Mods: Compatible only"),
+            new OptionData("Mods: All"),
+        });
     }
 }

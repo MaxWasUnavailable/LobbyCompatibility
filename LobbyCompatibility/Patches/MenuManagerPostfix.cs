@@ -27,8 +27,9 @@ internal static class MenuManagerPostfix
         if (__instance.isInitScene)
             return;
 
-        var lobbyListScrollView = __instance.serverListUIContainer.transform.Find("ListPanel/Scroll View");
-        if (lobbyListScrollView == null)
+        var listPanel = __instance.serverListUIContainer.transform.Find("ListPanel");
+        var lobbyListScrollView = listPanel?.Find("Scroll View");
+        if (listPanel == null || lobbyListScrollView == null)
             return;
 
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
@@ -50,25 +51,11 @@ internal static class MenuManagerPostfix
         modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView);
 
         // Make refresh button a more compact image so we have space for our custom dropdown
-        var refreshButton = __instance.serverListUIContainer.transform.Find("ListPanel/RefreshButton")?.GetComponent<Button>();
+        var refreshButton = listPanel.Find("RefreshButton")?.GetComponent<Button>();
         if (refreshButton != null)
             UIHelper.ReskinRefreshButton(refreshButton);
 
-        var dropdown = __instance.serverListUIContainer.transform.Find("ListPanel/Dropdown");
-        var customDropdownTransform = UnityEngine.Object.Instantiate(dropdown, dropdown.parent, false);
-        var customDropdown = customDropdownTransform.GetComponent<TMP_Dropdown>();
-        var customDropdownRect = customDropdownTransform.GetComponent<RectTransform>();
-
-        customDropdownRect.anchoredPosition = new Vector2(0f, customDropdownRect.anchoredPosition.y);
-
-        customDropdown.captionText.fontSize = 10f;
-        customDropdown.itemText.fontSize = 10f;
-        customDropdown.ClearOptions();
-        customDropdown.AddOptions(new List<OptionData>()
-        {
-            new OptionData("Mods: Compatible first"),
-            new OptionData("Mods: Compatible only"),
-            new OptionData("Mods: All"),
-        });
+        // Add a custom "Mods" filtering type, and shift all other filtering UI elements to the left
+        UIHelper.AddCustomFilterToLobbyList(listPanel);
     }
 }
