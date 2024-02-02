@@ -27,6 +27,9 @@ internal static class MenuManagerPostfix
 
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
 
+        // Set challenge moon leaderboard title text to not wrap halfway through
+        __instance.leaderboardHeaderText.rectTransform.offsetMax = new Vector2(2000, __instance.leaderboardHeaderText.rectTransform.offsetMax.y);
+
         // Setup hover notification/tooltip UI
         var modListTooltipPanel =
             Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
