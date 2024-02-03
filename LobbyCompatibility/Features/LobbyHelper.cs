@@ -14,6 +14,7 @@ internal static class LobbyHelper
     private static List<PluginInfoRecord>? _clientPlugins;
 
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
+    public static Dictionary<ulong, LobbyDiff> _lobbyDiffCache { get; private set; } = new();
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
@@ -22,6 +23,9 @@ internal static class LobbyHelper
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
     public static LobbyDiff GetLobbyDiff(Lobby lobby)
     {
+        if (_lobbyDiffCache.TryGetValue(lobby.Id, out LobbyDiff cachedLobbyDiff))
+            return cachedLobbyDiff;
+
         var lobbyPlugins = PluginHelper
             .ParseLobbyPluginsMetadata(lobby.GetData(LobbyMetadata.Plugins)).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
@@ -91,6 +95,10 @@ internal static class LobbyHelper
         }
 
         LatestLobbyDiff = new LobbyDiff(pluginDiffs);
+
+        // Add to cache to avoid making multiple unnecessary GetData() calls
+        if (!_lobbyDiffCache.ContainsKey(lobby.Id))
+            _lobbyDiffCache.Add(lobby.Id, LatestLobbyDiff);
 
         return LatestLobbyDiff;
     }
