@@ -20,7 +20,7 @@ internal static class LobbyHelper
     /// </summary>
     /// <param name="lobby"> The lobby to get the diff from. </param>
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
-    public static LobbyDiff GetLobbyDiff(Lobby lobby) => GetLobbyDiff(GetLobbyPluginStrings(lobby));
+    public static LobbyDiff GetLobbyDiff(Lobby lobby) => GetLobbyDiff(GetLobbyPluginPages(lobby));
     
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="IEnumerable{String}" />.
@@ -119,15 +119,13 @@ internal static class LobbyHelper
     /// </summary>
     /// <param name="lobby"> The <see cref="Lobby" /> to get the list from. </param>
     /// <returns> The <see cref="IEnumerable{String}" /> from the <see cref="Lobby" />. </returns>
-    internal static IEnumerable<string> GetLobbyPluginStrings(Lobby lobby)
+    internal static IEnumerable<string> GetLobbyPluginPages(Lobby lobby)
     {
         string[] lobbyPluginStrings = [];
         var i = 0;
-        do
-        {
-            lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
-            i++;
-        } while (!lobbyPluginStrings[i].Contains("@"));
+        
+        do lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
+        while (lobbyPluginStrings[i++].Contains("@"));
 
         return lobbyPluginStrings;
     }

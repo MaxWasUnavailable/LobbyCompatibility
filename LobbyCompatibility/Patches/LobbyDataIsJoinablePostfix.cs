@@ -35,7 +35,7 @@ internal static class LobbyDataIsJoinablePostfix
             return PluginHelper.CanJoinVanillaLobbies() && isJoinable;
         }
 
-        var lobbyPluginStrings = LobbyHelper.GetLobbyPluginStrings(lobby).ToArray();
+        var lobbyPluginStrings = LobbyHelper.GetLobbyPluginPages(lobby).ToArray();
         
         // Create lobby diff so LatestLobbyDiff is set
         LobbyHelper.GetLobbyDiff(lobbyPluginStrings);
