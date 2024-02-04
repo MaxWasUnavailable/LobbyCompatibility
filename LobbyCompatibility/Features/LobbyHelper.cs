@@ -124,7 +124,7 @@ internal static class LobbyHelper
         {
             // Remove duplicate "normal" lobbies if they were also caught by the hashfilter
             normalLobbies = normalLobbies
-                .Where(lobby => !allLobbies.Any(check => lobby.Equals(check)))
+                .Where(lobby => !filteredLobbies.Any(check => lobby.Equals(check)))
                 .ToArray();
         }
 
