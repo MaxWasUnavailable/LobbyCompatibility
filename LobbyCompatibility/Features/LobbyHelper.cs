@@ -118,6 +118,13 @@ internal static class LobbyHelper
         };
     }
 
+    /// <summary>
+    ///     Filter lobbies based on a <see cref="ModdedLobbyFilter" />.
+    /// </summary>
+    /// <param name="normalLobbies"> The base game list of lobbies, with no special search filters applied. </param>
+    /// <param name="filteredLobbies"> A custom list of lobbies, with special search filters applied. </param>
+    /// <param name="currentFilter"> The <see cref="ModdedLobbyFilter" /> to filter the lobbies against. </param>
+    /// <returns> A <see cref="Lobby" /> array with the <see cref="ModdedLobbyFilter" /> applied. </returns>
     public static Lobby[] FilterLobbies(Lobby[] normalLobbies, Lobby[]? filteredLobbies, ModdedLobbyFilter currentFilter)
     {
         List<Lobby> allLobbies = new();
@@ -171,8 +178,13 @@ internal static class LobbyHelper
         return allLobbies.ToArray();
     }
 
-    // used for getting compatible/non compatible lobbies
-    private static (IEnumerable<Lobby>, IEnumerable<Lobby>) SplitLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
+    /// <summary>
+    ///     Splits a <see cref="Lobby" /> IEnumerable into two arrays based on of it matches <see cref="LobbyDiffResult" /> or not.
+    /// </summary>
+    /// <param name="lobbies"> The lobbies. </param>
+    /// <param name="filteredLobbyDiffResult"> The <see cref="LobbyDiffResult" /> to match against. </param>
+    /// <returns> A tuple containing two <see cref="Lobby"/> IEnumerables. matchedLobbies contains the lobbies that match the LobbyDiffResult, and unmatchedLobbies contains everything else. </returns>
+    private static (IEnumerable<Lobby> matchedLobbies, IEnumerable<Lobby> unmatchedLobbies) SplitLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
     {
         List<Lobby> matchedLobbies = new();
         List<Lobby> unmatchedLobbies = new();
@@ -189,9 +201,19 @@ internal static class LobbyHelper
         return (matchedLobbies, unmatchedLobbies);
     }
 
+    /// <summary>
+    ///     Filters a <see cref="Lobby" /> IEnumerable based on if it matches <see cref="LobbyDiffResult" />.
+    /// </summary>
+    /// <param name="lobbies"> The lobbies. </param>
+    /// <param name="filteredLobbyDiffResult"> The <see cref="LobbyDiffResult" /> to match against. </param>
+    /// <returns> A filtered <see cref="Lobby" /> IEnumerable. </returns>
     private static IEnumerable<Lobby> FilterLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
-        => SplitLobbiesByDiffResult(lobbies, filteredLobbyDiffResult).Item1;
-    
+        => SplitLobbiesByDiffResult(lobbies, filteredLobbyDiffResult).matchedLobbies;
+
+    /// <summary>
+    ///     Gets the error message for when no lobbies are found using a <see cref="ModdedLobbyFilter"/>.
+    /// </summary>
+    /// <param name="moddedLobbyFilter"> The <see cref="ModdedLobbyFilter" /> to get the error message for. </param>
     public static string GetEmptyLobbyListString(ModdedLobbyFilter moddedLobbyFilter)
     {
         return moddedLobbyFilter switch
