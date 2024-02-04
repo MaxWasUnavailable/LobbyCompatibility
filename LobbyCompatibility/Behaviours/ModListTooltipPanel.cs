@@ -162,8 +162,8 @@ public class ModListTooltipPanel : MonoBehaviour
         var remainingPlugins = lobbyDiff.PluginDiffs.Count - pluginsShown;
         if (newText.Count >= MaxLines && remainingPlugins > 0)
         {
-            var cutoffText = UIHelper.CreateTextFromTemplate(_textTemplate,
-                $"{lobbyDiff.PluginDiffs.Count - pluginsShown} more mods...", -padding, Color.gray);
+            var cutoffString = string.Format("{0} more mod{1}...", remainingPlugins, remainingPlugins == 1 ? "" : "s");
+            var cutoffText = UIHelper.CreateTextFromTemplate(_textTemplate, cutoffString, -padding, Color.gray);
             newText.Add(cutoffText);
         }
 
