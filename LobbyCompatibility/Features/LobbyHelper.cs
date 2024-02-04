@@ -3,6 +3,7 @@ using System.Linq;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using Steamworks.Data;
+using UnityEngine;
 
 namespace LobbyCompatibility.Features;
 
@@ -14,7 +15,7 @@ internal static class LobbyHelper
     private static List<PluginInfoRecord>? _clientPlugins;
 
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
-    public static Dictionary<ulong, LobbyDiff> _lobbyDiffCache { get; private set; } = new();
+    private static Dictionary<ulong, LobbyDiff> _lobbyDiffCache { get; set; } = new();
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
@@ -112,6 +113,90 @@ internal static class LobbyHelper
             PluginDiffResult.ServerMissingMod => "Incompatible with server",
             PluginDiffResult.ModVersionMismatch => "Mod version mismatch",
             _ => "Unknown"
+        };
+    }
+
+    public static Lobby[] FilterLobbies(Lobby[] normalLobbies, Lobby[]? filteredLobbies, ModdedLobbyFilter currentFilter)
+    {
+        List<Lobby> allLobbies = new();
+
+        if (filteredLobbies != null)
+        {
+            // Remove duplicate "normal" lobbies if they were also caught by the hashfilter
+            normalLobbies = normalLobbies
+                .Where(lobby => !allLobbies.Any(check => lobby.Equals(check)))
+                .ToArray();
+        }
+
+        if (currentFilter == ModdedLobbyFilter.VanillaAndUnknownOnly)
+        {
+            // TODO: If we have an abundance of time, see if we can do a hashfilter-esque way to filter for vanilla/unknown lobbies
+            // I initially intended in checking for a null value of LobbyMetadata.Modded, but there's no way to make steam filter for null string values, as far as I can tell
+            // So we'll likely need to change the game's version, or change base game metadata in an otherwise detectable/filterable way
+            // I'm not sure if this is possible without breaking vanilla compatibility?
+
+            // Add only lobbies that are vanilla/unknown
+            allLobbies.AddRange(FilterLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Unknown));
+        }
+        else if (filteredLobbies != null && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
+        {
+            // Lobbies returned by the hashfilter are not 100% going to always be compatible, so we'll still need to filter them
+            var (compatibleFilteredLobbies, otherFilteredLobbies) = SplitLobbiesByDiffResult(filteredLobbies, LobbyDiffResult.Compatible);
+            var (compatibleNormalLobbies, otherNormalLobbies) = SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Compatible);
+
+            // Add filtered lobbies that are 100% compatible first, then any extra compatible lobbies not caught by the hashfilter
+            allLobbies.AddRange(compatibleFilteredLobbies);
+            allLobbies.AddRange(compatibleNormalLobbies);
+
+            if (currentFilter == ModdedLobbyFilter.CompatibleFirst)
+            {
+                // Finally, add the non-compatible lobbies. We want to prioritize hashfilter non-compatible lobbies, as they're likely closer to compatibility.
+                allLobbies.AddRange(otherFilteredLobbies);
+                allLobbies.AddRange(otherNormalLobbies);
+            }
+        }
+        else if (filteredLobbies == null && currentFilter == ModdedLobbyFilter.CompatibleOnly)
+        {
+            // Handle the special case where we're sorting for compatible only and nothing comes up, so we need to force return nothing
+            allLobbies = new();
+        }
+        else
+        {
+            // no need for special filtering or sorting if we're filtering for "All"
+            allLobbies = normalLobbies.ToList();
+        }
+
+        return allLobbies.ToArray();
+    }
+
+    // used for getting compatible/non compatible lobbies
+    private static (IEnumerable<Lobby>, IEnumerable<Lobby>) SplitLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
+    {
+        List<Lobby> matchedLobbies = new();
+        List<Lobby> unmatchedLobbies = new();
+
+        foreach (var lobby in lobbies)
+        {
+            var lobbyDiffResult = GetLobbyDiff(lobby).GetModdedLobbyType();
+            if (lobbyDiffResult == filteredLobbyDiffResult)
+                matchedLobbies.Add(lobby);
+            else
+                unmatchedLobbies.Add(lobby);
+        }
+
+        return (matchedLobbies, unmatchedLobbies);
+    }
+
+    private static IEnumerable<Lobby> FilterLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
+        => SplitLobbiesByDiffResult(lobbies, filteredLobbyDiffResult).Item1;
+    
+    public static string GetEmptyLobbyListString(ModdedLobbyFilter moddedLobbyFilter)
+    {
+        return moddedLobbyFilter switch
+        {
+            ModdedLobbyFilter.CompatibleOnly => "No available compatible\nservers to join.",
+            ModdedLobbyFilter.VanillaAndUnknownOnly => "No available vanilla or unknown\nservers to join.",
+            _ => "No available servers to join."
         };
     }
 }

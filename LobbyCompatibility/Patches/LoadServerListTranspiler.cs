@@ -71,76 +71,32 @@ public class LoadServerListTranspiler
         // If there is not a ModdedLobbyFilterDropdown Instance, treat as if we are doing no filtering
         var currentFilter = ModdedLobbyFilterDropdown.Instance != null ? ModdedLobbyFilterDropdown.Instance.LobbyFilter : ModdedLobbyFilter.All;
         
-        if (currentFilter == ModdedLobbyFilter.All)
-        {
-            steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager
-                .StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
-            return;
-        }
-        
         // Create a local reference so the IDE doesn't complain about the param not being marked ref
         var query = lobbyQuery;
-        
-        // Add Modded filter if we are filtering for "vanilla" lobbies only,
-        // otherwise add Checksum filter
-        if (currentFilter == ModdedLobbyFilter.VanillaAndUnknownOnly)
-            query.WithKeyValue(LobbyMetadata.Modded, "true");
-        else if (PluginHelper.Checksum != "")
+
+        Lobby[]? filteredLobbies = null;
+
+        // we only need to run the hashfilter if we're specifically looking for compatible lobbies
+        if (PluginHelper.Checksum != "" && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
+        {
+            // Add Checksum filter
             query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
 
-        var filteredLobbies = await query.RequestAsync();
-        List<Lobby> allLobbies = new();
-        var serverListBlankText = "";
-        
-        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-        switch (currentFilter)
-        {
-            default:
-            case ModdedLobbyFilter.CompatibleFirst:
-                serverListBlankText = "No available servers to join.";
-                
-                // Add compatible lobbies first
-                if (filteredLobbies != null)
-                    allLobbies.AddRange(filteredLobbies);
-                
-                // Add the remaining incompatible lobbies
-                allLobbies.AddRange(steamLobbyManager.currentLobbyList
-                        .Where(lobby => !allLobbies.Any(check => lobby.Equals(check))));
-                
-                break;
-            case ModdedLobbyFilter.CompatibleOnly:
-                serverListBlankText = "No available compatible\nservers to join.";
-
-                // Add compatible lobbies only
-                if (filteredLobbies != null)
-                    allLobbies.AddRange(filteredLobbies);
-                
-                break;
-            case ModdedLobbyFilter.VanillaAndUnknownOnly:
-                serverListBlankText = "No available vanilla\nservers to join.";
-                
-                // Add all lobbies
-                allLobbies.AddRange(steamLobbyManager.currentLobbyList);
-                
-                // Remove lobbies marked as modded
-                if (filteredLobbies != null)
-                    allLobbies.RemoveAll(lobby => filteredLobbies.Any(check => lobby.Equals(check)));
-                
-                break;
+            // Make an additional search for lobbies that match the checksum
+            filteredLobbies = await query.RequestAsync();
         }
 
-        if (allLobbies.Any())
+        // Get the final lobby array based on the user's ModdedLobbyFilter.
+        // IMPORTANT: steamLobbyManager.currentLobbyList WILL return null if steam is inaccessible, so we need initialize a default empty value just in case
+        var allLobbies = LobbyHelper.FilterLobbies(steamLobbyManager.currentLobbyList ?? new Lobby[0], filteredLobbies, currentFilter);
+        steamLobbyManager.currentLobbyList = allLobbies.ToArray();
+
+        if (!allLobbies.Any())
         {
-            // TODO: Add sorting of actual compatibility (server only version & client optional)
-            steamLobbyManager.currentLobbyList = allLobbies.Take(50).ToArray();
-        }
-        else
-        {
-            steamLobbyManager.currentLobbyList = new Lobby[0];
-            steamLobbyManager.serverListBlankText.text = serverListBlankText;
+            steamLobbyManager.serverListBlankText.text = LobbyHelper.GetEmptyLobbyListString(currentFilter);
             return;
         }
-        
+
         steamLobbyManager.loadLobbyListCoroutine = steamLobbyManager.StartCoroutine(steamLobbyManager.loadLobbyListAndFilter(steamLobbyManager.currentLobbyList));
     }
 }
