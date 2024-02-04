@@ -8,6 +8,7 @@ using HarmonyLib;
 using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
+using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
 
@@ -83,6 +84,15 @@ public class LoadServerListTranspiler
         // we only need to run the hashfilter if we're specifically looking for compatible lobbies
         if (PluginHelper.Checksum != "" && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
         {
+            // Re-add distance filter since it gets removed for some reason
+            query = steamLobbyManager.sortByDistanceSetting switch
+            {
+                0 => query.FilterDistanceClose(),
+                1 => query.FilterDistanceFar(),
+                2 => query.FilterDistanceWorldwide(),
+                _ => query,
+            };
+
             // Add Checksum filter
             query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
 
