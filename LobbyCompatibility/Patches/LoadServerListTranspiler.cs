@@ -70,7 +70,11 @@ public class LoadServerListTranspiler
     {
         // If there is not a ModdedLobbyFilterDropdown Instance, treat as if we are doing no filtering
         var currentFilter = ModdedLobbyFilterDropdown.Instance != null ? ModdedLobbyFilterDropdown.Instance.LobbyFilter : ModdedLobbyFilter.All;
-        
+
+        // Always apply no filtering when the user is entering a custom tag, as they're likely searching for a specific lobby
+        if (steamLobbyManager.serverTagInputField.text != string.Empty)
+            currentFilter = ModdedLobbyFilter.All;
+
         // Create a local reference so the IDE doesn't complain about the param not being marked ref
         var query = lobbyQuery;
 
