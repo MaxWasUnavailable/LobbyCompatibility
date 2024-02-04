@@ -20,14 +20,15 @@ internal static class LobbyHelper
     /// </summary>
     /// <param name="lobby"> The lobby to get the diff from. </param>
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
-    public static LobbyDiff GetLobbyDiff(Lobby lobby)
+    public static LobbyDiff GetLobbyDiff(Lobby lobby) => GetLobbyDiff(GetLobbyPluginStrings(lobby));
+    
+    /// <summary>
+    ///     Get a <see cref="LobbyDiff" /> from a <see cref="IEnumerable{String}" />.
+    /// </summary>
+    /// <param name="lobbyPluginStrings"> The list of strings to parse. </param>
+    /// <returns> The <see cref="LobbyDiff" /> from the <see cref="IEnumerable{String}"/>. </returns>
+    internal static LobbyDiff GetLobbyDiff(IEnumerable<string> lobbyPluginStrings)
     {
-        var lobbyPluginPages = int.Parse(lobby.GetData(LobbyMetadata.Plugins));
-        string[] lobbyPluginStrings = [];
-        
-        for (var i = 0; i < lobbyPluginPages; i++)
-            lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
-        
         var lobbyPlugins = PluginHelper
             .ParseLobbyPluginsMetadata(lobbyPluginStrings).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
@@ -111,5 +112,23 @@ internal static class LobbyHelper
             PluginDiffResult.ModVersionMismatch => "Mod version mismatch",
             _ => "Unknown"
         };
+    }
+
+    /// <summary>
+    ///     Get the plugin pages in <see cref="IEnumerable{String}" /> from a <see cref="Lobby" />.
+    /// </summary>
+    /// <param name="lobby"> The <see cref="Lobby" /> to get the list from. </param>
+    /// <returns> The <see cref="IEnumerable{String}" /> from the <see cref="Lobby" />. </returns>
+    internal static IEnumerable<string> GetLobbyPluginStrings(Lobby lobby)
+    {
+        string[] lobbyPluginStrings = [];
+        var i = 0;
+        do
+        {
+            lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
+            i++;
+        } while (!lobbyPluginStrings[i].Contains("@"));
+
+        return lobbyPluginStrings;
     }
 }

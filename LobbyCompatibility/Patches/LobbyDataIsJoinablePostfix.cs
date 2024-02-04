@@ -1,3 +1,4 @@
+using System.Linq;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
@@ -34,17 +35,13 @@ internal static class LobbyDataIsJoinablePostfix
             return PluginHelper.CanJoinVanillaLobbies() && isJoinable;
         }
 
-        var lobbyPluginPages = int.Parse(lobby.GetData(LobbyMetadata.Plugins));
-        string[] lobbyPluginStrings = [];
-        
-        for (var i = 0; i < lobbyPluginPages; i++)
-            lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
+        var lobbyPluginStrings = LobbyHelper.GetLobbyPluginStrings(lobby).ToArray();
         
         // Create lobby diff so LatestLobbyDiff is set
-        LobbyHelper.GetLobbyDiff(lobby);
+        LobbyHelper.GetLobbyDiff(lobbyPluginStrings);
 
         // If the lobby does not have any plugin information, return original result (since we can't check anything)
-        if (string.IsNullOrEmpty(lobby.GetData(LobbyMetadata.Plugins)))
+        if (lobbyPluginStrings.Length == 0 || string.IsNullOrEmpty(lobbyPluginStrings[0]))
         {
             LobbyCompatibilityPlugin.Logger?.LogWarning("Lobby is modded but does not have any plugin information.");
             return isJoinable;

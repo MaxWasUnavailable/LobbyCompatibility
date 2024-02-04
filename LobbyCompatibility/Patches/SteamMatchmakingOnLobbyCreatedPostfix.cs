@@ -31,11 +31,9 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
 
         // Add paginated plugin metadata to the lobby so clients can check if they have the required plugins
         var plugins = PluginHelper.GetLobbyPluginsMetadata();
-        // Add number of pages
-        lobby.SetData(LobbyMetadata.Plugins, plugins.Length.ToString());
-        // Add each page
+        // Add each page with delimiter if there's another page
         for (var i = 0; i < plugins.Length; i++)
-            lobby.SetData($"{LobbyMetadata.Plugins}{i}", plugins[i]);
+            lobby.SetData($"{LobbyMetadata.Plugins}{i}", $"{plugins[i]}{(i < plugins.Length - 1 ? "@" : "")}");
 
         // Set the joinable modded metadata to the same value as the original joinable metadata, in case it wasn't originally joinable
         lobby.SetData(LobbyMetadata.JoinableModded, lobby.GetData(LobbyMetadata.Joinable));
