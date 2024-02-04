@@ -58,7 +58,6 @@ public class LoadServerListTranspiler
             .ThrowIfInvalid("Unable to find leave instruction.")
             .InsertAndAdvance(new[] {
                 loadVarInstruction = new CodeInstruction(OpCodes.Ldloc_1),
-                new CodeInstruction(OpCodes.Ldloc_3),
                 new CodeInstruction(OpCodes.Call, postfixMethod)
             });
 
@@ -67,34 +66,31 @@ public class LoadServerListTranspiler
         return codeMatcher.InstructionEnumeration();
     }
 
-    internal static async void LoadListPostfix(SteamLobbyManager steamLobbyManager, LobbyQuery lobbyQuery)
+    internal static async void LoadListPostfix(SteamLobbyManager steamLobbyManager)
     {
+        // Create a new LobbyQuery using the previous request's values
+        LobbyQuery query = SteamMatchmaking.LobbyList;
+        query.stringFilters = LobbyHelper.LatestLobbyRequestStringFilters;
+        query.distance = LobbyHelper.LatestLobbyRequestDistanceFilter;
+
         // If there is not a ModdedLobbyFilterDropdown Instance, treat as if we are doing no filtering
         var currentFilter = ModdedLobbyFilterDropdown.Instance != null ? ModdedLobbyFilterDropdown.Instance.LobbyFilter : ModdedLobbyFilter.All;
 
         // Always apply no filtering when the user is entering a custom tag, as they're likely searching for a specific lobby
-        if (steamLobbyManager.serverTagInputField.text != string.Empty)
+        if (query.stringFilters.ContainsKey(LobbyMetadata.Tag))
             currentFilter = ModdedLobbyFilter.All;
-
-        // Create a local reference so the IDE doesn't complain about the param not being marked ref
-        var query = lobbyQuery;
 
         Lobby[]? filteredLobbies = null;
 
         // we only need to run the hashfilter if we're specifically looking for compatible lobbies
         if (PluginHelper.Checksum != "" && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
         {
-            // Re-add distance filter since it gets removed for some reason
-            query = steamLobbyManager.sortByDistanceSetting switch
-            {
-                0 => query.FilterDistanceClose(),
-                1 => query.FilterDistanceFar(),
-                2 => query.FilterDistanceWorldwide(),
-                _ => query,
-            };
+            // If our previous cached query already has a checksum attribute, remove it, as otherwise WithKeyValue throws an error
+            if (query.stringFilters.ContainsKey(LobbyMetadata.RequiredChecksum))
+                query.stringFilters.Remove(LobbyMetadata.RequiredChecksum);
 
-            // Add Checksum filter
-            query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
+            else
+                query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
 
             // Make an additional search for lobbies that match the checksum
             filteredLobbies = await query.RequestAsync();

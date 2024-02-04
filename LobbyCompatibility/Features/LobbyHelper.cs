@@ -2,6 +2,7 @@
 using System.Linq;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
+using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
 
@@ -12,10 +13,12 @@ namespace LobbyCompatibility.Features;
 /// </summary>
 internal static class LobbyHelper
 {
-    private static List<PluginInfoRecord>? _clientPlugins;
-
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
+    public static Dictionary<string, string> LatestLobbyRequestStringFilters = new();
+    public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
+
     private static Dictionary<ulong, LobbyDiff> _lobbyDiffCache { get; set; } = new();
+    private static List<PluginInfoRecord>? _clientPlugins;
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.

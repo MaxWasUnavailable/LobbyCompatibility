@@ -14,6 +14,11 @@ public static class LobbyMetadata
     public const string Name = "name";
 
     /// <summary>
+    ///     The tag for the host's custom lobby tag.
+    /// </summary>
+    public const string Tag = "tag";
+
+    /// <summary>
     ///     The tag for the host's game version.
     /// </summary>
     /// <remarks>
