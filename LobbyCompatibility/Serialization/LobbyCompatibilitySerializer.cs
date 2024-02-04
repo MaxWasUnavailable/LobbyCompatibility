@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
@@ -8,15 +9,33 @@ namespace LobbyCompatibility.Serialization;
 
 public static class LobbyCompatibilitySerializer
 {
-    private static string _pluginSeparator = "&";
-    private static string _fieldSeparator = ";";
-    
+    private const char PluginSeparator = '&';
+    private const char FieldSeparator = ';';
+
     public static string[] Serialize(IEnumerable<PluginInfoRecord> pluginInfoRecordList)
     {
-        return [ "" ];
+        List<string> allSerializedPlugins = [];
+        List<string> separatedConcatStrings = [];
+
+        allSerializedPlugins.AddRange(pluginInfoRecordList.Select(Serialize));
+
+        var tempString = "";
+
+        foreach (var plugin in allSerializedPlugins)
+        {
+            if (tempString.Length + plugin.Length + 1 < 8192)
+                tempString += $"{(tempString.Length == 0 ? PluginSeparator : "")}{plugin}";
+            else
+            {
+                separatedConcatStrings.Add(tempString);
+                tempString = "";
+            }
+        }
+        
+        return separatedConcatStrings.ToArray();
     }
-    
-    public static string Serialize(PluginInfoRecord pluginInfoRecord)
+
+    private static string Serialize(PluginInfoRecord pluginInfoRecord)
     {
         List<string> serializedPluginInfo =
         [
@@ -26,7 +45,7 @@ public static class LobbyCompatibilitySerializer
             Serialize(pluginInfoRecord.VersionStrictness)
         ];
 
-        return serializedPluginInfo.Join(delimiter:_fieldSeparator);
+        return serializedPluginInfo.Join(delimiter: FieldSeparator.ToString());
     }
 
     private static string Serialize(string pluginGuid) => pluginGuid;
@@ -57,10 +76,50 @@ public static class LobbyCompatibilitySerializer
         };
     }
 
-    public static IEnumerable<PluginInfoRecord> Deserialize(IEnumerable<string> paginatedSerializedPluginList)
+    public static IEnumerable<PluginInfoRecord> Deserialize(IEnumerable<string> paginatedSerializedPlugins)
     {
-        string serializedPluginList = paginatedSerializedPluginList.Join(delimiter: _pluginSeparator);
-        
-        return new List<PluginInfoRecord>();
+        var serializedPluginList = paginatedSerializedPlugins.Join(delimiter: PluginSeparator.ToString()).Split(PluginSeparator);
+
+        return serializedPluginList.Select(DeserializePluginInfoRecord);
+    }
+
+    private static PluginInfoRecord DeserializePluginInfoRecord(string pluginInfoRecord)
+    {
+        var splitRecord = pluginInfoRecord.Split(FieldSeparator);
+
+        return new PluginInfoRecord(
+            DeserializeGuid(splitRecord[0]),
+            DeserializeVersion(splitRecord[1]),
+            DeserializeCompatibilityLevel(splitRecord[2]),
+            DeserializeVersionStrictness(splitRecord[3])
+            );
+    }
+
+    private static string DeserializeGuid(string pluginGuid) => pluginGuid;
+
+    private static Version DeserializeVersion(string version) => Version.Parse(version);
+
+    private static CompatibilityLevel? DeserializeCompatibilityLevel(string compatibilityLevel)
+    {
+        return compatibilityLevel switch
+        {
+            "c" => CompatibilityLevel.ClientOnly,
+            "s" => CompatibilityLevel.ServerOnly,
+            "e" => CompatibilityLevel.Everyone,
+            "o" => CompatibilityLevel.ClientOptional,
+            _ => null
+        };
+    }
+
+    private static VersionStrictness? DeserializeVersionStrictness(string versionStrictness)
+    {
+        return versionStrictness switch
+        {
+            "o" => VersionStrictness.None,
+            "m" => VersionStrictness.Major,
+            "n" => VersionStrictness.Minor,
+            "p" => VersionStrictness.Patch,
+            _ => null
+        };
     }
 }
