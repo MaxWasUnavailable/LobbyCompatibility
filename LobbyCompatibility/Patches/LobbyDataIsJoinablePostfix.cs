@@ -34,20 +34,24 @@ internal static class LobbyDataIsJoinablePostfix
             return PluginHelper.CanJoinVanillaLobbies() && isJoinable;
         }
 
-        var lobbyPluginString = lobby.GetData(LobbyMetadata.Plugins);
-
+        var lobbyPluginPages = int.Parse(lobby.GetData(LobbyMetadata.Plugins));
+        string[] lobbyPluginStrings = [];
+        
+        for (var i = 0; i < lobbyPluginPages; i++)
+            lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
+        
         // Create lobby diff so LatestLobbyDiff is set
         LobbyHelper.GetLobbyDiff(lobby);
 
         // If the lobby does not have any plugin information, return original result (since we can't check anything)
-        if (string.IsNullOrEmpty(lobbyPluginString))
+        if (string.IsNullOrEmpty(lobby.GetData(LobbyMetadata.Plugins)))
         {
             LobbyCompatibilityPlugin.Logger?.LogWarning("Lobby is modded but does not have any plugin information.");
             return isJoinable;
         }
 
         var matchesPluginRequirements =
-            PluginHelper.MatchesTargetRequirements(PluginHelper.ParseLobbyPluginsMetadata(lobbyPluginString));
+            PluginHelper.MatchesTargetRequirements(PluginHelper.ParseLobbyPluginsMetadata(lobbyPluginStrings));
 
         if (!matchesPluginRequirements)
         {

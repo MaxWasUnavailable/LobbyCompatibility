@@ -22,8 +22,14 @@ internal static class LobbyHelper
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
     public static LobbyDiff GetLobbyDiff(Lobby lobby)
     {
+        var lobbyPluginPages = int.Parse(lobby.GetData(LobbyMetadata.Plugins));
+        string[] lobbyPluginStrings = [];
+        
+        for (var i = 0; i < lobbyPluginPages; i++)
+            lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
+        
         var lobbyPlugins = PluginHelper
-            .ParseLobbyPluginsMetadata(lobby.GetData(LobbyMetadata.Plugins)).ToList();
+            .ParseLobbyPluginsMetadata(lobbyPluginStrings).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
 
         var pluginDiffs = new List<PluginDiff>();

@@ -6,6 +6,7 @@ using BepInEx.Bootstrap;
 using LobbyCompatibility.Attributes;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
+using LobbyCompatibility.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -72,9 +73,9 @@ internal static class PluginHelper
     ///     Creates a json string containing the metadata of all plugins, to add to the lobby.
     /// </summary>
     /// <returns> A json string containing the metadata of all plugins. </returns>
-    public static string GetLobbyPluginsMetadata()
+    public static string[] GetLobbyPluginsMetadata()
     {
-        return JsonConvert.SerializeObject(GetAllPluginInfo().ToList(), new VersionConverter());
+        return LobbyCompatibilitySerializer.Serialize(GetAllPluginInfo());
     }
 
     /// <summary>
@@ -82,11 +83,11 @@ internal static class PluginHelper
     /// </summary>
     /// <param name="json"> The json string to parse. </param>
     /// <returns> A list of plugins in the APIPluginInfo format. </returns>
-    internal static IEnumerable<PluginInfoRecord> ParseLobbyPluginsMetadata(string json)
+    internal static IEnumerable<PluginInfoRecord> ParseLobbyPluginsMetadata(IEnumerable<string> json)
     {
         try
         {
-            return JsonConvert.DeserializeObject<List<PluginInfoRecord>>(json, new VersionConverter()) ??
+            return LobbyCompatibilitySerializer.Deserialize(json) ??
                    new List<PluginInfoRecord>();
         }
         catch (Exception e)
