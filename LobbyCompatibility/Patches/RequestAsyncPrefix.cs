@@ -1,14 +1,6 @@
 ﻿using HarmonyLib;
-using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Features;
-using Steamworks;
 using Steamworks.Data;
-using System.Collections.Generic;
-using System.IO;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
-using static TMPro.TMP_Dropdown;
 
 namespace LobbyCompatibility.Patches;
 

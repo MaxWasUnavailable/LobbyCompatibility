@@ -4,7 +4,6 @@ using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using Steamworks;
 using Steamworks.Data;
-using UnityEngine;
 
 namespace LobbyCompatibility.Features;
 
