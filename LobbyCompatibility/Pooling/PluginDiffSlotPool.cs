@@ -1,11 +1,6 @@
-﻿using HarmonyLib;
-using LobbyCompatibility;
-using LobbyCompatibility.Behaviours;
+﻿using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Models;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -22,7 +17,7 @@ internal class PluginDiffSlotPool : MonoBehaviour
         _container = container;
         _template = template;
 
-        _pool = new ObjectPool<PluginDiffSlot>(CreatePooledItem, OnTakeFromPool, OnReturnedToPool, OnDestroyPoolObject, false, 10);
+        _pool = new ObjectPool<PluginDiffSlot>(CreatePooledItem, OnTakeFromPool, OnReturnedToPool, OnDestroyPoolObject, false, 20);
     }
 
     public PluginDiffSlot? Spawn(PluginDiff pluginDiff)
