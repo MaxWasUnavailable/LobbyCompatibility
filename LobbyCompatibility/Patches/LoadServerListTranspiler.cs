@@ -117,12 +117,8 @@ public class LoadServerListTranspiler
         // we only need to run the hashfilter if we're specifically looking for compatible lobbies
         if (PluginHelper.Checksum != "" && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
         {
-            // If our previous cached query already has a checksum attribute, remove it, as otherwise WithKeyValue throws an error
-            if (query.stringFilters.ContainsKey(LobbyMetadata.RequiredChecksum))
-                query.stringFilters.Remove(LobbyMetadata.RequiredChecksum);
-
-            else
-                query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
+            // Add checksum filter to query
+            query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
 
             // Make an additional search for lobbies that match the checksum
             filteredLobbies = await query.RequestAsync();
