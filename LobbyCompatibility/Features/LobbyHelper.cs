@@ -13,8 +13,6 @@ namespace LobbyCompatibility.Features;
 internal static class LobbyHelper
 {
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
-    public static Dictionary<string, string> LatestLobbyRequestStringFilters = new();
-    public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
 
     private static Dictionary<ulong, LobbyDiff> _lobbyDiffCache { get; set; } = new();
     private static List<PluginInfoRecord>? _clientPlugins;

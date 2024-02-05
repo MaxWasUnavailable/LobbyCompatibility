@@ -34,44 +34,76 @@ public class LoadServerListTranspiler
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
     {
+        var searchRequestMethod = AccessTools.Method(typeof(LobbyQuery), nameof(LobbyQuery.RequestAsync));
         var searchCoroutineMethod = AccessTools.Method(typeof(MonoBehaviour), nameof(MonoBehaviour.StartCoroutine), new [] { typeof(IEnumerator) });
+        
+        var cloneMethod = AccessTools.Method(typeof(LoadServerListTranspiler), nameof(CreateClone));
         var postfixMethod = AccessTools.Method(typeof(LoadServerListTranspiler), nameof(LoadListPostfix));
-
+        
+        // Create a new local variable in the method & store the index
+        var cloneVarIndex = ilGenerator.DeclareLocal(typeof(LobbyQuery)).LocalIndex;
+        
+        CodeMatcher codeMatcher = new(instructions, ilGenerator);
         CodeInstruction loadVarInstruction;
+            
+        // Does the following:
+        // - Finds the RequestAsync call
+        // - Calls CloneLobby
+        // - Stores the returned query
+        // - Loads lobbyQuery2's address
+        codeMatcher
+            .SearchForward(inst => inst.Calls(searchRequestMethod))
+            .ThrowIfInvalid("Unable to find RequestAsync.")
+            .InsertAndAdvance(new[] {
+                new CodeInstruction(OpCodes.Callvirt, cloneMethod),
+                new CodeInstruction(OpCodes.Stloc_S, cloneVarIndex),
+                new CodeInstruction(OpCodes.Ldloca_S, 3)
+            });
         
         // Does the following:
+        // - Finds the StartCoroutine call
         // - Sets final instruction of the coroutine line to Nop
-        // - Sets the first instruction of the coroutine line to unconditionally branch to Nop
-        // - Moves to the end of the "try" section of the MoveNext method
-        // - Load steamLobbyManager variable
-        // - Load lobbyQuery2 variable
-        // - Call Postfix method
-        var codeMatcher = new CodeMatcher(instructions, ilGenerator)
+        // - Sets first instruction of the coroutine line to unconditionally branch to Nop
+        codeMatcher
             .SearchForward(inst => inst.Calls(searchCoroutineMethod))
             .ThrowIfInvalid("Unable to find StartCoroutine.")
             .Advance(1)
             .SetInstruction(new CodeInstruction(OpCodes.Nop))
             .CreateLabel(out var label)
             .Advance(-7)
-            .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Br, label))
+            .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Br, label));
+            
+        // Does the following:
+        // - Finds the end of the final state of the MoveNext method
+        // - Loads steamLobbyManager variable
+        // - Loads cloned lobby query variable
+        // - Calls Postfix
+        codeMatcher
             .SearchForward(inst => inst.opcode == OpCodes.Leave)
             .ThrowIfInvalid("Unable to find leave instruction.")
             .InsertAndAdvance(new[] {
                 loadVarInstruction = new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(OpCodes.Ldloc_S, cloneVarIndex),
                 new CodeInstruction(OpCodes.Call, postfixMethod)
             });
 
+        // Does the following:
+        // - Move the Branch label from the leave instruction to the start of our postfix instructions
         codeMatcher.Instruction.MoveLabelsTo(loadVarInstruction);
 
         return codeMatcher.InstructionEnumeration();
     }
 
-    internal static async void LoadListPostfix(SteamLobbyManager steamLobbyManager)
+    private static LobbyQuery CreateClone(ref LobbyQuery lobbyQuery) => new()
+        {
+            distance = lobbyQuery.distance,
+            stringFilters = lobbyQuery.stringFilters ?? new Dictionary<string, string>()
+        };
+
+    internal static async void LoadListPostfix(SteamLobbyManager steamLobbyManager, LobbyQuery lobbyQuery)
     {
         // Create a new LobbyQuery using the previous request's values
-        LobbyQuery query = SteamMatchmaking.LobbyList;
-        query.stringFilters = LobbyHelper.LatestLobbyRequestStringFilters;
-        query.distance = LobbyHelper.LatestLobbyRequestDistanceFilter;
+        var query = lobbyQuery;
 
         // If there is not a ModdedLobbyFilterDropdown Instance, treat as if we are doing no filtering
         var currentFilter = ModdedLobbyFilterDropdown.Instance != null ? ModdedLobbyFilterDropdown.Instance.LobbyFilter : ModdedLobbyFilter.All;
