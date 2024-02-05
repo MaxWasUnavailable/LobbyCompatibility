@@ -63,6 +63,7 @@ internal class PluginDiffSlotPool : MonoBehaviour
     private void OnTakeFromPool(PluginDiffSlot pluginDiffSlot)
     {
         pluginDiffSlot.gameObject.SetActive(true);
+        pluginDiffSlot.transform.SetAsLastSibling();
     }
 
     // If the pool capacity is reached then any items returned will be destroyed.

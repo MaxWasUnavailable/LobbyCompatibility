@@ -48,18 +48,20 @@ internal static class UIHelper
     ///     Creates a new <see cref="TextMeshProUGUI" /> to be used as a template. Intended to be used as a modlist template.
     /// </summary>
     /// <param name="template"> The <see cref="TextMeshProUGUI" /> to base the template off of. </param>
+    /// <param name="parent"> The <see cref="Transform" /> to parent the template to. </param>
     /// <param name="color"> Text color. </param>
     /// <param name="size"> The sizeDelta of the text's RectTransform. </param>
     /// <param name="maxFontSize"> The font's maximum size. </param>
     /// <param name="minFontSize"> The font's minimum size. </param>
     /// <param name="alignment"> How to align the text. </param>
-    public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, Color color, Vector2 size,
-        float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
+    /// <param name="defaultPosition"> The default anchoredPosition of the text's RectTransform. </param>
+    public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, Transform parent, Color color, Vector2 size,
+        float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center, Vector2? defaultPosition = null)
     {
-        var text = Object.Instantiate(template, template.transform.parent);
+        var text = Object.Instantiate(template, parent);
 
         // Set text alignment / formatting options
-        text.rectTransform.anchoredPosition = new Vector2(0f, 0f);
+        text.rectTransform.anchoredPosition = defaultPosition ?? new Vector2(0f, 0f);
         text.rectTransform.sizeDelta = size;
         text.horizontalAlignment = alignment;
         text.enableAutoSizing = true;
@@ -71,6 +73,26 @@ internal static class UIHelper
         // Deactivate so we can use as a template later
         text.gameObject.SetActive(false);
         return text;
+    }
+
+    public static RectTransform ApplyParentSize(GameObject uiElement, Transform parent)
+    {
+        var rect = uiElement.GetComponent<RectTransform>();
+        if (rect == null) 
+            rect = uiElement.AddComponent<RectTransform>();
+
+        rect.SetParent(parent);
+
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
+        rect.localPosition = Vector3.zero;
+
+        return rect;
     }
 
     /// <summary>
@@ -88,7 +110,7 @@ internal static class UIHelper
         if (overrideColor != null)
             text.color = overrideColor!.Value;
 
-        text.rectTransform.anchoredPosition = new Vector2(0f, yPosition);
+        text.rectTransform.anchoredPosition = new Vector2(text.rectTransform.anchoredPosition.x, yPosition);
         text.text = content;
         text.gameObject.SetActive(true);
 

@@ -6,6 +6,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
+using LobbyCompatibility.Enums;
+using LobbyCompatibility.Pooling;
+using System.Linq;
+using System;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LobbyCompatibility.Behaviours;
 
@@ -16,20 +21,18 @@ public class ModListPanel : MonoBehaviour
 {
     public static ModListPanel? Instance;
 
-    private static readonly Vector2 NotificationWidth = new(1.25f, 1.75f);
-    private static readonly float HeaderSpacing = 20f;
-    private static readonly float TextSpacing = 15f;
-    private readonly List<TextMeshProUGUI> _existingText = new();
-
-    // Needed for mod diff text generation
-    private TextMeshProUGUI? _headerTextTemplate;
+    private static readonly Vector2 NotificationWidth = new(1.6f, 1.75f);
+    private readonly List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
+    private readonly List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
 
     private RectTransform? _panelTransform;
 
     // Needed for scrolling / content size recalculation
-    private ScrollRect? _scrollView;
-    private TextMeshProUGUI? _textTemplate;
+    private ScrollRect? _scrollRect;
     private TextMeshProUGUI? _titleText;
+
+    private PluginDiffSlotPool? _pluginDiffSlotPool;
+    private PluginCategorySlotPool? _pluginCategorySlotPool;
 
     /// <summary>
     ///     Assign instance on awake so we can access it statically
@@ -65,7 +68,12 @@ public class ModListPanel : MonoBehaviour
         _titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
 
         // Initialize scroll view by taking the game's lobby list and modifying it
-        SetupScrollView(_panelTransform, scrollViewTemplate, _titleText.color);
+        _scrollRect = SetupScrollRect(_panelTransform, scrollViewTemplate);
+        if (_scrollRect == null)
+            return;
+
+        // Initialize modlist slots
+        SetupModListSlots(_panelTransform, _scrollRect, _titleText.color);
 
         // Increase panel opacity to 100% so we can't see error messages underneath (if they exist)
         panelImage.color = new Color(panelImage.color.r, panelImage.color.g, panelImage.color.b, 1);
@@ -87,38 +95,91 @@ public class ModListPanel : MonoBehaviour
     }
 
     /// <summary>
-    ///     Set up the scroll view for the mod list panel using a lobby list's scroll view as a donor
+    ///     Set up the scroll rect for the mod list panel using a lobby list's scroll rect as a donor
     /// </summary>
     /// <param name="panelTransform"> The mod list panel's transform </param>
-    /// <param name="scrollViewTemplate"> A lobby list's scroll view to use as a donor </param>
+    /// <param name="scrollViewTemplate"> A lobby list's scroll rect to use as a donor </param>
     /// <param name="defaultTextColor"> The default text color to use for the mod list panel </param>
-    private void SetupScrollView(RectTransform panelTransform, Transform scrollViewTemplate, Color defaultTextColor)
+    /// <returns> The <see cref="ScrollRect"/>. </returns>
+    private ScrollRect? SetupScrollRect(RectTransform panelTransform, Transform scrollViewTemplate)
     {
-        // Setup ScrollView for panel
-        var scrollViewObject = Instantiate(scrollViewTemplate, panelTransform);
-        var scrollViewTransform = scrollViewObject.GetComponent<RectTransform>();
-        _scrollView = scrollViewObject.GetComponent<ScrollRect>();
-        var text = scrollViewObject.GetComponentInChildren<TextMeshProUGUI>();
-        if (scrollViewTransform == null || _scrollView == null || text == null)
-            return;
+        // Setup scrollRect for panel
+        var scrollRectObject = Instantiate(scrollViewTemplate, panelTransform);
+        var scrollRectTransform = scrollRectObject.GetComponent<RectTransform>();
+        var scrollRect = scrollRectObject.GetComponent<ScrollRect>();
+        if (scrollRectTransform == null || scrollRect == null)
+            return null;
 
-        // Delete lobby manager (not sure why it's on this object?)
-        var lobbyManager = scrollViewObject.GetComponentInChildren<SteamLobbyManager>();
+        // Delete duplicated lobby manager (not sure why it's on this object?)
+        var lobbyManager = scrollRectObject.GetComponentInChildren<SteamLobbyManager>();
         if (lobbyManager != null)
             Destroy(lobbyManager);
 
         // Set pos/scale
-        scrollViewTransform.anchoredPosition = new Vector2(15f, -30f);
-        scrollViewTransform.sizeDelta = new Vector2(-30f, -100f);
+        scrollRectTransform.anchoredPosition = new Vector2(15f, -30f);
+        scrollRectTransform.sizeDelta = new Vector2(-30f, -100f);
 
         // Reset scroll to default position
-        _scrollView.verticalNormalizedPosition = 1f;
+        scrollRect.verticalNormalizedPosition = 1f;
+
+        // Setup ContentSizeFilter and VerticalLayoutGroup so diff elements are automagically spaced
+        var verticalLayoutGroup = scrollRect.content.gameObject.AddComponent<VerticalLayoutGroup>();
+        verticalLayoutGroup.childControlHeight = false;
+        verticalLayoutGroup.childForceExpandHeight = false;
+        var contentSizeFilter = verticalLayoutGroup.gameObject.AddComponent<ContentSizeFitter>();
+        contentSizeFilter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        return scrollRect;
+    }
+
+    private void SetupModListSlots(RectTransform panelTransform, ScrollRect scrollRect, Color defaultTextColor)
+    {
+        var text = scrollRect.GetComponentInChildren<TextMeshProUGUI>();
 
         // Setup text as template
         text.gameObject.SetActive(false);
-        _headerTextTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f);
-        _textTemplate = UIHelper.SetupTextAsTemplate(text, defaultTextColor, new Vector2(290f, 30f), 18.35f, 2f,
-            HorizontalAlignmentOptions.Left);
+
+        // Setup PluginDiffSlot template panel
+        var pluginDiffSlot = new GameObject("PluginDiffSlot");
+        var pluginDiffSlotImage = pluginDiffSlot.AddComponent<Image>();
+        var pluginDiffSlotTransform = UIHelper.ApplyParentSize(pluginDiffSlot, text.transform.parent);
+        pluginDiffSlotTransform.anchoredPosition = Vector2.zero;
+        pluginDiffSlotTransform.sizeDelta = new Vector2(1, 20f);
+        pluginDiffSlotImage.color = Color.clear;
+        pluginDiffSlot.SetActive(false);
+
+        // Setup PluginCategorySlot template panel, identical except for the height
+        var categoryEntry = Instantiate(pluginDiffSlot, pluginDiffSlotTransform.parent);
+        categoryEntry.GetComponent<RectTransform>().sizeDelta = new Vector2(1, 25f);
+
+        // Setup all text for PluginDiffSlot
+        var pluginNameText = UIHelper.SetupTextAsTemplate(text, pluginDiffSlotTransform, defaultTextColor, new Vector2(220f, 30f), 18.35f, 2f,
+            HorizontalAlignmentOptions.Left, new Vector2(-72f, 0f));
+        var versionText = UIHelper.SetupTextAsTemplate(text, pluginDiffSlotTransform, defaultTextColor, new Vector2(70f, 30f), 18.35f, 2f,
+            HorizontalAlignmentOptions.Center, new Vector2(70f, 0f));
+        var serverVersionText = UIHelper.SetupTextAsTemplate(text, pluginDiffSlotTransform, defaultTextColor, new Vector2(70f, 30f), 18.35f, 2f,
+            HorizontalAlignmentOptions.Center, new Vector2(140f, 0f));
+
+        // Finish PluginDiffSlot setup
+        var diffSlot = pluginDiffSlot.AddComponent<PluginDiffSlot>();
+        diffSlot.SetupText(pluginNameText, versionText, serverVersionText);
+
+        // Setup all text for PluginCategorySlot
+        var categoryText = UIHelper.SetupTextAsTemplate(text, categoryEntry.transform, defaultTextColor, new Vector2(290f, 35f), 18.35f, 2f,
+            HorizontalAlignmentOptions.Center, new Vector2(-72f, 0f));
+
+        // Finish PluginCategorySlot setup
+        var categorySlot = categoryEntry.AddComponent<PluginCategorySlot>();
+        categorySlot.SetupText(categoryText);
+        categorySlot.gameObject.SetActive(false);
+
+        // Initialize pools
+        var pluginPoolsObject = new GameObject("PluginSlotPools");
+        pluginPoolsObject.transform.SetParent(panelTransform);
+        _pluginDiffSlotPool = pluginPoolsObject.AddComponent<PluginDiffSlotPool>();
+        _pluginDiffSlotPool.InitializeUsingTemplate(diffSlot, diffSlot.transform.parent);
+        _pluginCategorySlotPool = pluginPoolsObject.AddComponent<PluginCategorySlotPool>();
+        _pluginCategorySlotPool.InitializeUsingTemplate(categorySlot, categorySlot.transform.parent);
     }
 
     /// <summary>
@@ -128,11 +189,11 @@ public class ModListPanel : MonoBehaviour
     /// <param name="titleOverride"> Override the title text of the mod list panel </param>
     public void DisplayNotification(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
-        if (_scrollView == null)
+        if (_scrollRect == null)
             return;
 
         // Set scroll to zero
-        _scrollView.verticalNormalizedPosition = 1f;
+        _scrollRect.verticalNormalizedPosition = 1f;
         SetPanelActive(true);
         // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
 
@@ -146,32 +207,59 @@ public class ModListPanel : MonoBehaviour
     /// <param name="titleOverride"> Override the title text of the mod list panel </param>
     private void DisplayModList(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
-        if (_panelTransform == null || _scrollView?.content == null || _titleText == null ||
-            _headerTextTemplate == null || _textTemplate == null)
+        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null || _titleText == null)
             return;
 
-        _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
+        // Despawn old diffs
+        ClearSpawnedDiffs();
 
-        // clear old text
-        foreach (var text in _existingText)
+        // Create categories w/ mods
+        foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
         {
-            if (text == null)
+            var plugins = lobbyDiff.PluginDiffs.Where(
+                pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
+
+            if (plugins.Count == 0)
                 continue;
 
-            Destroy(text.gameObject);
+            var pluginCategorySlot = _pluginCategorySlotPool.Spawn(compatibilityResult);
+            _spawnedPluginCategorySlots.Add(pluginCategorySlot);
+
+            // Respawn mod diffs
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
+            }
         }
 
-        _existingText.Clear();
+        _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
+    }
 
-        // Generate text based on LobbyDiff
-        var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, _textTemplate,
-            _headerTextTemplate, TextSpacing, HeaderSpacing);
-        _existingText.AddRange(newText); // TODO: probably doesn't need to be an AddRange since we just deleted stuff
+    private void ClearSpawnedDiffs()
+    {
+        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null)
+            return;
 
-        // Resize ScrollView to not extend far past the content
-        _scrollView.content.sizeDelta =
-            new Vector2(0,
-                padding + HeaderSpacing); // TODO: could probably be done natively with a contentsizefilter. don't wanna look into it rn
+        foreach (var pluginDiffSlot in _spawnedPluginDiffSlots)
+        {
+            if (pluginDiffSlot == null)
+                continue;
+            _pluginDiffSlotPool.Release(pluginDiffSlot);
+        }
+
+        foreach (var pluginCategorySlot in _spawnedPluginCategorySlots)
+        {
+            if (pluginCategorySlot == null)
+                continue;
+            _pluginCategorySlotPool.Release(pluginCategorySlot);
+        }
+
+        _spawnedPluginDiffSlots.Clear();
+        _spawnedPluginCategorySlots.Clear();
     }
 
     /// <summary>

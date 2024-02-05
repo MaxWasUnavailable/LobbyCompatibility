@@ -85,8 +85,8 @@ public class ModListTooltipPanel : MonoBehaviour
 
         // Setup text as template
         _headerTextTemplate =
-            UIHelper.SetupTextAsTemplate(_titleText, _titleText.color, new Vector2(165f, 75f), 13f, 2f);
-        _textTemplate = UIHelper.SetupTextAsTemplate(_titleText, _titleText.color, new Vector2(165f, 75f), 13f, 2f,
+            UIHelper.SetupTextAsTemplate(_titleText, _titleText.transform.parent, _titleText.color, new Vector2(165f, 75f), 13f, 2f);
+        _textTemplate = UIHelper.SetupTextAsTemplate(_titleText, _titleText.transform.parent, _titleText.color, new Vector2(165f, 75f), 13f, 2f,
             HorizontalAlignmentOptions.Left);
 
         // Make the title wrap with compact line spacing

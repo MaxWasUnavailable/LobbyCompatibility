@@ -77,6 +77,7 @@ internal class PluginCategorySlotPool : MonoBehaviour
     private void OnTakeFromPool(PluginCategorySlot pluginCategorySlot)
     {
         pluginCategorySlot.gameObject.SetActive(true);
+        pluginCategorySlot.transform.SetAsLastSibling();
     }
 
     // If the pool capacity is reached then any items returned will be destroyed.
