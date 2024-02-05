@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
@@ -13,8 +13,6 @@ namespace LobbyCompatibility.Features;
 /// </summary>
 internal static class LobbyHelper
 {
-    public static Dictionary<string, string> LatestLobbyRequestStringFilters = new();
-    public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
     private static List<PluginInfoRecord>? _clientPlugins;
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
     private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
