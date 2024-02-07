@@ -100,8 +100,7 @@ internal static class LobbyHelper
         LatestLobbyDiff = new LobbyDiff(pluginDiffs);
 
         // Add to cache to avoid making multiple unnecessary GetData() calls
-        if (!_lobbyDiffCache.ContainsKey(lobby.Id))
-            _lobbyDiffCache.Add(lobby.Id, LatestLobbyDiff);
+        _lobbyDiffCache.Add(lobby.Id, LatestLobbyDiff);
 
         return LatestLobbyDiff;
     }
