@@ -7,34 +7,34 @@ namespace LobbyCompatibility.Behaviours
 {
     internal class PluginDiffSlot : MonoBehaviour
     {
-        [SerializeField]
-        private TextMeshProUGUI? _pluginNameText;
-        [SerializeField]
-        private TextMeshProUGUI? _clientVersionText;
-        [SerializeField]
-        private TextMeshProUGUI? _serverVersionText;
+        [field: SerializeField]
+        public TextMeshProUGUI? PluginNameText { get; private set; }
+        [field: SerializeField]
+        public TextMeshProUGUI? ClientVersionText { get; private set; }
+        [field: SerializeField]
+        public TextMeshProUGUI? ServerVersionText { get; private set; }
 
         public void SetupText(TextMeshProUGUI pluginNameText, TextMeshProUGUI? clientVersionText, TextMeshProUGUI? serverVersionText)
         {
-            _pluginNameText = pluginNameText;
-            _clientVersionText = clientVersionText;
-            _serverVersionText = serverVersionText;
+            PluginNameText = pluginNameText;
+            ClientVersionText = clientVersionText;
+            ServerVersionText = serverVersionText;
 
             // Make sure text is enabled and setup properly
-            _pluginNameText.gameObject.SetActive(true);
-            _clientVersionText?.gameObject.SetActive(true);
-            _serverVersionText?.gameObject.SetActive(true);
+            PluginNameText.gameObject.SetActive(true);
+            ClientVersionText?.gameObject.SetActive(true);
+            ServerVersionText?.gameObject.SetActive(true);
         }
 
         public void SetPluginDiff(PluginDiff pluginDiff)
         {
-            if (_pluginNameText == null)
+            if (PluginNameText == null)
                 return;
 
-            _pluginNameText.text = pluginDiff.GUID;
+            PluginNameText.text = pluginDiff.GUID;
 
             // Check for these after setting the guid, because we still want to support PluginDiffSlots without version text (for the hover menu)
-            if (_clientVersionText == null || _serverVersionText == null)
+            if (ClientVersionText == null || ServerVersionText == null)
                 return;
 
             // Decide which "Missing" string to use when a version doesn't exist
@@ -46,20 +46,20 @@ namespace LobbyCompatibility.Behaviours
             else
                 missingText = "X";
 
-            _clientVersionText.text = pluginDiff.Version?.ToString() ?? missingText;
-            _serverVersionText.text = pluginDiff.RequiredVersion?.ToString() ?? missingText;
+            ClientVersionText.text = pluginDiff.Version?.ToString() ?? missingText;
+            ServerVersionText.text = pluginDiff.RequiredVersion?.ToString() ?? missingText;
 
             SetTextColor(pluginDiff.GetTextColor());
         }
         
         private void SetTextColor(Color color)
         {
-            if (_pluginNameText == null || _clientVersionText == null || _serverVersionText == null)
+            if (PluginNameText == null || ClientVersionText == null || ServerVersionText == null)
                 return;
 
-            _pluginNameText.color = color;
-            _clientVersionText.color = color;
-            _serverVersionText.color = color;
+            PluginNameText.color = color;
+            ClientVersionText.color = color;
+            ServerVersionText.color = color;
         }
     }
 }

@@ -10,12 +10,18 @@ namespace LobbyCompatibility.Behaviours;
 
 internal class PluginCategorySlot : MonoBehaviour
 {
-    [SerializeField]
-    private TextMeshProUGUI? _categoryNameText;
+    [field: SerializeField]
+    public TextMeshProUGUI? CategoryNameText { get; private set; }
+    [field: SerializeField]
+    public TextMeshProUGUI? ClientVersionCategoryNameText { get; private set; }
+    [field: SerializeField]
+    public TextMeshProUGUI? ServerVersionCategoryNameText { get; private set; }
 
-    public void SetupText(TextMeshProUGUI categoryNameText)
+    public void SetupText(TextMeshProUGUI categoryNameText, TextMeshProUGUI clientVersionCategoryNameText, TextMeshProUGUI serverVersionCategoryNameText)
     {
-        _categoryNameText = categoryNameText;
+        CategoryNameText = categoryNameText;
+        ClientVersionCategoryNameText = clientVersionCategoryNameText;
+        ServerVersionCategoryNameText = serverVersionCategoryNameText;
 
         // Make sure text is enabled and setup properly
         categoryNameText.gameObject.SetActive(true);
@@ -23,32 +29,38 @@ internal class PluginCategorySlot : MonoBehaviour
 
     public void SetPluginDiffResult(PluginDiffResult pluginDiffResult)
     {
-        if (_categoryNameText == null)
+        if (CategoryNameText == null)
             return;
 
-        _categoryNameText.text = LobbyHelper.GetCompatibilityHeader(pluginDiffResult);
+        CategoryNameText.text = LobbyHelper.GetCompatibilityHeader(pluginDiffResult);
 
-        SetText(_categoryNameText.text, Color.green);
+        SetText(CategoryNameText.text, Color.green);
     }
 
     // In case we want more "general" categories, instead of the detailed headers
     // This would probably be better with a switch statement for PluginDiffResult, but I don't want to mess with Unknown due to the impending rework
     public void SetLobbyDiffResult(LobbyDiffResult lobbyDiffResult)
     {
-        if (_categoryNameText == null)
+        if (CategoryNameText == null)
             return;
 
-        _categoryNameText.text = lobbyDiffResult.ToString();
+        CategoryNameText.text = lobbyDiffResult.ToString();
 
-        SetText(_categoryNameText.text, Color.green);
+        SetText(CategoryNameText.text, Color.green);
     }
 
     private void SetText(string text, Color color)
     {
-        if (_categoryNameText == null)
+        if (CategoryNameText == null)
             return;
 
-        _categoryNameText.text = text + ":";
+        CategoryNameText.text = text + ":";
+
+        if (ClientVersionCategoryNameText == null || ServerVersionCategoryNameText == null)
+            return;
+
+        ClientVersionCategoryNameText.text = "You";
+        ServerVersionCategoryNameText.text = "Lobby";
 
         // TODO: Use color for a little colored icon or something?
     }

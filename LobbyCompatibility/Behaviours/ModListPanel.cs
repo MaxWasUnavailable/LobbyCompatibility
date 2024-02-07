@@ -68,7 +68,7 @@ public class ModListPanel : MonoBehaviour
         _titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
 
         // Initialize scroll view by taking the game's lobby list and modifying it
-        _scrollRect = SetupScrollRect(_panelTransform, scrollViewTemplate);
+        _scrollRect = SetupScrollRect(_panelTransform, scrollViewTemplate, _titleText.color);
         if (_scrollRect == null)
             return;
 
@@ -101,7 +101,7 @@ public class ModListPanel : MonoBehaviour
     /// <param name="scrollViewTemplate"> A lobby list's scroll rect to use as a donor </param>
     /// <param name="defaultTextColor"> The default text color to use for the mod list panel </param>
     /// <returns> The <see cref="ScrollRect"/>. </returns>
-    private ScrollRect? SetupScrollRect(RectTransform panelTransform, Transform scrollViewTemplate)
+    private ScrollRect? SetupScrollRect(RectTransform panelTransform, Transform scrollViewTemplate, Color defaultTextColor)
     {
         // Setup scrollRect for panel
         var scrollRectObject = Instantiate(scrollViewTemplate, panelTransform);
@@ -129,7 +129,20 @@ public class ModListPanel : MonoBehaviour
         var contentSizeFilter = verticalLayoutGroup.gameObject.AddComponent<ContentSizeFitter>();
         contentSizeFilter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
+        SetupLineSeperator(scrollRect, defaultTextColor, 34.5f);
+        SetupLineSeperator(scrollRect, defaultTextColor, 106.5f);
+
         return scrollRect;
+    }
+
+    private void SetupLineSeperator(ScrollRect scrollRect, Color color, float xPosition)
+    {
+        var lineSeperator = new GameObject("LineSeperator");
+        var lineSeperatorImage = lineSeperator.AddComponent<Image>();
+        lineSeperator.transform.SetParent(scrollRect.content.parent, false);
+        lineSeperatorImage.rectTransform.anchoredPosition = new Vector3(xPosition, 0f);
+        lineSeperatorImage.rectTransform.sizeDelta = new Vector3(1f, 200f);
+        lineSeperatorImage.color = color;
     }
 
     private void SetupModListSlots(RectTransform panelTransform, ScrollRect scrollRect, Color defaultTextColor)
@@ -148,13 +161,9 @@ public class ModListPanel : MonoBehaviour
         pluginDiffSlotImage.color = Color.clear;
         pluginDiffSlot.SetActive(false);
 
-        // Setup PluginCategorySlot template panel, identical except for the height
-        var categoryEntry = Instantiate(pluginDiffSlot, pluginDiffSlotTransform.parent);
-        categoryEntry.GetComponent<RectTransform>().sizeDelta = new Vector2(1, 25f);
-
         // Setup all text for PluginDiffSlot
         var pluginNameText = UIHelper.SetupTextAsTemplate(text, pluginDiffSlotTransform, defaultTextColor, new Vector2(220f, 30f), 18.35f, 2f,
-            HorizontalAlignmentOptions.Left, new Vector2(-72f, 0f));
+            HorizontalAlignmentOptions.Left, new Vector2(-74f, 0f));
         var versionText = UIHelper.SetupTextAsTemplate(text, pluginDiffSlotTransform, defaultTextColor, new Vector2(70f, 30f), 18.35f, 2f,
             HorizontalAlignmentOptions.Center, new Vector2(70f, 0f));
         var serverVersionText = UIHelper.SetupTextAsTemplate(text, pluginDiffSlotTransform, defaultTextColor, new Vector2(70f, 30f), 18.35f, 2f,
@@ -164,13 +173,20 @@ public class ModListPanel : MonoBehaviour
         var diffSlot = pluginDiffSlot.AddComponent<PluginDiffSlot>();
         diffSlot.SetupText(pluginNameText, versionText, serverVersionText);
 
-        // Setup all text for PluginCategorySlot
-        var categoryText = UIHelper.SetupTextAsTemplate(text, categoryEntry.transform, defaultTextColor, new Vector2(290f, 35f), 18.35f, 2f,
-            HorizontalAlignmentOptions.Center, new Vector2(-72f, 0f));
+        // Setup PluginCategorySlot template panel, identical except for the height
+        var diffSlotClone = Instantiate(diffSlot, pluginDiffSlotTransform.parent);
+        diffSlotClone.GetComponent<RectTransform>().sizeDelta = new Vector2(1, 25f);
+        var categorySlot = diffSlotClone.gameObject.AddComponent<PluginCategorySlot>();
 
-        // Finish PluginCategorySlot setup
-        var categorySlot = categoryEntry.AddComponent<PluginCategorySlot>();
-        categorySlot.SetupText(categoryText);
+        // Setup all text for PluginCategorySlot
+        if (diffSlotClone.PluginNameText != null && diffSlotClone.ClientVersionText != null && diffSlotClone.ServerVersionText != null)
+        {
+            diffSlotClone.PluginNameText.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            categorySlot.SetupText(diffSlotClone.PluginNameText, diffSlotClone.ClientVersionText, diffSlotClone.ServerVersionText);
+        }
+
+        // Remove duplicate PluginDiffSlot on PluginCategorySlot and finish setup
+        Destroy(diffSlotClone);
         categorySlot.gameObject.SetActive(false);
 
         // Initialize pools
@@ -226,6 +242,38 @@ public class ModListPanel : MonoBehaviour
             _spawnedPluginCategorySlots.Add(pluginCategorySlot);
 
             // Respawn mod diffs
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
+            }
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
+            }
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
+            }
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
+            }
             foreach (var mod in plugins)
             {
                 var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
