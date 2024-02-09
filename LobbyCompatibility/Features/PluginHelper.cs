@@ -162,6 +162,28 @@ internal static class PluginHelper
         return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ClientOnly or null);
     }
 
+    public static IEnumerable<PluginDiff> FilterPluginDiffs(IEnumerable<PluginDiff> pluginDiffs, ModListFilter modListFilter)
+    {
+        if (modListFilter == ModListFilter.Compatible)
+        {
+            return pluginDiffs.Where(x => x.PluginDiffResult == PluginDiffResult.Compatible);
+        }
+        else if (modListFilter == ModListFilter.Incompatible)
+        {
+            return pluginDiffs.Where(x =>
+                x.PluginDiffResult == PluginDiffResult.ServerMissingMod
+                || x.PluginDiffResult == PluginDiffResult.ClientMissingMod
+                || x.PluginDiffResult == PluginDiffResult.ModVersionMismatch
+            );
+        }
+        else if (modListFilter == ModListFilter.Unknown)
+        {
+            return pluginDiffs.Where(x => x.PluginDiffResult == PluginDiffResult.Unknown);
+        }
+
+        return pluginDiffs;
+    }
+
     /// <summary>
     ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone"/> level plugins at their lowest acceptable version.
     /// </summary>

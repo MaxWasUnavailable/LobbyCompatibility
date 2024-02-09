@@ -32,6 +32,12 @@ public class ModListPanel : MonoBehaviour
     private ScrollRect? _scrollRect;
     private TextMeshProUGUI? _titleText;
 
+    // Tab data
+    private List<ModListTab> _tabs = new();
+    private ModListFilter _currentTab;
+
+    private LobbyDiff? _lobbyDiff;
+
     private PluginDiffSlotPool? _pluginDiffSlotPool;
     private PluginCategorySlotPool? _pluginCategorySlotPool;
 
@@ -100,9 +106,11 @@ public class ModListPanel : MonoBehaviour
             var tabName = TabNames[i];
             var tabBackground = Instantiate(panelOutlineImage, panelOutlineImage.transform.parent);
             tabBackground.rectTransform.sizeDelta = new Vector2(_panelTransform.sizeDelta.x / TabNames.Count - tabPadding, 35 - tabPadding);
-            tabBackground.rectTransform.anchorMin = new Vector2(0, 1);
-            tabBackground.rectTransform.anchorMax = new Vector2(0, 1);
-            tabBackground.rectTransform.anchoredPosition = new Vector2((i * _panelTransform.sizeDelta.x / TabNames.Count) + tabBackground.rectTransform.sizeDelta.x / 2  + (i), 35 / 2f - tabPadding);
+            float tabXOffset = (i * (_panelTransform.sizeDelta.x + tabPadding) / TabNames.Count);
+            tabBackground.rectTransform.anchoredPosition = new Vector2(
+                (-_panelTransform.sizeDelta.x + tabBackground.rectTransform.sizeDelta.x + i) / 2 + tabXOffset,
+                (_panelTransform.sizeDelta.y + tabBackground.rectTransform.sizeDelta.y - tabPadding) / 2
+            );
             tabBackground.sprite = null;
             tabBackground.color = panelImage.color;
 
@@ -111,7 +119,6 @@ public class ModListPanel : MonoBehaviour
             tab.color = panelOutlineImage.color;
             tab.rectTransform.sizeDelta = new Vector2(tab.rectTransform.sizeDelta.x + tabPadding, tab.rectTransform.sizeDelta.y + tabPadding);
             tab.rectTransform.anchoredPosition = new Vector2(tab.rectTransform.anchoredPosition.x - tabPadding / 2, tab.rectTransform.anchoredPosition.y);
-            // tab.rectTransform.anchoredPosition = new Vector2((i * _panelTransform.sizeDelta.x / TabNames.Count) + tab.rectTransform.sizeDelta.x / 2 - 3 + (i), 35 / 2f - 3f);
 
             var newButton = Instantiate(button, tabBackground.transform);
             var newButtonTransform = newButton.GetComponent<RectTransform>();
@@ -120,19 +127,39 @@ public class ModListPanel : MonoBehaviour
             var newButtonText = newButton.GetComponentInChildren<TextMeshProUGUI>();
             newButtonText.text = "<size=13px><cspace=-0.04em>"+tabName; // need to do this because buttons have a custom style that affects size
             newButton.transform.SetAsFirstSibling(); // put button under outline
-            if (i != 0)
-            {
-                var baseColor = tabBackground.color;
-                tabBackground.color = new Color(baseColor.r / 1.25f, baseColor.g / 1.25f, baseColor.b / 1.25f, 1f);
-                tab.color = new Color(tab.color.r, tab.color.b, tab.color.b, 0.3f);
-            }
+            
+            // get unselected tab background color
+            var unselectedColor = new Color(tabBackground.color.r / 1.25f, tabBackground.color.g / 1.25f, tabBackground.color.b / 1.25f, 1f);
 
             // set to go under the panel to hide bottom of outline
             tabBackground.transform.SetParent(_panelTransform.parent);
             tabBackground.transform.SetSiblingIndex(1); // set right before panel
+
+            var modListTab = tabBackground.gameObject.AddComponent<ModListTab>();
+            modListTab.Setup(tabBackground, tab, newButton, newButtonText, (ModListFilter)i, tabBackground.color, unselectedColor);
+            modListTab.SetupEvents(SetTab);
+            modListTab.SetSelectionStatus((ModListFilter)i == LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value);
+
+            _tabs.Add(modListTab);
         }
 
         SetPanelActive(false);
+    }
+
+    private void SetTab(ModListFilter modListFilter)
+    {
+        _currentTab = modListFilter;
+
+        foreach (var tab in _tabs)
+        {
+            tab.SetSelectionStatus(_currentTab == tab.ModListFilter);
+        }
+
+        // Regenerate displayed diff
+        if (_lobbyDiff == null)
+            return;
+
+        DisplayFilteredModList(_lobbyDiff, _currentTab);
     }
 
     /// <summary>
@@ -264,16 +291,32 @@ public class ModListPanel : MonoBehaviour
     /// <param name="titleOverride"> Override the title text of the mod list panel </param>
     private void DisplayModList(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
-        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null || _titleText == null)
+        if (_titleText == null)
+            return;
+
+        _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
+
+        _lobbyDiff = lobbyDiff;
+
+        // Set the default tab using the config's value, with ModListFilter.All as the default
+        SetTab(LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value ?? ModListFilter.All);
+    }
+
+    private void DisplayFilteredModList(LobbyDiff lobbyDiff, ModListFilter modListFilter)
+    {
+        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null || _scrollRect == null)
             return;
 
         // Despawn old diffs
         ClearSpawnedDiffs();
 
+        // Apply ModListFilter
+        var filteredPlugins = PluginHelper.FilterPluginDiffs(lobbyDiff.PluginDiffs, modListFilter);
+
         // Create categories w/ mods
         foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
         {
-            var plugins = lobbyDiff.PluginDiffs.Where(
+            var plugins = filteredPlugins.Where(
                 pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
 
             if (plugins.Count == 0)
@@ -291,41 +334,10 @@ public class ModListPanel : MonoBehaviour
 
                 _spawnedPluginDiffSlots.Add(pluginDiffSlot);
             }
-            foreach (var mod in plugins)
-            {
-                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
-                if (pluginDiffSlot == null)
-                    continue;
-
-                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
-            }
-            foreach (var mod in plugins)
-            {
-                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
-                if (pluginDiffSlot == null)
-                    continue;
-
-                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
-            }
-            foreach (var mod in plugins)
-            {
-                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
-                if (pluginDiffSlot == null)
-                    continue;
-
-                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
-            }
-            foreach (var mod in plugins)
-            {
-                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
-                if (pluginDiffSlot == null)
-                    continue;
-
-                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
-            }
         }
 
-        _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
+        // Set scroll to zero
+        _scrollRect.verticalNormalizedPosition = 1f;
     }
 
     private void ClearSpawnedDiffs()
