@@ -10,7 +10,6 @@ using LobbyCompatibility.Enums;
 using LobbyCompatibility.Pooling;
 using System.Linq;
 using System;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace LobbyCompatibility.Behaviours;
 
@@ -22,6 +21,8 @@ public class ModListPanel : MonoBehaviour
     public static ModListPanel? Instance;
 
     private static readonly Vector2 NotificationWidth = new(1.6f, 1.75f);
+    private static readonly List<string> TabNames = new List<string>() { "All", "Compatible", "Incompatible", "Unknown" };
+
     private readonly List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
     private readonly List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
 
@@ -51,7 +52,8 @@ public class ModListPanel : MonoBehaviour
     {
         var panelImage = panel.transform.Find("Panel")?.GetComponent<Image>();
         _panelTransform = panelImage?.rectTransform;
-        if (panelImage == null || _panelTransform == null)
+        var panelOutlineImage = _panelTransform?.Find("Image")?.GetComponent<Image>();
+        if (panelImage == null || _panelTransform == null || panelOutlineImage == null)
             return;
 
         // Get "dismiss" button so we can inject some custom behaviour
@@ -80,7 +82,7 @@ public class ModListPanel : MonoBehaviour
 
         // Multiply panel element sizes to make the hover notification skinnier
         UIHelper.TryMultiplySizeDelta(_panelTransform, NotificationWidth);
-        UIHelper.TryMultiplySizeDelta(_panelTransform.Find("Image"), NotificationWidth);
+        UIHelper.TryMultiplySizeDelta(panelOutlineImage.transform, NotificationWidth);
         UIHelper.TryMultiplySizeDelta(_panelTransform.Find("NotificationText"), NotificationWidth);
 
         // Set button to be consistently spaced from the bottom of the panel 
@@ -90,6 +92,45 @@ public class ModListPanel : MonoBehaviour
         // Inject custom button behaviour so it doesn't force you back to the main menu
         button.onClick.m_PersistentCalls.Clear();
         button.onClick.AddListener(() => { SetPanelActive(false); });
+
+        // Setup tabs
+        for (int i = 0; i < TabNames.Count; i++)
+        {
+            var tabPadding = 3f;
+            var tabName = TabNames[i];
+            var tabBackground = Instantiate(panelOutlineImage, panelOutlineImage.transform.parent);
+            tabBackground.rectTransform.sizeDelta = new Vector2(_panelTransform.sizeDelta.x / TabNames.Count - tabPadding, 35 - tabPadding);
+            tabBackground.rectTransform.anchorMin = new Vector2(0, 1);
+            tabBackground.rectTransform.anchorMax = new Vector2(0, 1);
+            tabBackground.rectTransform.anchoredPosition = new Vector2((i * _panelTransform.sizeDelta.x / TabNames.Count) + tabBackground.rectTransform.sizeDelta.x / 2  + (i), 35 / 2f - tabPadding);
+            tabBackground.sprite = null;
+            tabBackground.color = panelImage.color;
+
+            var tab = Instantiate(tabBackground, tabBackground.transform, true);
+            tab.sprite = panelOutlineImage.sprite;
+            tab.color = panelOutlineImage.color;
+            tab.rectTransform.sizeDelta = new Vector2(tab.rectTransform.sizeDelta.x + tabPadding, tab.rectTransform.sizeDelta.y + tabPadding);
+            tab.rectTransform.anchoredPosition = new Vector2(tab.rectTransform.anchoredPosition.x - tabPadding / 2, tab.rectTransform.anchoredPosition.y);
+            // tab.rectTransform.anchoredPosition = new Vector2((i * _panelTransform.sizeDelta.x / TabNames.Count) + tab.rectTransform.sizeDelta.x / 2 - 3 + (i), 35 / 2f - 3f);
+
+            var newButton = Instantiate(button, tabBackground.transform);
+            var newButtonTransform = newButton.GetComponent<RectTransform>();
+            newButtonTransform.anchoredPosition = new Vector2(-tabPadding / 2f - 0.4f, 0); // need to remove a small value because the tabs have a small offset, otherwise there will be a pixel or two of extra orange to the right
+            newButtonTransform.sizeDelta = new Vector2(tab.rectTransform.sizeDelta.x + tabPadding, tab.rectTransform.sizeDelta.y);
+            var newButtonText = newButton.GetComponentInChildren<TextMeshProUGUI>();
+            newButtonText.text = "<size=13px><cspace=-0.04em>"+tabName; // need to do this because buttons have a custom style that affects size
+            newButton.transform.SetAsFirstSibling(); // put button under outline
+            if (i != 0)
+            {
+                var baseColor = tabBackground.color;
+                tabBackground.color = new Color(baseColor.r / 1.25f, baseColor.g / 1.25f, baseColor.b / 1.25f, 1f);
+                tab.color = new Color(tab.color.r, tab.color.b, tab.color.b, 0.3f);
+            }
+
+            // set to go under the panel to hide bottom of outline
+            tabBackground.transform.SetParent(_panelTransform.parent);
+            tabBackground.transform.SetSiblingIndex(1); // set right before panel
+        }
 
         SetPanelActive(false);
     }

@@ -17,7 +17,7 @@ internal class PluginCategorySlot : MonoBehaviour
     [field: SerializeField]
     public TextMeshProUGUI? ServerVersionCategoryNameText { get; private set; }
 
-    public void SetupText(TextMeshProUGUI categoryNameText, TextMeshProUGUI clientVersionCategoryNameText, TextMeshProUGUI serverVersionCategoryNameText)
+    public void SetupText(TextMeshProUGUI categoryNameText, TextMeshProUGUI? clientVersionCategoryNameText = null, TextMeshProUGUI? serverVersionCategoryNameText = null)
     {
         CategoryNameText = categoryNameText;
         ClientVersionCategoryNameText = clientVersionCategoryNameText;
