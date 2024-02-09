@@ -42,10 +42,10 @@ public record PluginDiff(
     {
         return PluginDiffResult switch
         {
-            PluginDiffResult.Compatible => Color.green,
-            PluginDiffResult.ClientMissingMod or PluginDiffResult.ServerMissingMod => Color.red,
-            PluginDiffResult.ModVersionMismatch => Color.yellow,
-            _ => Color.gray
+            PluginDiffResult.Compatible => LobbyCompatibilityPlugin.Config?.CompatibleColor.Value ?? Color.green,
+            PluginDiffResult.ClientMissingMod or PluginDiffResult.ServerMissingMod or PluginDiffResult.ModVersionMismatch 
+                => LobbyCompatibilityPlugin.Config?.IncompatibleColor.Value ?? Color.red,
+            _ => LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Color.gray
         };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using LobbyCompatibility.Enums;
+using UnityEngine;
 
 namespace LobbyCompatibility.Configuration;
 
@@ -18,6 +19,21 @@ public class Config
     /// </summary>
     public ConfigEntry<ModListFilter> DefaultModListTab;
 
+    /// <summary>
+    ///     <see cref="Color"/> used to represent compatible plugins.
+    /// </summary>
+    public ConfigEntry<Color> CompatibleColor;
+
+    /// <summary>
+    ///     <see cref="Color"/> used to represent incompatible plugins.
+    /// </summary>
+    public ConfigEntry<Color> IncompatibleColor;
+
+    /// <summary>
+    ///     <see cref="Color"/> used to represent unknown plugins.
+    /// </summary>
+    public ConfigEntry<Color> UnknownColor;
+
     public Config(ConfigFile configFile)
     {
         DefaultModdedLobbyFilter = configFile.Bind("General",
@@ -27,6 +43,18 @@ public class Config
         DefaultModListTab = configFile.Bind("General",
             "Default ModList Tab",
             ModListFilter.All,
-            "The default tab to use when viewing a lobby's mod list.");
+            "The default tab to use when viewing a lobby's mod list");
+        CompatibleColor = configFile.Bind("Visual",
+            "Compatible Plugin Color",
+            Color.green,
+            "The color used to respresent compatible plugins");
+        IncompatibleColor = configFile.Bind("Visual",
+            "Incompatible Plugin Color",
+            Color.red,
+            "The color used to respresent incompatible plugins");
+        UnknownColor = configFile.Bind("Visual",
+            "Unknown Plugin Color",
+            Color.gray,
+            "The color used to respresent unknown plugins");
     }
 }
