@@ -21,7 +21,7 @@ public class ModListPanel : MonoBehaviour
     public static ModListPanel? Instance;
 
     private static readonly Vector2 NotificationWidth = new(1.6f, 1.75f);
-    private static readonly List<string> TabNames = new List<string>() { "All", "Compatible", "Incompatible", "Unknown" };
+    private static readonly float TabPadding = 3f;
 
     private readonly List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
     private readonly List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
@@ -100,50 +100,69 @@ public class ModListPanel : MonoBehaviour
         button.onClick.AddListener(() => { SetPanelActive(false); });
 
         // Setup tabs
-        for (int i = 0; i < TabNames.Count; i++)
+        SetupTabs(panelOutlineImage, panelImage, button);
+
+        SetPanelActive(false);
+    }
+
+    public void SetupTabs(Image panelOutlineImage, Image panelImage, Button button)
+    {
+        if (_panelTransform  == null) 
+            return;
+
+        var tabs = Enum.GetValues(typeof(ModListFilter)).Cast<ModListFilter>().ToList();
+
+        // Setup tabs
+        for (int i = 0; i < tabs.Count; i++)
         {
-            var tabPadding = 3f;
-            var tabName = TabNames[i];
+            // Get solid color background for tab
             var tabBackground = Instantiate(panelOutlineImage, panelOutlineImage.transform.parent);
-            tabBackground.rectTransform.sizeDelta = new Vector2(_panelTransform.sizeDelta.x / TabNames.Count - tabPadding, 35 - tabPadding);
-            float tabXOffset = (i * (_panelTransform.sizeDelta.x + tabPadding) / TabNames.Count);
+            tabBackground.rectTransform.sizeDelta = new Vector2(_panelTransform.sizeDelta.x / tabs.Count - TabPadding, 35 - TabPadding);
+
+            // Setup background positioning dynamically
+            // TODO: Use a HorizontalLayoutGroup
+            float tabXOffset = (i * (_panelTransform.sizeDelta.x + TabPadding) / tabs.Count);
             tabBackground.rectTransform.anchoredPosition = new Vector2(
                 (-_panelTransform.sizeDelta.x + tabBackground.rectTransform.sizeDelta.x + i) / 2 + tabXOffset,
-                (_panelTransform.sizeDelta.y + tabBackground.rectTransform.sizeDelta.y - tabPadding) / 2
+                (_panelTransform.sizeDelta.y + tabBackground.rectTransform.sizeDelta.y - TabPadding) / 2
             );
             tabBackground.sprite = null;
             tabBackground.color = panelImage.color;
 
-            var tab = Instantiate(tabBackground, tabBackground.transform, true);
-            tab.sprite = panelOutlineImage.sprite;
-            tab.color = panelOutlineImage.color;
-            tab.rectTransform.sizeDelta = new Vector2(tab.rectTransform.sizeDelta.x + tabPadding, tab.rectTransform.sizeDelta.y + tabPadding);
-            tab.rectTransform.anchoredPosition = new Vector2(tab.rectTransform.anchoredPosition.x - tabPadding / 2, tab.rectTransform.anchoredPosition.y);
+            // Setup outline panel for tab so we can match the base game's style
+            var tabOutline = Instantiate(tabBackground, tabBackground.transform, true);
+            tabOutline.sprite = panelOutlineImage.sprite;
+            tabOutline.color = panelOutlineImage.color;
+            tabOutline.rectTransform.sizeDelta = tabOutline.rectTransform.sizeDelta + new Vector2(TabPadding, TabPadding);
+            tabOutline.rectTransform.anchoredPosition = tabOutline.rectTransform.anchoredPosition + new Vector2(-TabPadding / 2, 0);
 
+            // Create new button to use for switching tabs
             var newButton = Instantiate(button, tabBackground.transform);
             var newButtonTransform = newButton.GetComponent<RectTransform>();
-            newButtonTransform.anchoredPosition = new Vector2(-tabPadding / 2f - 0.4f, 0); // need to remove a small value because the tabs have a small offset, otherwise there will be a pixel or two of extra orange to the right
-            newButtonTransform.sizeDelta = new Vector2(tab.rectTransform.sizeDelta.x + tabPadding, tab.rectTransform.sizeDelta.y);
+
+            // 0.4f is subtracted because the tabs have a small offset. If we don't do this, there will be an extra pixel of the button to the left
+            newButtonTransform.anchoredPosition = new Vector2(-TabPadding / 2f - 0.4f, 0);
+            newButtonTransform.sizeDelta = tabOutline.rectTransform.sizeDelta + new Vector2(TabPadding, 0);
             var newButtonText = newButton.GetComponentInChildren<TextMeshProUGUI>();
-            newButtonText.text = "<size=13px><cspace=-0.04em>"+tabName; // need to do this because buttons have a custom style that affects size
-            newButton.transform.SetAsFirstSibling(); // put button under outline
-            
-            // get unselected tab background color
+
+            // Put button under outline
+            newButton.transform.SetAsFirstSibling();
+
+            // Define the background color we'll use when tabs are not selected
             var unselectedColor = new Color(tabBackground.color.r / 1.25f, tabBackground.color.g / 1.25f, tabBackground.color.b / 1.25f, 1f);
 
-            // set to go under the panel to hide bottom of outline
+            // Move tab to under the main panel so outlines look more consistent with the game's style
             tabBackground.transform.SetParent(_panelTransform.parent);
-            tabBackground.transform.SetSiblingIndex(1); // set right before panel
+            tabBackground.transform.SetSiblingIndex(1);
 
+            // Add ModListTab component and initialize variables to finally complete tab setup
             var modListTab = tabBackground.gameObject.AddComponent<ModListTab>();
-            modListTab.Setup(tabBackground, tab, newButton, newButtonText, (ModListFilter)i, tabBackground.color, unselectedColor);
+            modListTab.Setup(tabBackground, tabOutline, newButton, newButtonText, tabs[i], tabBackground.color, unselectedColor);
             modListTab.SetupEvents(SetTab);
-            modListTab.SetSelectionStatus((ModListFilter)i == LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value);
+            modListTab.SetSelectionStatus(tabs[i] == LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value);
 
             _tabs.Add(modListTab);
         }
-
-        SetPanelActive(false);
     }
 
     private void SetTab(ModListFilter modListFilter)
