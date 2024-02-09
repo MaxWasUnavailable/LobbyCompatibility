@@ -56,18 +56,22 @@
         <None Remove="Resources\InvertedModSettings.png"/>
         <None Remove="Resources\InvertedModSettingsExclamationPoint.png"/>
         <None Remove="Resources\InvertedModSettingsQuestionMark.png"/>
+        <None Remove="Resources\InvertedRefresh.png"/>
         <None Remove="Resources\ModSettings.png"/>
         <None Remove="Resources\ModSettingsExclamationPoint.png"/>
         <None Remove="Resources\ModSettingsQuestionMark.png"/>
+        <None Remove="Resources\Refresh.png"/>
     </ItemGroup>
 
     <ItemGroup>
         <EmbeddedResource Include="Resources\InvertedModSettings.png"/>
         <EmbeddedResource Include="Resources\InvertedModSettingsExclamationPoint.png"/>
         <EmbeddedResource Include="Resources\InvertedModSettingsQuestionMark.png"/>
+        <EmbeddedResource Include="Resources\InvertedRefresh.png"/>
         <EmbeddedResource Include="Resources\ModSettings.png"/>
         <EmbeddedResource Include="Resources\ModSettingsExclamationPoint.png"/>
         <EmbeddedResource Include="Resources\ModSettingsQuestionMark.png"/>
+        <EmbeddedResource Include="Resources\Refresh.png"/>
     </ItemGroup>
 
     <!-- Import Package References -->
@@ -120,13 +124,13 @@
     </Target>
 
     <!-- Pack for Thunderstore -->
-    <Target
+	<Target
             Name="ThunderstorePack"
             AfterTargets="PostBuildEvent"
             Condition="$(TargetFramework) == 'netstandard2.1' and $(Configuration) == 'Release' and $(CI) == 'true'"
             DependsOnTargets="SetPluginVersion"
     >
-        <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)"/>
+		<Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)"/>
         <ItemGroup>
             <FilesToRename Include="$(ProjectDir)../dist/*-$(PlainVersion).zip"/>
         </ItemGroup>

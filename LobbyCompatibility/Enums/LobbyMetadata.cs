@@ -14,6 +14,11 @@ public static class LobbyMetadata
     public const string Name = "name";
 
     /// <summary>
+    ///     The tag for the host's custom lobby tag.
+    /// </summary>
+    public const string Tag = "tag";
+
+    /// <summary>
     ///     The tag for the host's game version.
     /// </summary>
     /// <remarks>
@@ -41,4 +46,9 @@ public static class LobbyMetadata
     ///     The tag for plugin information.
     /// </summary>
     public const string Plugins = "plugins";
+
+    /// <summary>
+    ///     The required plugins checksum to filter against.
+    /// </summary>
+    public const string RequiredChecksum = "checksum";
 }
