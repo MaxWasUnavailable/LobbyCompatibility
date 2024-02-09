@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using BepInEx;
 using BepInEx.Bootstrap;
 using LobbyCompatibility.Attributes;
@@ -158,5 +160,63 @@ internal static class PluginHelper
     internal static bool CanJoinVanillaLobbies()
     {
         return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ClientOnly or null);
+    }
+
+    /// <summary>
+    ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone"/> level plugins at their lowest acceptable version.
+    /// </summary>
+    /// <returns> The generated filter checksum of installed plugins </returns>
+    private static string GetRequiredPluginsChecksum()
+    {
+        // Get the required plugins and sort to guarantee consistency between all clients.
+        var requiredPlugins = GetAllPluginInfo()
+            .Where(plugin => plugin.CompatibilityLevel is CompatibilityLevel.Everyone)
+            .OrderBy(plugin => plugin.GUID, StringComparer.Ordinal).ToList();
+
+        if (!requiredPlugins.Any())
+            return _cachedChecksum = "";
+
+        var pluginString = "";
+
+        foreach (var plugin in requiredPlugins)
+        {
+            pluginString += plugin.GUID;
+            
+            // ReSharper disable twice RedundantCaseLabel
+            switch (plugin.VersionStrictness)
+            {
+                default:
+                case null:
+                case VersionStrictness.None:
+                    break;
+                case VersionStrictness.Major:
+                    pluginString += new Version(plugin.Version.Major, 0).ToString();
+                    break;
+                case VersionStrictness.Minor:
+                    pluginString += new Version(plugin.Version.Major, plugin.Version.Minor).ToString();
+                    break;
+                case VersionStrictness.Patch:
+                    pluginString += plugin.Version.ToString();
+                    break;
+            }
+        }
+        
+        var checksum = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(pluginString));
+        
+        var stringBuilder = new StringBuilder();
+        
+        // Convert every byte to hexadecimal
+        foreach (var checksumByte in checksum)
+            stringBuilder.Append(checksumByte.ToString("X2"));
+        
+        return _cachedChecksum = stringBuilder.ToString();
+    }
+
+    private static string? _cachedChecksum;
+    
+    public static string Checksum
+    {
+        get => _cachedChecksum ?? GetRequiredPluginsChecksum();
+        internal set => _cachedChecksum = value;
     }
 }

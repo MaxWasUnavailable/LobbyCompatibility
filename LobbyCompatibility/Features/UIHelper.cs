@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using static TMPro.TMP_Dropdown;
 using Object = UnityEngine.Object;
 
 namespace LobbyCompatibility.Features;
@@ -42,6 +45,28 @@ internal static class UIHelper
     {
         var sizeDelta = rectTransform.sizeDelta;
         rectTransform.sizeDelta = new Vector2(sizeDelta.x * multiplier.x, sizeDelta.y * multiplier.y);
+    }
+
+    /// <summary>
+    ///     Adds a Vector2 to a <see cref="RectTransform" />'s anchoredPosition.
+    ///     Automatically gets (and null checks) the RectTransform from the <see cref="Transform" />
+    /// </summary>
+    /// <param name="transform"> The <see cref="Transform" /> to modify. </param>
+    /// <param name="addition"> Amount to add to the <see cref="RectTransform" />'s anchoredPosition. </param>
+    public static void AddToAnchoredPosition(Transform? transform, Vector2 addition)
+    {
+        if (transform == null)
+            return;
+
+        // First try to parse the Transform as a rectTransform. If we fail, use GetComponent
+        // If we don't have a RectTransform at that point, it's safe to say this is not a UI object, and we can cancel.
+        if (transform is not RectTransform rectTransform)
+            rectTransform = transform.GetComponent<RectTransform>();
+
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x + addition.x, rectTransform.anchoredPosition.y + addition.y);
     }
 
     /// <summary>
@@ -187,5 +212,99 @@ internal static class UIHelper
         }
 
         return (generatedText, padding, pluginLines);
+    }
+
+    /// <summary>
+    ///     Reskins the lobby list's "[Refresh]" button to use an image instead of text.
+    ///     Used to increase the amount of usable space for the filter dropdowns.
+    /// </summary>
+    /// <param name="refreshButton"> The <see cref="Button" /> the game uses to refresh the lobby list. </param>
+    public static void ReskinRefreshButton(Button refreshButton)
+    {
+        // Setup necessary references for modifying the refresh button
+        var text = refreshButton?.transform.Find("Text (TMP)")?.GetComponent<TextMeshProUGUI>();
+        var selectionHighlightTransform = refreshButton?.transform.Find("SelectionHighlight")?.GetComponent<RectTransform>();
+        var selectionHighlightImage = selectionHighlightTransform?.GetComponent<Image>();
+
+        if (refreshButton == null || text == null || selectionHighlightTransform == null || selectionHighlightImage == null)
+            return;
+
+        // Set new positioning
+        selectionHighlightTransform.anchoredPosition = new Vector2(140f, 17.5f);
+        selectionHighlightTransform.sizeDelta = new Vector2(34, 43.5f);
+
+        // Create a new image to use instead of the [Refresh] text
+        var buttonImageTransform = Object.Instantiate(selectionHighlightTransform, text.transform.parent, false);
+        var buttonImage = buttonImageTransform.GetComponent<Image>();
+
+        // Move the image below the highlight so the hover highlight will always render on top
+        buttonImageTransform.SetSiblingIndex(0);
+
+        // Set the image color to be opaque instead of the default semi-transparent
+        var color = buttonImage.color;
+        buttonImage.color = new Color(color.r, color.g, color.b, 1);
+
+        // Setup sprites on images
+        buttonImage.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.Refresh.png");
+        selectionHighlightImage.sprite = TextureHelper.FindSpriteInAssembly("LobbyCompatibility.Resources.InvertedRefresh.png");
+
+        // Disable text so we can use our new image for the click/hover hitbox
+        text.enabled = false;
+    }
+
+    /// <summary>
+    ///     Adds a custom dropdown filter to the LobbyList top panel.
+    ///     Also shifts all other filter UI elements to the left.
+    /// </summary>
+    /// <param name="listPanel"> The <see cref="Transform" /> that contains the UI elements for the LobbyList's filtering panel. </param>
+    /// <param name="adjustment"> How many units (<see cref="RectTransform.anchoredPosition"/>) to shift all other filter UI elements. </param>
+    public static void AddCustomFilterToLobbyList(Transform listPanel, float adjustment = -40f)
+    {
+        // Setup necessary references for modifying the lobbylist's positioning and creating a dropdown
+        var dropdown = listPanel.Find("Dropdown");
+        var toggleChallengeSort = listPanel.Find("ToggleChallengeSort");
+        var serverTagInputField = listPanel.Find("ServerTagInputField")?.GetComponent<RectTransform>();
+        var serverTagPlaceholderText = serverTagInputField?.Find("Text Area/Placeholder")?.GetComponent<TextMeshProUGUI>();
+
+        if (dropdown == null || toggleChallengeSort == null || serverTagInputField == null || serverTagPlaceholderText == null)
+            return;
+
+        // Resize other filtering UI options to make room for our new dropdown
+        AddToAnchoredPosition(dropdown, new Vector2(adjustment, 0f));
+        AddToAnchoredPosition(toggleChallengeSort, new Vector2(adjustment, 0f));
+
+        // Make "Server tag" input box smaller
+        serverTagInputField.offsetMax = new Vector2(serverTagInputField.offsetMax.x + adjustment, serverTagInputField.offsetMax.y);
+
+        // Replace "Enter server tag..." with something more compact
+        serverTagPlaceholderText.text = "Server tag...";
+
+        // Initalize our custom dropdown
+        var customDropdownTransform = Object.Instantiate(dropdown, dropdown.parent, false);
+        var customDropdown = customDropdownTransform.GetComponent<TMP_Dropdown>();
+        var customDropdownRect = customDropdownTransform.GetComponent<RectTransform>();
+
+        // Move our custom dropdown to the very right side of the panel
+        customDropdownRect.anchoredPosition = new Vector2(adjustment, customDropdownRect.anchoredPosition.y);
+        customDropdown.captionText.fontSize = 10f;
+        customDropdown.itemText.fontSize = 10f;
+
+        // Set custom dropdown options based on Enums/ModdedLobbyFilter
+        customDropdown.ClearOptions();
+        customDropdown.AddOptions(new List<OptionData>()
+        {
+            new OptionData("Mods: Compatible first"),
+            new OptionData("Mods: Compatible only"),
+            new OptionData("Mods: Vanilla and Unknown only"),
+            new OptionData("Mods: All"),
+        });
+
+        // Add custom component so we can actually use the filter value
+        var moddedLobbyFilterDropdown = customDropdown.gameObject.AddComponent<ModdedLobbyFilterDropdown>();
+        moddedLobbyFilterDropdown.SetDropdown(customDropdown);
+
+        // Redirect the "On Value Changed" event to go towards our new custom component
+        customDropdown.onValueChanged.m_PersistentCalls.Clear();
+        customDropdown.onValueChanged.AddListener(moddedLobbyFilterDropdown.ChangeFilterType);
     }
 }

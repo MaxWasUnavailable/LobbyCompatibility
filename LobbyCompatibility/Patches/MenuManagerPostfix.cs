@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using LobbyCompatibility.Behaviours;
+using LobbyCompatibility.Features;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LobbyCompatibility.Patches;
 
@@ -21,8 +23,9 @@ internal static class MenuManagerPostfix
         if (__instance.isInitScene)
             return;
 
-        var lobbyListScrollView = __instance.serverListUIContainer.transform.Find("ListPanel/Scroll View");
-        if (lobbyListScrollView == null)
+        var listPanel = __instance.serverListUIContainer.transform.Find("ListPanel");
+        var lobbyListScrollView = listPanel?.Find("Scroll View");
+        if (listPanel == null || lobbyListScrollView == null)
             return;
 
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
@@ -45,5 +48,13 @@ internal static class MenuManagerPostfix
         modListPanelObject.transform.SetParent(__instance.menuNotification.transform.parent);
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
         modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView);
+
+        // Make refresh button a more compact image so we have space for our custom dropdown
+        var refreshButton = listPanel.Find("RefreshButton")?.GetComponent<Button>();
+        if (refreshButton != null)
+            UIHelper.ReskinRefreshButton(refreshButton);
+
+        // Add a custom "Mods" filtering type, and shift all other filtering UI elements to the left
+        UIHelper.AddCustomFilterToLobbyList(listPanel);
     }
 }
