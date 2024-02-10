@@ -23,8 +23,8 @@ public class ModListPanel : MonoBehaviour
     private static readonly Vector2 NotificationWidth = new(1.6f, 1.75f);
     private static readonly float TabPadding = 3f;
 
-    private readonly List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
-    private readonly List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
+    private List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
+    private List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
 
     private RectTransform? _panelTransform;
 
@@ -164,7 +164,6 @@ public class ModListPanel : MonoBehaviour
             _tabs.Add(modListTab);
         }
     }
-
     private void SetTab(ModListFilter modListFilter)
     {
         _currentTab = modListFilter;
@@ -323,59 +322,14 @@ public class ModListPanel : MonoBehaviour
             return;
 
         // Despawn old diffs
-        ClearSpawnedDiffs();
+        UIHelper.ClearSpawnedDiffSlots(_pluginDiffSlotPool, _pluginCategorySlotPool, ref _spawnedPluginDiffSlots, ref _spawnedPluginCategorySlots);
 
-        // Apply ModListFilter
-        var filteredPlugins = PluginHelper.FilterPluginDiffs(lobbyDiff.PluginDiffs, modListFilter);
-
-        // Create categories w/ mods
-        foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
-        {
-            var plugins = filteredPlugins.Where(
-                pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
-
-            if (plugins.Count == 0)
-                continue;
-
-            var pluginCategorySlot = _pluginCategorySlotPool.Spawn(compatibilityResult);
-            _spawnedPluginCategorySlots.Add(pluginCategorySlot);
-
-            // Respawn mod diffs
-            foreach (var mod in plugins)
-            {
-                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
-                if (pluginDiffSlot == null)
-                    continue;
-
-                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
-            }
-        }
+        // Spawn new diffslots
+        (_spawnedPluginDiffSlots, _spawnedPluginCategorySlots) = UIHelper.GenerateDiffSlotsFromLobbyDiff(
+            lobbyDiff, _pluginDiffSlotPool, _pluginCategorySlotPool, modListFilter, null);
 
         // Set scroll to zero
         _scrollRect.verticalNormalizedPosition = 1f;
-    }
-
-    private void ClearSpawnedDiffs()
-    {
-        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null)
-            return;
-
-        foreach (var pluginDiffSlot in _spawnedPluginDiffSlots)
-        {
-            if (pluginDiffSlot == null)
-                continue;
-            _pluginDiffSlotPool.Release(pluginDiffSlot);
-        }
-
-        foreach (var pluginCategorySlot in _spawnedPluginCategorySlots)
-        {
-            if (pluginCategorySlot == null)
-                continue;
-            _pluginCategorySlotPool.Release(pluginCategorySlot);
-        }
-
-        _spawnedPluginDiffSlots.Clear();
-        _spawnedPluginCategorySlots.Clear();
     }
 
     /// <summary>

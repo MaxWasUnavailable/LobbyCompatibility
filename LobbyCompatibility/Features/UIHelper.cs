@@ -4,6 +4,7 @@ using System.Linq;
 using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
+using LobbyCompatibility.Pooling;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -140,6 +141,107 @@ internal static class UIHelper
         text.gameObject.SetActive(true);
 
         return text;
+    }
+    /// <summary>
+    ///     Creates a list of <see cref="PluginDiffSlot" /> and <see cref="PluginCategorySlot" /> from a <see cref="LobbyDiff" />'s plugins
+    /// </summary>
+    /// <param name="lobbyDiff"> The <see cref="LobbyDiff" /> to generate text from. </param>
+    /// <param name="pluginDiffSlotPool"> The <see cref="PluginDiffSlotPool" /> to use for spawning plugin diff slots. </param>
+    /// <param name="pluginCategorySlotPool"> The <see cref="PluginCategorySlotPool" /> to use for spawning plugin category slots. </param>
+    /// <param name="modListFilter"> The <see cref="ModListFilter" /> to use to decide which lobbies to filter. </param>
+    /// <param name="maxLines"> The maximum amount of total text lines to generate. </param>
+    /// <returns> A list of spawned <see cref="PluginDiffSlot" /> and <see cref="PluginCategorySlot" />. </returns>
+    public static (List<PluginDiffSlot?> pluginDiffSlots, List<PluginCategorySlot?> pluginCategorySlots) GenerateDiffSlotsFromLobbyDiff(
+        LobbyDiff lobbyDiff,
+        PluginDiffSlotPool pluginDiffSlotPool, 
+        PluginCategorySlotPool pluginCategorySlotPool,
+        ModListFilter? modListFilter = null,
+        int? maxLines = null)
+    {
+        var spawnedPluginDiffSlots = new List<PluginDiffSlot?>();
+        var spawnedPluginCategorySlots = new List<PluginCategorySlot?>();
+
+        // Apply ModListFilter if needed
+        var filteredPlugins = modListFilter != null ? PluginHelper.FilterPluginDiffs(lobbyDiff.PluginDiffs, modListFilter!.Value) : lobbyDiff.PluginDiffs;
+
+        int spawnedTextCount = 0;
+        int spawnedPluginTextCount = 0; // used to calculate how many plugins are remaining
+
+        // Create categories w/ mods
+        foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
+        {
+            var plugins = filteredPlugins.Where(
+                pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
+
+            if (plugins.Count == 0)
+                continue;
+
+            // end linecount sooner if we're about to create a header - no point in showing a blank header
+            if (maxLines != null && spawnedTextCount >= maxLines - 1)
+                break;
+
+            var pluginCategorySlot = pluginCategorySlotPool.Spawn(compatibilityResult);
+            spawnedPluginCategorySlots.Add(pluginCategorySlot);
+            spawnedTextCount++;
+
+            // Respawn mod diffs
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                spawnedPluginDiffSlots.Add(pluginDiffSlot);
+                spawnedTextCount++;
+                spawnedPluginTextCount++;
+
+                if (maxLines != null && spawnedTextCount >= maxLines)
+                    break;
+            }
+        }
+
+        // Add cutoff text if necessary
+        var remainingPlugins = lobbyDiff.PluginDiffs.Count - spawnedPluginTextCount;
+        if (maxLines != null && spawnedTextCount >= maxLines && remainingPlugins > 0)
+        {
+            var cutoffString = string.Format("{0} more mod{1}...", remainingPlugins, remainingPlugins == 1 ? "" : "s");
+            var cutoffDiffSlot = pluginDiffSlotPool.Spawn(cutoffString, "", "", LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Color.gray);
+            if (cutoffDiffSlot != null)
+                spawnedPluginDiffSlots.Add(cutoffDiffSlot);
+        }
+
+        return (spawnedPluginDiffSlots, spawnedPluginCategorySlots);
+    }
+
+    /// <summary>
+    ///     Despawns all <see cref="PluginDiffSlot" /> and <see cref="PluginCategorySlot" /> from their assigned pools.
+    /// </summary>
+    /// <param name="pluginDiffSlotPool"> The <see cref="PluginDiffSlotPool" /> to use for spawning plugin diff slots. </param>
+    /// <param name="pluginCategorySlotPool"> The <see cref="PluginCategorySlotPool" /> to use for spawning plugin category slots. </param>
+    /// <param name="existingPluginDiffSlots"> The list of spawned <see cref="PluginDiffSlot" /> to despawn. </param>
+    /// <param name="existingPluginCategorySlots"> The list of spawned <see cref="PluginCategorySlot" /> to despawn. </param>
+    public static void ClearSpawnedDiffSlots(
+        PluginDiffSlotPool pluginDiffSlotPool,
+        PluginCategorySlotPool pluginCategorySlotPool,
+        ref List<PluginDiffSlot?> existingPluginDiffSlots,
+        ref List<PluginCategorySlot?> existingPluginCategorySlots)
+    {
+        foreach (var pluginDiffSlot in existingPluginDiffSlots)
+        {
+            if (pluginDiffSlot == null)
+                continue;
+            pluginDiffSlotPool.Release(pluginDiffSlot);
+        }
+
+        foreach (var pluginCategorySlot in existingPluginCategorySlots)
+        {
+            if (pluginCategorySlot == null)
+                continue;
+            pluginCategorySlotPool.Release(pluginCategorySlot);
+        }
+
+        existingPluginDiffSlots.Clear();
+        existingPluginCategorySlots.Clear();
     }
 
     /// <summary>

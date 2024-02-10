@@ -27,8 +27,8 @@ public class ModListTooltipPanel : MonoBehaviour
     private static readonly float TextSpacing = 11f;
     private static readonly int MaxLines = 12;
 
-    private readonly List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
-    private readonly List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
+    private List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
+    private List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
 
     private RectTransform? _panelTransform;
     private TextMeshProUGUI? _titleText;
@@ -189,6 +189,10 @@ public class ModListTooltipPanel : MonoBehaviour
         _panelTransform.anchoredPosition = hoverPanelPosition;
         _panelTransform.gameObject.SetActive(true);
 
+        if (_panelTransform == null || _titleText == null || _pluginCategorySlotPool == null || _pluginDiffSlotPool == null)
+            return;
+
+
         DisplayModList(lobbyDiff);
     }
 
@@ -196,6 +200,9 @@ public class ModListTooltipPanel : MonoBehaviour
     {
         if (_panelTransform == null || _titleText == null || _pluginCategorySlotPool == null || _pluginDiffSlotPool == null)
             return;
+
+        // Despawn old diffs
+        UIHelper.ClearSpawnedDiffSlots(_pluginDiffSlotPool, _pluginCategorySlotPool, ref _spawnedPluginDiffSlots, ref _spawnedPluginCategorySlots);
 
         var incompatibleModsCount = lobbyDiff.PluginDiffs
             .Where(pluginDiff => pluginDiff.PluginDiffResult != PluginDiffResult.Compatible &&
@@ -209,77 +216,9 @@ public class ModListTooltipPanel : MonoBehaviour
         _titleText.text =
             $"{lobbyDiff.GetDisplayText()}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: {incompatibleMods}\n========================";
 
-        // Despawn old diffs
-        ClearSpawnedDiffs();
-
-        int spawnedTextCount = 0;
-        int spawnedPluginTextCount = 0; // used to calculate how many plugins are remaining
-
-        // Create categories w/ mods
-        foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
-        {
-            var plugins = lobbyDiff.PluginDiffs.Where(
-                pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
-
-            if (plugins.Count == 0)
-                continue;
-
-            // end linecount sooner if we're about to create a header - no point in showing a blank header
-            if (spawnedTextCount >= MaxLines - 1)
-                break;
-
-            var pluginCategorySlot = _pluginCategorySlotPool.Spawn(compatibilityResult);
-            _spawnedPluginCategorySlots.Add(pluginCategorySlot);
-            spawnedTextCount++;
-
-            // Respawn mod diffs
-            foreach (var mod in plugins)
-            {
-                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
-                if (pluginDiffSlot == null)
-                    continue;
-
-                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
-                spawnedTextCount++;
-                spawnedPluginTextCount++;
-
-                if (spawnedTextCount >= MaxLines)
-                    break;
-            }
-        }
-
-        // Add cutoff text if necessary
-        var remainingPlugins = lobbyDiff.PluginDiffs.Count * 4 - spawnedPluginTextCount;
-        if (spawnedTextCount >= MaxLines && remainingPlugins > 0)
-        {
-            var cutoffString = string.Format("{0} more mod{1}...", remainingPlugins, remainingPlugins == 1 ? "" : "s"); 
-            var cutoffDiffSlot = _pluginDiffSlotPool.Spawn(cutoffString, "", "", LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Color.gray);
-            if (cutoffDiffSlot != null)
-                _spawnedPluginDiffSlots.Add(cutoffDiffSlot);
-        }
-    }
-
-    private void ClearSpawnedDiffs()
-    {
-        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null)
-            return;
-
-        foreach (var pluginDiffSlot in _spawnedPluginDiffSlots)
-        {
-            if (pluginDiffSlot == null)
-                continue;
-            _pluginDiffSlotPool.Release(pluginDiffSlot);
-        }
-
-        foreach (var pluginCategorySlot in _spawnedPluginCategorySlots)
-        {
-            if (pluginCategorySlot == null)
-                continue;
-            _pluginCategorySlotPool.Release(pluginCategorySlot);
-        }
-
-        _spawnedPluginDiffSlots.Clear();
-        _spawnedPluginCategorySlots.Clear();
+        // Spawn new diffslots
+        (_spawnedPluginDiffSlots, _spawnedPluginCategorySlots) = UIHelper.GenerateDiffSlotsFromLobbyDiff(
+            lobbyDiff, _pluginDiffSlotPool, _pluginCategorySlotPool, null, MaxLines);
     }
 
     public void HideNotification()
@@ -287,6 +226,6 @@ public class ModListTooltipPanel : MonoBehaviour
         if (_panelTransform == null)
             return;
 
-        //_panelTransform.gameObject.SetActive(false);
+        _panelTransform.gameObject.SetActive(false);
     }
 }
