@@ -14,7 +14,7 @@ internal class PluginDiffSlot : MonoBehaviour
     [field: SerializeField]
     public TextMeshProUGUI? ServerVersionText { get; private set; }
 
-    public void SetupText(TextMeshProUGUI pluginNameText, TextMeshProUGUI? clientVersionText, TextMeshProUGUI? serverVersionText)
+    public void SetupText(TextMeshProUGUI pluginNameText, TextMeshProUGUI? clientVersionText = null, TextMeshProUGUI? serverVersionText = null)
     {
         PluginNameText = pluginNameText;
         ClientVersionText = clientVersionText;
@@ -33,10 +33,6 @@ internal class PluginDiffSlot : MonoBehaviour
 
         PluginNameText.text = pluginDiff.GUID;
 
-        // Check for these after setting the guid, because we still want to support PluginDiffSlots without version text (for the hover menu)
-        if (ClientVersionText == null || ServerVersionText == null)
-            return;
-
         // Decide which "Missing" string to use when a version doesn't exist
         // TODO: Something less scary than "X" for compatible mods, but something that still gets the point across
         // TODO: Once we make the unknown lobby changes, all mods should show a "?" for unknown lobbies, because we don't know if they have it or not
@@ -46,18 +42,41 @@ internal class PluginDiffSlot : MonoBehaviour
         else
             missingText = "X";
 
+        SetTextColor(pluginDiff.GetTextColor());
+
+        // Check for these after setting the guid, because we still want to support PluginDiffSlots without version text (for the hover menu)
+        if (ClientVersionText == null || ServerVersionText == null)
+            return;
+
         ClientVersionText.text = pluginDiff.Version?.ToString() ?? missingText;
         ServerVersionText.text = pluginDiff.RequiredVersion?.ToString() ?? missingText;
-
-        SetTextColor(pluginDiff.GetTextColor());
     }
     
+    public void SetText(string pluginNameText, string clientVersionText, string serverVersionText, Color color)
+    {
+        if (PluginNameText == null)
+            return;
+
+        PluginNameText.text = pluginNameText;
+        SetTextColor(color);
+
+        if (ClientVersionText == null || ServerVersionText == null)
+            return;
+
+        ClientVersionText.text = clientVersionText;
+        ServerVersionText.text = serverVersionText;
+    }
+
     private void SetTextColor(Color color)
     {
-        if (PluginNameText == null || ClientVersionText == null || ServerVersionText == null)
+        if (PluginNameText == null)
             return;
 
         PluginNameText.color = color;
+
+        if (ClientVersionText == null || ServerVersionText == null)
+            return;
+
         ClientVersionText.color = color;
         ServerVersionText.color = color;
     }

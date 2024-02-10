@@ -22,6 +22,20 @@ internal class PluginDiffSlotPool : MonoBehaviour
 
     public PluginDiffSlot? Spawn(PluginDiff pluginDiff)
     {
+        var pluginDiffSlot = SpawnInternal();
+        pluginDiffSlot?.SetPluginDiff(pluginDiff);
+        return pluginDiffSlot;
+    }
+
+    public PluginDiffSlot? Spawn(string pluginNameText, string clientVersionText, string serverVersionText, Color color)
+    {
+        var pluginDiffSlot = SpawnInternal();
+        pluginDiffSlot?.SetText(pluginNameText, clientVersionText, serverVersionText, color);
+        return pluginDiffSlot;
+    }
+
+    private PluginDiffSlot? SpawnInternal()
+    {
         // This shouldn't happen unless you call Spawn *right* before scene change
         if (_template == null || _container == null || _pool == null)
         {
@@ -30,7 +44,6 @@ internal class PluginDiffSlotPool : MonoBehaviour
         }
 
         var pluginDiffSlot = _pool.Get();
-        pluginDiffSlot.SetPluginDiff(pluginDiff);
         return pluginDiffSlot;
     }
 

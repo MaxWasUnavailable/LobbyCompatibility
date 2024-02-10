@@ -214,6 +214,20 @@ internal static class UIHelper
         return (generatedText, padding, pluginLines);
     }
 
+    public static void AddVerticalLayoutGroup(GameObject gameObject, bool addContentSizeFitter = true)
+    {
+        // Setup ContentSizeFilter and VerticalLayoutGroup so elements are automagically spaced
+        var verticalLayoutGroup = gameObject.AddComponent<VerticalLayoutGroup>();
+        verticalLayoutGroup.childControlHeight = false;
+        verticalLayoutGroup.childForceExpandHeight = false;
+
+        if (!addContentSizeFitter)
+            return;
+
+        var contentSizeFilter = verticalLayoutGroup.gameObject.AddComponent<ContentSizeFitter>();
+        contentSizeFilter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+    }
+
     /// <summary>
     ///     Reskins the lobby list's "[Refresh]" button to use an image instead of text.
     ///     Used to increase the amount of usable space for the filter dropdowns.

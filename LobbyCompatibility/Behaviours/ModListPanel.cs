@@ -210,11 +210,7 @@ public class ModListPanel : MonoBehaviour
         scrollRect.verticalNormalizedPosition = 1f;
 
         // Setup ContentSizeFilter and VerticalLayoutGroup so diff elements are automagically spaced
-        var verticalLayoutGroup = scrollRect.content.gameObject.AddComponent<VerticalLayoutGroup>();
-        verticalLayoutGroup.childControlHeight = false;
-        verticalLayoutGroup.childForceExpandHeight = false;
-        var contentSizeFilter = verticalLayoutGroup.gameObject.AddComponent<ContentSizeFitter>();
-        contentSizeFilter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        UIHelper.AddVerticalLayoutGroup(scrollRect.content.gameObject);
 
         SetupLineSeperator(scrollRect, defaultTextColor, 34.5f);
         SetupLineSeperator(scrollRect, defaultTextColor, 106.5f);

@@ -7,6 +7,10 @@ using TMPro;
 using UnityEngine;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
+using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
+using LobbyCompatibility.Pooling;
+using System;
 
 namespace LobbyCompatibility.Behaviours;
 
@@ -21,15 +25,16 @@ public class ModListTooltipPanel : MonoBehaviour
     private static readonly Vector2 NotificationWidth = new(0.75f, 1.1f);
     private static readonly float HeaderSpacing = 12f;
     private static readonly float TextSpacing = 11f;
-    private static readonly int MaxLines = 10;
-    private readonly List<TextMeshProUGUI> _existingText = new();
+    private static readonly int MaxLines = 12;
 
-    // Needed for mod diff text generation
-    private TextMeshProUGUI? _headerTextTemplate;
+    private readonly List<PluginDiffSlot?> _spawnedPluginDiffSlots = new();
+    private readonly List<PluginCategorySlot?> _spawnedPluginCategorySlots = new();
 
     private RectTransform? _panelTransform;
-    private TextMeshProUGUI? _textTemplate;
     private TextMeshProUGUI? _titleText;
+
+    private PluginDiffSlotPool? _pluginDiffSlotPool;
+    private PluginCategorySlotPool? _pluginCategorySlotPool;
 
     private void Awake()
     {
@@ -48,7 +53,8 @@ public class ModListTooltipPanel : MonoBehaviour
         // Find actual alert panel so we can modify it
         var panelImage = transform.Find("Panel")?.GetComponent<Image>();
         _panelTransform = panelImage?.rectTransform;
-        if (panelImage == null || _panelTransform == null)
+        var panelOutlineImage = _panelTransform?.Find("Image")?.GetComponent<Image>();
+        if (panelImage == null || _panelTransform == null || panelOutlineImage == null)
             return;
 
         // Increase panel opacity to 100% since we disabled the background image
@@ -58,7 +64,7 @@ public class ModListTooltipPanel : MonoBehaviour
 
         // Multiply panel element sizes to make the hover notification skinnier
         UIHelper.TryMultiplySizeDelta(_panelTransform, NotificationWidth);
-        UIHelper.TryMultiplySizeDelta(_panelTransform.Find("Image"), NotificationWidth);
+        UIHelper.TryMultiplySizeDelta(panelOutlineImage.transform, NotificationWidth);
         UIHelper.TryMultiplySizeDelta(_panelTransform.Find("NotificationText"), NotificationWidth);
 
         // Remove "dismiss" button
@@ -69,30 +75,90 @@ public class ModListTooltipPanel : MonoBehaviour
         _panelTransform.anchoredPosition = new Vector2(sizeDelta.x / 2, -sizeDelta.y / 2);
         _panelTransform.gameObject.SetActive(false);
 
-        SetupText(_panelTransform);
+        SetupText(_panelTransform, panelOutlineImage);
     }
 
     // This could/should eventually be moved to a UIHelper method if we want this to look identical to the full mod list panel
-    private void SetupText(RectTransform panelTransform)
+    private void SetupText(RectTransform panelTransform, Image panelOutlineImage)
     {
         _titleText = panelTransform.Find("NotificationText")?.GetComponent<TextMeshProUGUI>();
         if (_titleText == null)
             return;
 
+        // Create new image to put text inside of
+        var textContainerImage = Instantiate(panelOutlineImage, panelTransform);
+        textContainerImage.sprite = null;
+        textContainerImage.color = Color.clear;
+        textContainerImage.rectTransform.sizeDelta = panelTransform.sizeDelta;
+
+        // Setup ContentSizeFilter and VerticalLayoutGroup so diff elements are automagically spaced
+        UIHelper.AddVerticalLayoutGroup(textContainerImage.gameObject, false);
+
+        // Setup text
+        _titleText.transform.SetParent(textContainerImage.transform);
         _titleText.fontSizeMax = 13f;
         _titleText.fontSizeMin = 12f;
         _titleText.rectTransform.anchoredPosition = new Vector2(0, 95f);
+        _titleText.gameObject.SetActive(false);
+
+        // Setup PluginDiffSlot template panel
+        var pluginDiffSlot = new GameObject("PluginDiffSlot");
+        var pluginDiffSlotImage = pluginDiffSlot.AddComponent<Image>();
+        var pluginDiffSlotTransform = UIHelper.ApplyParentSize(pluginDiffSlot, textContainerImage.transform);
+        pluginDiffSlotTransform.anchoredPosition = Vector2.zero;
+        pluginDiffSlotTransform.sizeDelta = new Vector2(1f, TextSpacing);
+        pluginDiffSlotImage.color = Color.clear;
+        pluginDiffSlot.SetActive(false);
 
         // Setup text as template
-        _headerTextTemplate =
-            UIHelper.SetupTextAsTemplate(_titleText, _titleText.transform.parent, _titleText.color, new Vector2(165f, 75f), 13f, 2f);
-        _textTemplate = UIHelper.SetupTextAsTemplate(_titleText, _titleText.transform.parent, _titleText.color, new Vector2(165f, 75f), 13f, 2f,
-            HorizontalAlignmentOptions.Left);
+        var pluginNameText =
+            UIHelper.SetupTextAsTemplate(_titleText, pluginDiffSlotTransform, _titleText.color, new Vector2(160f, 75f), 13f, 2f, 
+            HorizontalAlignmentOptions.Left, new Vector2(0f, 7f));
 
-        // Make the title wrap with compact line spacing
-        _titleText.lineSpacing = -20f;
-        _titleText.horizontalAlignment = HorizontalAlignmentOptions.Left;
-        _titleText.rectTransform.sizeDelta = new Vector2(170f, 75f);
+        // Make the text wrap with compact line spacing
+        pluginNameText.lineSpacing = -20f;
+
+        // Finish PluginDiffSlot setup
+        var diffSlot = pluginDiffSlot.AddComponent<PluginDiffSlot>();
+        diffSlot.SetupText(pluginNameText);
+
+        // Setup PluginCategorySlot template panel, identical except for the height
+        var diffSlotClone = Instantiate(diffSlot, pluginDiffSlotTransform.parent);
+        diffSlotClone.GetComponent<RectTransform>().sizeDelta = new Vector2(1, HeaderSpacing);
+        var categorySlot = diffSlotClone.gameObject.AddComponent<PluginCategorySlot>();
+
+        // Setup all text for PluginCategorySlot
+        if (diffSlotClone.PluginNameText != null)
+        {
+            diffSlotClone.PluginNameText.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            categorySlot.SetupText(diffSlotClone.PluginNameText);
+        }
+
+        // Remove duplicate PluginDiffSlot on PluginCategorySlot and finish setup
+        Destroy(diffSlotClone);
+        categorySlot.gameObject.SetActive(false);
+
+        // Duplicate category slot to use as main "title" text
+        var titleTextContainer = Instantiate(categorySlot, categorySlot.transform.parent);
+        var titleTextContainerTransform = titleTextContainer.GetComponent<RectTransform>();
+        titleTextContainer.gameObject.SetActive(true);
+        _titleText = titleTextContainer.CategoryNameText;
+
+        if (titleTextContainerTransform == null || titleTextContainer.CategoryNameText == null)
+            return;
+
+        // Setup new positioning for the larger title text
+        titleTextContainerTransform.sizeDelta = new Vector2(1, HeaderSpacing * 4);
+        titleTextContainer.CategoryNameText.rectTransform.anchoredPosition = new Vector2(0, 20f);
+        titleTextContainer.CategoryNameText.horizontalAlignment = HorizontalAlignmentOptions.Left;
+
+        // Initialize pools
+        var pluginPoolsObject = new GameObject("PluginSlotPools");
+        pluginPoolsObject.transform.SetParent(panelTransform);
+        _pluginDiffSlotPool = pluginPoolsObject.AddComponent<PluginDiffSlotPool>();
+        _pluginDiffSlotPool.InitializeUsingTemplate(diffSlot, diffSlot.transform.parent);
+        _pluginCategorySlotPool = pluginPoolsObject.AddComponent<PluginCategorySlotPool>();
+        _pluginCategorySlotPool.InitializeUsingTemplate(categorySlot, categorySlot.transform.parent);
     }
 
     public void DisplayNotification(LobbyDiff lobbyDiff, RectTransform elementTransform,
@@ -128,7 +194,7 @@ public class ModListTooltipPanel : MonoBehaviour
 
     private void DisplayModList(LobbyDiff lobbyDiff)
     {
-        if (_panelTransform == null || _titleText == null || _headerTextTemplate == null || _textTemplate == null)
+        if (_panelTransform == null || _titleText == null || _pluginCategorySlotPool == null || _pluginDiffSlotPool == null)
             return;
 
         var incompatibleModsCount = lobbyDiff.PluginDiffs
@@ -143,31 +209,77 @@ public class ModListTooltipPanel : MonoBehaviour
         _titleText.text =
             $"{lobbyDiff.GetDisplayText()}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: {incompatibleMods}\n========================";
 
-        // clear old text
-        foreach (var text in _existingText)
+        // Despawn old diffs
+        ClearSpawnedDiffs();
+
+        int spawnedTextCount = 0;
+        int spawnedPluginTextCount = 0; // used to calculate how many plugins are remaining
+
+        // Create categories w/ mods
+        foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
         {
-            if (text == null)
+            var plugins = lobbyDiff.PluginDiffs.Where(
+                pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
+
+            if (plugins.Count == 0)
                 continue;
 
-            Destroy(text.gameObject);
+            // end linecount sooner if we're about to create a header - no point in showing a blank header
+            if (spawnedTextCount >= MaxLines - 1)
+                break;
+
+            var pluginCategorySlot = _pluginCategorySlotPool.Spawn(compatibilityResult);
+            _spawnedPluginCategorySlots.Add(pluginCategorySlot);
+            spawnedTextCount++;
+
+            // Respawn mod diffs
+            foreach (var mod in plugins)
+            {
+                var pluginDiffSlot = _pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
+
+                _spawnedPluginDiffSlots.Add(pluginDiffSlot);
+                spawnedTextCount++;
+                spawnedPluginTextCount++;
+
+                if (spawnedTextCount >= MaxLines)
+                    break;
+            }
         }
-
-        _existingText.Clear();
-
-        // Generate text based on LobbyDiff
-        var (newText, padding, pluginsShown) = UIHelper.GenerateTextFromDiff(lobbyDiff, _textTemplate,
-            _headerTextTemplate, TextSpacing, HeaderSpacing, -51.5f, true, MaxLines);
 
         // Add cutoff text if necessary
-        var remainingPlugins = lobbyDiff.PluginDiffs.Count - pluginsShown;
-        if (newText.Count >= MaxLines && remainingPlugins > 0)
+        var remainingPlugins = lobbyDiff.PluginDiffs.Count * 4 - spawnedPluginTextCount;
+        if (spawnedTextCount >= MaxLines && remainingPlugins > 0)
         {
-            var cutoffString = string.Format("{0} more mod{1}...", remainingPlugins, remainingPlugins == 1 ? "" : "s");
-            var cutoffText = UIHelper.CreateTextFromTemplate(_textTemplate, cutoffString, -padding, Color.gray);
-            newText.Add(cutoffText);
+            var cutoffString = string.Format("{0} more mod{1}...", remainingPlugins, remainingPlugins == 1 ? "" : "s"); 
+            var cutoffDiffSlot = _pluginDiffSlotPool.Spawn(cutoffString, "", "", LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Color.gray);
+            if (cutoffDiffSlot != null)
+                _spawnedPluginDiffSlots.Add(cutoffDiffSlot);
+        }
+    }
+
+    private void ClearSpawnedDiffs()
+    {
+        if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null)
+            return;
+
+        foreach (var pluginDiffSlot in _spawnedPluginDiffSlots)
+        {
+            if (pluginDiffSlot == null)
+                continue;
+            _pluginDiffSlotPool.Release(pluginDiffSlot);
         }
 
-        _existingText.AddRange(newText); // probably doesn't need to be an AddRange since we just deleted stuff
+        foreach (var pluginCategorySlot in _spawnedPluginCategorySlots)
+        {
+            if (pluginCategorySlot == null)
+                continue;
+            _pluginCategorySlotPool.Release(pluginCategorySlot);
+        }
+
+        _spawnedPluginDiffSlots.Clear();
+        _spawnedPluginCategorySlots.Clear();
     }
 
     public void HideNotification()
@@ -175,6 +287,6 @@ public class ModListTooltipPanel : MonoBehaviour
         if (_panelTransform == null)
             return;
 
-        _panelTransform.gameObject.SetActive(false);
+        //_panelTransform.gameObject.SetActive(false);
     }
 }
