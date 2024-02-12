@@ -71,6 +71,7 @@ internal class PluginDiffSlot : MonoBehaviour
     /// <param name="pluginNameText"> The plugin's name to display. </param>
     /// <param name="clientVersionText"> The client's plugin version to display. </param>
     /// <param name="serverVersionText"> The server's plugin version to display. </param>
+    /// <param name="color"> Color to display. </param>
     public void SetText(string pluginNameText, string clientVersionText, string serverVersionText, Color color)
     {
         if (PluginNameText == null)
