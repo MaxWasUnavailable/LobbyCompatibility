@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using LobbyCompatibility.Behaviours;
+using Steamworks.Data;
 using UnityEngine;
 
 namespace LobbyCompatibility.Patches;
@@ -20,49 +19,51 @@ namespace LobbyCompatibility.Patches;
 [HarmonyWrapSafe]
 internal class LoadLobbyListAndFilterTranspiler
 {
-    [HarmonyTargetMethod]
-    private static MethodBase TargetMethod()
-    {
-        return AccessTools.EnumeratorMoveNext(AccessTools.Method(typeof(SteamLobbyManager),
-            nameof(SteamLobbyManager.loadLobbyListAndFilter)));
-    }
-
+    [HarmonyPatch(typeof(SteamLobbyManager), nameof(SteamLobbyManager.loadLobbyListAndFilter), MethodType.Enumerator)]
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        // The method used to get the LobbySlot after instantiation (yes, it's accessed through GetComponentInChildren)
-        var lobbySlotMethod = AccessTools.Method(typeof(GameObject), nameof(GameObject.GetComponentInChildren),
-            new Type[0], new[] { typeof(LobbySlot) });
+        var currentLobbyListField = 
+            AccessTools.Field(typeof(SteamLobbyManager), nameof(SteamLobbyManager.currentLobbyList));
+        var thisLobbyField = 
+            AccessTools.Field(typeof(LobbySlot), nameof(LobbySlot.thisLobby));
+        
         var levelListContainerField =
             AccessTools.Field(typeof(SteamLobbyManager), nameof(SteamLobbyManager.levelListContainer));
-
+        var initializeLobbySlotMethod = 
+            AccessTools.Method(typeof(LoadLobbyListAndFilterTranspiler), nameof(InitializeLobbySlot));
+        
         // Does the following:
-        // - Adds SteamLobbyManager.levelListContainer to the stack
-        // - Replaces gameObject.GetComponentInChildren<LobbySlot>() with a call to InitializeLobbySlot
-        // - Calls InitializeLobbySlot(gameObject, levelListContainer), which returns the same component after injecting modded lobby data
-        // TODO: Directly inject the lobby into InitializeLobbySlot instead of grabbing it in Start() in ModdedLobbySlot
+        // - Adds dup before last componentInChildren line to keep componentInChildren value on the stack
+        // - Loads SteamLobbyManager.levelListContainer onto the stack
+        // - Calls InitializeLobbySlot(lobbySlot, levelListContainer)
         return new CodeMatcher(instructions)
-            .SearchForward(instruction => instruction.Calls(lobbySlotMethod))
-            .ThrowIfInvalid("Could not find LobbySlot method")
-            .RemoveInstructions(1)
-            .Insert(
+            .MatchForward(false, new [] {
+                new CodeMatch(OpCodes.Ldloc_1),
+                new CodeMatch(OpCodes.Ldfld, currentLobbyListField),
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(inst => inst.opcode == OpCodes.Ldfld), // Compiler-generated field
+                new CodeMatch(OpCodes.Ldelem, typeof(Lobby)),
+                new CodeMatch(OpCodes.Stfld, thisLobbyField) })
+            .ThrowIfNotMatch("Unable to find LobbySlot.thisLobby line.")
+            .InsertAndAdvance(new [] {
+                new CodeInstruction(OpCodes.Dup) })
+            .Advance(6)
+            .InsertAndAdvance(new [] {
                 new CodeInstruction(OpCodes.Ldloc_1),
                 new CodeInstruction(OpCodes.Ldfld, levelListContainerField),
-                new CodeInstruction(
-                    OpCodes.Call,
-                    AccessTools.Method(typeof(LoadLobbyListAndFilterTranspiler), nameof(InitializeLobbySlot))))
+                new CodeInstruction(OpCodes.Call, initializeLobbySlotMethod) })
             .InstructionEnumeration();
     }
 
     // Inject custom LobbySlot component for modded lobby data
-    private static LobbySlot InitializeLobbySlot(GameObject gameObject, Transform levelListContainer)
+    private static void InitializeLobbySlot(LobbySlot lobbySlot, Transform levelListContainer)
     {
-        var lobbySlot = gameObject.GetComponentInChildren<LobbySlot>();
         var moddedLobbySlot = lobbySlot.gameObject.AddComponent<ModdedLobbySlot>();
+
+        moddedLobbySlot.Setup(lobbySlot);
 
         // Set container parent for hover tooltip position math
         moddedLobbySlot.SetParentContainer(levelListContainer.parent);
-
-        return lobbySlot;
     }
 }

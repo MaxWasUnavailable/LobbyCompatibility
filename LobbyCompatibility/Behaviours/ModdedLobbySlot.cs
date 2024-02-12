@@ -23,13 +23,9 @@ public class ModdedLobbySlot : MonoBehaviour
     private Transform? _parentContainer;
 
     // Runs after LobbySlot data set
-    // TODO: Review & refactor
-    private void Start()
+    internal void Setup(LobbySlot lobbySlot)
     {
-        // Not 100% ideal, but I don't want to mess with IL/stack weirdness too much right now
-        _lobbySlot = GetComponent<LobbySlot>();
-        if (_lobbySlot == null)
-            return;
+        _lobbySlot = lobbySlot;
 
         // Get the "diff" of the lobby
         _lobbyDiff = LobbyHelper.GetLobbyDiff(_lobbySlot.thisLobby);
