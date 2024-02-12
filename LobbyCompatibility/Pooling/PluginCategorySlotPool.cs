@@ -27,14 +27,6 @@ internal class PluginCategorySlotPool : MonoBehaviour
         pluginCategorySlot?.SetPluginDiffResult(pluginDiffResult);
         return pluginCategorySlot;
     }
-
-    public PluginCategorySlot? Spawn(LobbyDiffResult lobbyDiffResult)
-    {
-        var pluginCategorySlot = SpawnInternal();
-        pluginCategorySlot?.SetLobbyDiffResult(lobbyDiffResult);
-        return pluginCategorySlot;
-    }
-
     private PluginCategorySlot? SpawnInternal()
     {
         // This shouldn't happen unless you call Spawn *right* before scene change

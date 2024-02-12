@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
 using LobbyCompatibility.Models;
+using LobbyCompatibility.Pooling;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
-using LobbyCompatibility.Enums;
-using LobbyCompatibility.Pooling;
-using System.Linq;
-using System;
 
 namespace LobbyCompatibility.Behaviours;
 

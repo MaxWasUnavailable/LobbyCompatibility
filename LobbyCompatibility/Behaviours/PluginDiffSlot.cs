@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace LobbyCompatibility.Behaviours;
 
+/// <summary>
+///     Slot used to show a plugindiff's compatibility status in a <see cref="ModListPanel"/>.
+/// </summary>
 internal class PluginDiffSlot : MonoBehaviour
 {
     [field: SerializeField]
@@ -14,6 +17,12 @@ internal class PluginDiffSlot : MonoBehaviour
     [field: SerializeField]
     public TextMeshProUGUI? ServerVersionText { get; private set; }
 
+    /// <summary>
+    ///     Set up the slot using existing text objects.
+    /// </summary>
+    /// <param name="pluginNameText"> Text to use to display the plugin's name. </param>
+    /// <param name="clientVersionText"> Text to use to display the client's plugin version. </param>
+    /// <param name="serverVersionText"> Text to use to display the server's plugin version. </param>
     public void SetupText(TextMeshProUGUI pluginNameText, TextMeshProUGUI? clientVersionText = null, TextMeshProUGUI? serverVersionText = null)
     {
         PluginNameText = pluginNameText;
@@ -26,6 +35,10 @@ internal class PluginDiffSlot : MonoBehaviour
         ServerVersionText?.gameObject.SetActive(true);
     }
 
+    /// <summary>
+    ///     Set the slot's text based on a <see cref="PluginDiff"/>.
+    /// </summary>
+    /// <param name="pluginDiff"> PluginDiff to display. </param>
     public void SetPluginDiff(PluginDiff pluginDiff)
     {
         if (PluginNameText == null)
@@ -51,7 +64,13 @@ internal class PluginDiffSlot : MonoBehaviour
         ClientVersionText.text = pluginDiff.Version?.ToString() ?? missingText;
         ServerVersionText.text = pluginDiff.RequiredVersion?.ToString() ?? missingText;
     }
-    
+
+    /// <summary>
+    ///     Manually set the slot's text.
+    /// </summary>
+    /// <param name="pluginNameText"> The plugin's name to display. </param>
+    /// <param name="clientVersionText"> The client's plugin version to display. </param>
+    /// <param name="serverVersionText"> The server's plugin version to display. </param>
     public void SetText(string pluginNameText, string clientVersionText, string serverVersionText, Color color)
     {
         if (PluginNameText == null)
@@ -67,6 +86,10 @@ internal class PluginDiffSlot : MonoBehaviour
         ServerVersionText.text = serverVersionText;
     }
 
+    /// <summary>
+    ///     Set the slot's text color.
+    /// </summary>
+    /// <param name="color"> Color to display. </param>
     private void SetTextColor(Color color)
     {
         if (PluginNameText == null)
