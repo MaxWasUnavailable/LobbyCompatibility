@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace LobbyCompatibility.Behaviours;
 
-internal class ModListTab : MonoBehaviour
+public class ModListTab : MonoBehaviour
 {
     public ModListFilter ModListFilter;
     private Image? _tabBackground;

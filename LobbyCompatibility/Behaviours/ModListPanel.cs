@@ -42,7 +42,7 @@ public class ModListPanel : MonoBehaviour
     private PluginCategorySlotPool? _pluginCategorySlotPool;
 
     /// <summary>
-    ///     Assign instance on awake so we can access it statically
+    ///     Assign instance on awake so we can access it statically.
     /// </summary>
     private void Awake()
     {
@@ -50,10 +50,10 @@ public class ModListPanel : MonoBehaviour
     }
 
     /// <summary>
-    ///     Set up our mod list panel using notification & lobby list objects as donors
+    ///     Set up our mod list panel using notification & lobby list objects as donors.
     /// </summary>
-    /// <param name="panel"> A notification panel to use as a donor </param>
-    /// <param name="scrollViewTemplate"> A lobby list's scroll view to use as a donor </param>
+    /// <param name="panel"> A notification panel to use as a donor. </param>
+    /// <param name="scrollViewTemplate"> A lobby list's scroll view to use as a donor. </param>
     public void SetupPanel(GameObject panel, Transform scrollViewTemplate)
     {
         var panelImage = panel.transform.Find("Panel")?.GetComponent<Image>();
@@ -100,28 +100,36 @@ public class ModListPanel : MonoBehaviour
         button.onClick.AddListener(() => { SetPanelActive(false); });
 
         // Setup tabs
-        SetupTabs(panelOutlineImage, panelImage, button);
+        _tabs = SetupTabs(panelOutlineImage, panelImage, button);
 
         SetPanelActive(false);
     }
 
-    public void SetupTabs(Image panelOutlineImage, Image panelImage, Button button)
+    /// <summary>
+    ///     Set up our mod list tabs using panel components as donors.
+    /// </summary>
+    /// <param name="panelOutlineImage"> A notification panel outline image to use as a donor. </param>
+    /// <param name="panelImage"> A notification panel image to use as a donor. </param>
+    /// <param name="button"> A notification panel dismiss button to use as a donor. </param>
+    /// <returns> A list of generated <see cref="ModListTab"/> UI objects. </returns>
+    public List<ModListTab> SetupTabs(Image panelOutlineImage, Image panelImage, Button button)
     {
         if (_panelTransform  == null) 
-            return;
+            return new();
 
-        var tabs = Enum.GetValues(typeof(ModListFilter)).Cast<ModListFilter>().ToList();
+        var tabs = new List<ModListTab>();
+        var tabTypes = Enum.GetValues(typeof(ModListFilter)).Cast<ModListFilter>().ToList();
 
         // Setup tabs
-        for (int i = 0; i < tabs.Count; i++)
+        for (int i = 0; i < tabTypes.Count; i++)
         {
             // Get solid color background for tab
             var tabBackground = Instantiate(panelOutlineImage, panelOutlineImage.transform.parent);
-            tabBackground.rectTransform.sizeDelta = new Vector2(_panelTransform.sizeDelta.x / tabs.Count - TabPadding, 35 - TabPadding);
+            tabBackground.rectTransform.sizeDelta = new Vector2(_panelTransform.sizeDelta.x / tabTypes.Count - TabPadding, 35 - TabPadding);
 
             // Setup background positioning dynamically
             // TODO: Use a HorizontalLayoutGroup
-            float tabXOffset = (i * (_panelTransform.sizeDelta.x + TabPadding) / tabs.Count);
+            float tabXOffset = (i * (_panelTransform.sizeDelta.x + TabPadding) / tabTypes.Count);
             tabBackground.rectTransform.anchoredPosition = new Vector2(
                 (-_panelTransform.sizeDelta.x + tabBackground.rectTransform.sizeDelta.x + i) / 2 + tabXOffset,
                 (_panelTransform.sizeDelta.y + tabBackground.rectTransform.sizeDelta.y - TabPadding) / 2
@@ -157,35 +165,22 @@ public class ModListPanel : MonoBehaviour
 
             // Add ModListTab component and initialize variables to finally complete tab setup
             var modListTab = tabBackground.gameObject.AddComponent<ModListTab>();
-            modListTab.Setup(tabBackground, tabOutline, newButton, newButtonText, tabs[i], tabBackground.color, unselectedColor);
+            modListTab.Setup(tabBackground, tabOutline, newButton, newButtonText, tabTypes[i], tabBackground.color, unselectedColor);
             modListTab.SetupEvents(SetTab);
-            modListTab.SetSelectionStatus(tabs[i] == LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value);
+            modListTab.SetSelectionStatus(tabTypes[i] == LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value);
 
-            _tabs.Add(modListTab);
-        }
-    }
-    private void SetTab(ModListFilter modListFilter)
-    {
-        _currentTab = modListFilter;
-
-        foreach (var tab in _tabs)
-        {
-            tab.SetSelectionStatus(_currentTab == tab.ModListFilter);
+            tabs.Add(modListTab);
         }
 
-        // Regenerate displayed diff
-        if (_lobbyDiff == null)
-            return;
-
-        DisplayFilteredModList(_lobbyDiff, _currentTab);
+        return tabs;
     }
 
     /// <summary>
-    ///     Set up the scroll rect for the mod list panel using a lobby list's scroll rect as a donor
+    ///     Set up the scroll rect for the mod list panel using a lobby list's scroll rect as a donor.
     /// </summary>
-    /// <param name="panelTransform"> The mod list panel's transform </param>
-    /// <param name="scrollViewTemplate"> A lobby list's scroll rect to use as a donor </param>
-    /// <param name="defaultTextColor"> The default text color to use for the mod list panel </param>
+    /// <param name="panelTransform"> The mod list panel's transform. </param>
+    /// <param name="scrollViewTemplate"> A lobby list's scroll rect to use as a donor. </param>
+    /// <param name="defaultTextColor"> The default text color to use for the mod list panel. </param>
     /// <returns> The <see cref="ScrollRect"/>. </returns>
     private ScrollRect? SetupScrollRect(RectTransform panelTransform, Transform scrollViewTemplate, Color defaultTextColor)
     {
@@ -217,7 +212,14 @@ public class ModListPanel : MonoBehaviour
         return scrollRect;
     }
 
-    private void SetupLineSeperator(ScrollRect scrollRect, Color color, float xPosition)
+    /// <summary>
+    ///     Set up a line seperator that will act as a visual seperator between columns.
+    /// </summary>
+    /// <param name="scrollRect"> The mod list panel's <see cref="ScrollRect"/>. </param>
+    /// <param name="color"> The color to use for the line seperator </param>
+    /// <param name="xPosition"> The line seperator's x position. </param>
+    /// <returns> The line seperator's <see cref="Image"/>. </returns>
+    private Image SetupLineSeperator(ScrollRect scrollRect, Color color, float xPosition)
     {
         var lineSeperator = new GameObject("LineSeperator");
         var lineSeperatorImage = lineSeperator.AddComponent<Image>();
@@ -225,8 +227,16 @@ public class ModListPanel : MonoBehaviour
         lineSeperatorImage.rectTransform.anchoredPosition = new Vector3(xPosition, 0f);
         lineSeperatorImage.rectTransform.sizeDelta = new Vector3(1f, 200f);
         lineSeperatorImage.color = color;
+
+        return lineSeperatorImage;
     }
 
+    /// <summary>
+    ///     Set up the <see cref="PluginCategorySlot"/> and <see cref="PluginDiffSlot"/> templates used to display diffs to the user.
+    /// </summary>
+    /// <param name="panelTransform"> The mod list panel's transform. </param>
+    /// <param name="scrollRect"> The mod list panel's <see cref="ScrollRect"/>. </param>
+    /// <param name="defaultTextColor"> The default text color to use for the mod list panel. </param>
     private void SetupModListSlots(RectTransform panelTransform, ScrollRect scrollRect, Color defaultTextColor)
     {
         var text = scrollRect.GetComponentInChildren<TextMeshProUGUI>();
@@ -281,41 +291,29 @@ public class ModListPanel : MonoBehaviour
     }
 
     /// <summary>
-    ///     Open the panel and display a lobby's mod list diff
+    ///     Open the panel and display a lobby's mod list diff.
     /// </summary>
-    /// <param name="lobbyDiff"> The lobby diff to display </param>
-    /// <param name="titleOverride"> Override the title text of the mod list panel </param>
+    /// <param name="lobbyDiff"> The lobby diff to display. </param>
+    /// <param name="titleOverride"> Override the title text of the mod list panel. </param>
     public void DisplayNotification(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
-        if (_scrollRect == null)
+        if (_scrollRect == null || _titleText == null)
             return;
 
         // Set scroll to zero
         _scrollRect.verticalNormalizedPosition = 1f;
-        SetPanelActive(true);
-        // EventSystem.current.SetSelectedGameObject(this.menuNotification.GetComponentInChildren<Button>().gameObject);
-
-        DisplayModList(lobbyDiff, titleOverride);
-    }
-
-    /// <summary>
-    ///     Display a lobby's mod list diff through the mod list panel
-    /// </summary>
-    /// <param name="lobbyDiff"> The lobby diff to display </param>
-    /// <param name="titleOverride"> Override the title text of the mod list panel </param>
-    private void DisplayModList(LobbyDiff lobbyDiff, string? titleOverride = null)
-    {
-        if (_titleText == null)
-            return;
-
         _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
-
-        _lobbyDiff = lobbyDiff;
 
         // Set the default tab using the config's value, with ModListFilter.All as the default
         SetTab(LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value ?? ModListFilter.All);
+        SetPanelActive(true);
     }
 
+    /// <summary>
+    ///     Display a lobby's mod list diff through the mod list panel using a <see cref="ModListFilter"/>.
+    /// </summary>
+    /// <param name="lobbyDiff"> The lobby diff to display. </param>
+    /// <param name="modListFilter"> The <see cref="ModListFilter" /> to use to decide which lobbies to filter. </param>
     private void DisplayFilteredModList(LobbyDiff lobbyDiff, ModListFilter modListFilter)
     {
         if (_pluginDiffSlotPool == null || _pluginCategorySlotPool == null || _scrollRect == null)
@@ -333,9 +331,29 @@ public class ModListPanel : MonoBehaviour
     }
 
     /// <summary>
-    ///     Set the panel's active state
+    ///     Set the panel's active tab based on <see cref="ModListFilter"/>.
     /// </summary>
-    /// <param name="active"> Whether or not the panel should be active </param>
+    /// <param name="modListFilter"> The <see cref="ModListFilter" /> to use the tab for. </param>
+    private void SetTab(ModListFilter modListFilter)
+    {
+        _currentTab = modListFilter;
+
+        foreach (var tab in _tabs)
+        {
+            tab.SetSelectionStatus(_currentTab == tab.ModListFilter);
+        }
+
+        // Regenerate displayed diff
+        if (_lobbyDiff == null)
+            return;
+
+        DisplayFilteredModList(_lobbyDiff, _currentTab);
+    }
+
+    /// <summary>
+    ///     Set the panel's active state.
+    /// </summary>
+    /// <param name="active"> Whether or not the panel should be active. </param>
     private void SetPanelActive(bool active)
     {
         if (_panelTransform == null)
