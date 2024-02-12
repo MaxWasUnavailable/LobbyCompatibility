@@ -162,6 +162,12 @@ internal static class PluginHelper
         return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ClientOnly or null);
     }
 
+    /// <summary>
+    ///     Filter <see cref="PluginDiff"/> list based on a <see cref="ModListFilter"/>.
+    /// </summary>
+    /// <param name="pluginDiffs"> A list of plugin diffs to apply the filter to. </param>
+    /// <param name="modListFilter"> The <see cref="ModListFilter" /> to filter the plugin diffs against. </param>
+    /// <returns> A <see cref="PluginDiff" /> array with the <see cref="ModListFilter" /> applied. </returns>
     public static IEnumerable<PluginDiff> FilterPluginDiffs(IEnumerable<PluginDiff> pluginDiffs, ModListFilter modListFilter)
     {
         if (modListFilter == ModListFilter.Compatible)

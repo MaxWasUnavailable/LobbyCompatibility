@@ -101,6 +101,13 @@ internal static class UIHelper
         return text;
     }
 
+    /// <summary>
+    ///     Apply the full size of a <see cref="RectTransform"/>'s parent.
+    ///     This will realign the RectTransform's size, and set the anchor to the top left.
+    /// </summary>
+    /// <param name="uiElement"> The <see cref="RectTransform" />'s gameObject to resize. </param>
+    /// <param name="parent"> The parent to base the size off of. </param>
+    /// <returns> The resized <see cref="RectTransform"/>. </returns>
     public static RectTransform ApplyParentSize(GameObject uiElement, Transform parent)
     {
         var rect = uiElement.GetComponent<RectTransform>();
@@ -244,6 +251,11 @@ internal static class UIHelper
         existingPluginCategorySlots.Clear();
     }
 
+    /// <summary>
+    ///     Set up a VerticalLayoutGroup on a UI object to automatically space child objects.
+    /// </summary>
+    /// <param name="gameObject"> The <see cref="GameObject" /> to apply the layout group to. </param>
+    /// <param name="addContentSizeFitter"> Whether or not to add a <see cref="ContentSizeFitter"/> to automatically resize the parent object. </param>
     public static void AddVerticalLayoutGroup(GameObject gameObject, bool addContentSizeFitter = true)
     {
         // Setup ContentSizeFilter and VerticalLayoutGroup so elements are automagically spaced
