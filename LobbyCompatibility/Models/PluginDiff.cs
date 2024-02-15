@@ -1,4 +1,5 @@
 ﻿using System;
+using LobbyCompatibility.Configuration;
 using LobbyCompatibility.Enums;
 using UnityEngine;
 
@@ -42,10 +43,10 @@ public record PluginDiff(
     {
         return PluginDiffResult switch
         {
-            PluginDiffResult.Compatible => LobbyCompatibilityPlugin.Config?.CompatibleColor.Value ?? Color.green,
+            PluginDiffResult.Compatible => LobbyCompatibilityPlugin.Config?.CompatibleColor.Value ?? Config.DefaultCompatibleColor,
             PluginDiffResult.ClientMissingMod or PluginDiffResult.ServerMissingMod or PluginDiffResult.ModVersionMismatch 
-                => LobbyCompatibilityPlugin.Config?.IncompatibleColor.Value ?? Color.red,
-            _ => LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Color.gray
+                => LobbyCompatibilityPlugin.Config?.IncompatibleColor.Value ?? Config.DefaultIncompatibleColor,
+            _ => LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Config.DefaultUnknownColor
         };
     }
 }

@@ -10,6 +10,21 @@ namespace LobbyCompatibility.Configuration;
 public class Config
 {
     /// <summary>
+    ///     Default <see cref="Color"/> used to represent compatible plugins.
+    /// </summary>
+    public static readonly Color DefaultCompatibleColor = Color.green;
+
+    /// <summary>
+    ///     Default <see cref="Color"/> used to represent incompatible plugins.
+    /// </summary>
+    public static readonly Color DefaultIncompatibleColor = Color.red;
+
+    /// <summary>
+    ///     Default <see cref="Color"/> used to represent unknown plugins.
+    /// </summary>
+    public static readonly Color DefaultUnknownColor = Color.gray;
+
+    /// <summary>
     ///     Default <see cref="ModdedLobbyFilter"/> value for public lobby sorting.
     /// </summary>
     public ConfigEntry<ModdedLobbyFilter> DefaultModdedLobbyFilter;
@@ -46,15 +61,15 @@ public class Config
             "The default tab to use when viewing a lobby's mod list");
         CompatibleColor = configFile.Bind("Visual",
             "Compatible Plugin Color",
-            Color.green,
+            DefaultCompatibleColor,
             "The color used to respresent compatible plugins");
         IncompatibleColor = configFile.Bind("Visual",
             "Incompatible Plugin Color",
-            Color.red,
+            DefaultIncompatibleColor,
             "The color used to respresent incompatible plugins");
         UnknownColor = configFile.Bind("Visual",
             "Unknown Plugin Color",
-            Color.gray,
+            DefaultUnknownColor,
             "The color used to respresent unknown plugins");
     }
 }
