@@ -110,10 +110,10 @@ internal static class LobbyHelper
         return pluginDiffResult switch
         {
             PluginDiffResult.Compatible => "Compatible",
-            PluginDiffResult.ClientMissingMod => "Missing required mods",
-            PluginDiffResult.ServerMissingMod => "Incompatible with server",
-            PluginDiffResult.ModVersionMismatch => "Mod version mismatch",
-            _ => "Unknown"
+            PluginDiffResult.ClientMissingMod => "Missing lobby-required mods",
+            PluginDiffResult.ServerMissingMod => "Incompatible with lobby",
+            PluginDiffResult.ModVersionMismatch => "Incompatible mod versions",
+            _ => "Unspecified"
         };
     }
 

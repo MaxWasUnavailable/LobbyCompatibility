@@ -4,6 +4,7 @@ using System.Linq;
 using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
+using LobbyCompatibility.Pooling;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -73,18 +74,20 @@ internal static class UIHelper
     ///     Creates a new <see cref="TextMeshProUGUI" /> to be used as a template. Intended to be used as a modlist template.
     /// </summary>
     /// <param name="template"> The <see cref="TextMeshProUGUI" /> to base the template off of. </param>
+    /// <param name="parent"> The <see cref="Transform" /> to parent the template to. </param>
     /// <param name="color"> Text color. </param>
     /// <param name="size"> The sizeDelta of the text's RectTransform. </param>
     /// <param name="maxFontSize"> The font's maximum size. </param>
     /// <param name="minFontSize"> The font's minimum size. </param>
     /// <param name="alignment"> How to align the text. </param>
-    public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, Color color, Vector2 size,
-        float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center)
+    /// <param name="defaultPosition"> The default anchoredPosition of the text's RectTransform. </param>
+    public static TextMeshProUGUI SetupTextAsTemplate(TextMeshProUGUI template, Transform parent, Color color, Vector2 size,
+        float maxFontSize, float minFontSize, HorizontalAlignmentOptions alignment = HorizontalAlignmentOptions.Center, Vector2? defaultPosition = null)
     {
-        var text = Object.Instantiate(template, template.transform.parent);
+        var text = Object.Instantiate(template, parent);
 
         // Set text alignment / formatting options
-        text.rectTransform.anchoredPosition = new Vector2(0f, 0f);
+        text.rectTransform.anchoredPosition = defaultPosition ?? new Vector2(0f, 0f);
         text.rectTransform.sizeDelta = size;
         text.horizontalAlignment = alignment;
         text.enableAutoSizing = true;
@@ -96,6 +99,33 @@ internal static class UIHelper
         // Deactivate so we can use as a template later
         text.gameObject.SetActive(false);
         return text;
+    }
+
+    /// <summary>
+    ///     Apply the full size of a <see cref="RectTransform"/>'s parent.
+    ///     This will realign the RectTransform's size, and set the anchor to the top left.
+    /// </summary>
+    /// <param name="uiElement"> The <see cref="RectTransform" />'s gameObject to resize. </param>
+    /// <param name="parent"> The parent to base the size off of. </param>
+    /// <returns> The resized <see cref="RectTransform"/>. </returns>
+    public static RectTransform ApplyParentSize(GameObject uiElement, Transform parent)
+    {
+        var rect = uiElement.GetComponent<RectTransform>();
+        if (rect == null) 
+            rect = uiElement.AddComponent<RectTransform>();
+
+        rect.SetParent(parent);
+
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
+        rect.localPosition = Vector3.zero;
+
+        return rect;
     }
 
     /// <summary>
@@ -113,83 +143,131 @@ internal static class UIHelper
         if (overrideColor != null)
             text.color = overrideColor!.Value;
 
-        text.rectTransform.anchoredPosition = new Vector2(0f, yPosition);
+        text.rectTransform.anchoredPosition = new Vector2(text.rectTransform.anchoredPosition.x, yPosition);
         text.text = content;
         text.gameObject.SetActive(true);
 
         return text;
     }
-
     /// <summary>
-    ///     Creates a list of <see cref="TextMeshProUGUI" /> from a <see cref="LobbyDiff" />'s plugins
+    ///     Creates a list of <see cref="PluginDiffSlot" /> and <see cref="PluginCategorySlot" /> from a <see cref="LobbyDiff" />'s plugins
     /// </summary>
     /// <param name="lobbyDiff"> The <see cref="LobbyDiff" /> to generate text from. </param>
-    /// <param name="textTemplate"> The <see cref="TextMeshProUGUI" /> to use for the mod text. </param>
-    /// <param name="headerTextTemplate"> The <see cref="TextMeshProUGUI" /> to use for the category header text. </param>
-    /// <param name="textSpacing"> The amount of spacing around mod text. </param>
-    /// <param name="headerSpacing"> The amount of padding around category header text. </param>
-    /// <param name="startPadding"> The amount of padding to start with. </param>
-    /// <param name="compactText"> Whether to remove versions from mod names. </param>
+    /// <param name="pluginDiffSlotPool"> The <see cref="PluginDiffSlotPool" /> to use for spawning plugin diff slots. </param>
+    /// <param name="pluginCategorySlotPool"> The <see cref="PluginCategorySlotPool" /> to use for spawning plugin category slots. </param>
+    /// <param name="modListFilter"> The <see cref="ModListFilter" /> to use to decide which lobbies to filter. </param>
     /// <param name="maxLines"> The maximum amount of total text lines to generate. </param>
-    /// <returns> The <see cref="TextMeshProUGUI" /> list, the total UI length, and the amount of plugins used in generation. </returns>
-    public static (List<TextMeshProUGUI>, float, int) GenerateTextFromDiff(
+    /// <returns> A list of spawned <see cref="PluginDiffSlot" /> and <see cref="PluginCategorySlot" />. </returns>
+    public static (List<PluginDiffSlot?> pluginDiffSlots, List<PluginCategorySlot?> pluginCategorySlots) GenerateDiffSlotsFromLobbyDiff(
         LobbyDiff lobbyDiff,
-        TextMeshProUGUI textTemplate,
-        TextMeshProUGUI headerTextTemplate,
-        float textSpacing,
-        float headerSpacing,
-        float? startPadding = null,
-        bool compactText = false,
+        PluginDiffSlotPool pluginDiffSlotPool, 
+        PluginCategorySlotPool pluginCategorySlotPool,
+        ModListFilter? modListFilter = null,
         int? maxLines = null)
     {
-        // TODO: Replace with pooling if we need the performance from rapid scrolling
-        // TODO: Replace this return type with an actual type lol. Need to refactor this a bit
+        var spawnedPluginDiffSlots = new List<PluginDiffSlot?>();
+        var spawnedPluginCategorySlots = new List<PluginCategorySlot?>();
 
-        List<TextMeshProUGUI> generatedText = new();
-        var padding = startPadding ?? 0f;
-        var lines = 0;
-        var pluginLines = 0;
+        // Apply ModListFilter if needed
+        var filteredPlugins = modListFilter != null ? PluginHelper.FilterPluginDiffs(lobbyDiff.PluginDiffs, modListFilter!.Value) : lobbyDiff.PluginDiffs;
 
+        int spawnedTextCount = 0;
+        int spawnedPluginTextCount = 0; // used to calculate how many plugins are remaining
+
+        // Create categories w/ mods
         foreach (var compatibilityResult in Enum.GetValues(typeof(PluginDiffResult)).Cast<PluginDiffResult>())
         {
-            var plugins = lobbyDiff.PluginDiffs.Where(
+            var plugins = filteredPlugins.Where(
                 pluginDiff => pluginDiff.PluginDiffResult == compatibilityResult).ToList();
 
             if (plugins.Count == 0)
                 continue;
 
-            // adds a few units of extra header padding
-            padding += headerSpacing - textSpacing;
-
             // end linecount sooner if we're about to create a header - no point in showing a blank header
-            if (maxLines != null && lines > maxLines - 1)
+            if (maxLines != null && spawnedTextCount >= maxLines - 1)
                 break;
 
-            // Create the category header
-            var headerText = CreateTextFromTemplate(headerTextTemplate,
-                LobbyHelper.GetCompatibilityHeader(compatibilityResult) + ":", -padding);
+            var pluginCategorySlot = pluginCategorySlotPool.Spawn(compatibilityResult);
+            spawnedPluginCategorySlots.Add(pluginCategorySlot);
+            spawnedTextCount++;
 
-            generatedText.Add(headerText);
-            padding += headerSpacing;
-            lines++;
-
-            // Add each plugin
-            foreach (var plugin in plugins)
+            // Respawn mod diffs
+            foreach (var mod in plugins)
             {
-                if (lines > maxLines)
-                    break;
+                var pluginDiffSlot = pluginDiffSlotPool.Spawn(mod);
+                if (pluginDiffSlot == null)
+                    continue;
 
-                var modText = CreateTextFromTemplate(textTemplate, compactText ? plugin.GUID : plugin.GetDisplayText(),
-                    -padding, plugin.GetTextColor());
-                modText.richText = false; // Disable rich text to avoid people injecting weird text into the modlist
-                generatedText.Add(modText);
-                padding += textSpacing;
-                lines++;
-                pluginLines++;
+                spawnedPluginDiffSlots.Add(pluginDiffSlot);
+                spawnedTextCount++;
+                spawnedPluginTextCount++;
+
+                if (maxLines != null && spawnedTextCount >= maxLines)
+                    break;
             }
         }
 
-        return (generatedText, padding, pluginLines);
+        // Add cutoff text if necessary
+        var remainingPlugins = lobbyDiff.PluginDiffs.Count - spawnedPluginTextCount;
+        if (maxLines != null && spawnedTextCount >= maxLines && remainingPlugins > 0)
+        {
+            var cutoffString = string.Format("{0} more mod{1}...", remainingPlugins, remainingPlugins == 1 ? "" : "s");
+            var cutoffDiffSlot = pluginDiffSlotPool.Spawn(cutoffString, "", "", LobbyCompatibilityPlugin.Config?.UnknownColor.Value ?? Color.gray);
+            if (cutoffDiffSlot != null)
+                spawnedPluginDiffSlots.Add(cutoffDiffSlot);
+        }
+
+        return (spawnedPluginDiffSlots, spawnedPluginCategorySlots);
+    }
+
+    /// <summary>
+    ///     Despawns all <see cref="PluginDiffSlot" /> and <see cref="PluginCategorySlot" /> from their assigned pools.
+    /// </summary>
+    /// <param name="pluginDiffSlotPool"> The <see cref="PluginDiffSlotPool" /> to use for spawning plugin diff slots. </param>
+    /// <param name="pluginCategorySlotPool"> The <see cref="PluginCategorySlotPool" /> to use for spawning plugin category slots. </param>
+    /// <param name="existingPluginDiffSlots"> The list of spawned <see cref="PluginDiffSlot" /> to despawn. </param>
+    /// <param name="existingPluginCategorySlots"> The list of spawned <see cref="PluginCategorySlot" /> to despawn. </param>
+    public static void ClearSpawnedDiffSlots(
+        PluginDiffSlotPool pluginDiffSlotPool,
+        PluginCategorySlotPool pluginCategorySlotPool,
+        ref List<PluginDiffSlot?> existingPluginDiffSlots,
+        ref List<PluginCategorySlot?> existingPluginCategorySlots)
+    {
+        foreach (var pluginDiffSlot in existingPluginDiffSlots)
+        {
+            if (pluginDiffSlot == null)
+                continue;
+            pluginDiffSlotPool.Release(pluginDiffSlot);
+        }
+
+        foreach (var pluginCategorySlot in existingPluginCategorySlots)
+        {
+            if (pluginCategorySlot == null)
+                continue;
+            pluginCategorySlotPool.Release(pluginCategorySlot);
+        }
+
+        existingPluginDiffSlots.Clear();
+        existingPluginCategorySlots.Clear();
+    }
+
+    /// <summary>
+    ///     Set up a VerticalLayoutGroup on a UI object to automatically space child objects.
+    /// </summary>
+    /// <param name="gameObject"> The <see cref="GameObject" /> to apply the layout group to. </param>
+    /// <param name="addContentSizeFitter"> Whether or not to add a <see cref="ContentSizeFitter"/> to automatically resize the parent object. </param>
+    public static void AddVerticalLayoutGroup(GameObject gameObject, bool addContentSizeFitter = true)
+    {
+        // Setup ContentSizeFilter and VerticalLayoutGroup so elements are automagically spaced
+        var verticalLayoutGroup = gameObject.AddComponent<VerticalLayoutGroup>();
+        verticalLayoutGroup.childControlHeight = false;
+        verticalLayoutGroup.childForceExpandHeight = false;
+
+        if (!addContentSizeFitter)
+            return;
+
+        var contentSizeFilter = verticalLayoutGroup.gameObject.AddComponent<ContentSizeFitter>();
+        contentSizeFilter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
     }
 
     /// <summary>

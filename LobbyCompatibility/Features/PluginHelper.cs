@@ -163,6 +163,34 @@ internal static class PluginHelper
     }
 
     /// <summary>
+    ///     Filter <see cref="PluginDiff"/> list based on a <see cref="ModListFilter"/>.
+    /// </summary>
+    /// <param name="pluginDiffs"> A list of plugin diffs to apply the filter to. </param>
+    /// <param name="modListFilter"> The <see cref="ModListFilter" /> to filter the plugin diffs against. </param>
+    /// <returns> A <see cref="PluginDiff" /> array with the <see cref="ModListFilter" /> applied. </returns>
+    public static IEnumerable<PluginDiff> FilterPluginDiffs(IEnumerable<PluginDiff> pluginDiffs, ModListFilter modListFilter)
+    {
+        if (modListFilter == ModListFilter.Compatible)
+        {
+            return pluginDiffs.Where(x => x.PluginDiffResult == PluginDiffResult.Compatible);
+        }
+        else if (modListFilter == ModListFilter.Incompatible)
+        {
+            return pluginDiffs.Where(x =>
+                x.PluginDiffResult == PluginDiffResult.ServerMissingMod
+                || x.PluginDiffResult == PluginDiffResult.ClientMissingMod
+                || x.PluginDiffResult == PluginDiffResult.ModVersionMismatch
+            );
+        }
+        else if (modListFilter == ModListFilter.Unknown)
+        {
+            return pluginDiffs.Where(x => x.PluginDiffResult == PluginDiffResult.Unknown);
+        }
+
+        return pluginDiffs;
+    }
+
+    /// <summary>
     ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone"/> level plugins at their lowest acceptable version.
     /// </summary>
     /// <returns> The generated filter checksum of installed plugins </returns>
