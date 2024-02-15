@@ -303,6 +303,9 @@ public class ModListPanel : MonoBehaviour
         // Set scroll to zero
         _scrollRect.verticalNormalizedPosition = 1f;
         _titleText.text = titleOverride ?? lobbyDiff.GetDisplayText();
+        
+        // Cache lobby diff to allow tab switching after load
+        _lobbyDiff = lobbyDiff;
 
         // Set the default tab using the config's value, with ModListFilter.All as the default
         SetTab(LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value ?? ModListFilter.All);
