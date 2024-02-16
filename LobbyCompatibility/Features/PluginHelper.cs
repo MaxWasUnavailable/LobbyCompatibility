@@ -19,6 +19,23 @@ namespace LobbyCompatibility.Features;
 internal static class PluginHelper
 {
     /// <summary>
+    ///     PluginInfos registered through the register command, rather than found using the attribute.
+    /// </summary>
+    private static readonly List<PluginInfoRecord> RegisteredPluginInfoRecords = new();
+    /// <summary>
+    ///     Register a plugin's compatibility information manually.
+    /// </summary>
+    /// <param name="guid"> The GUID of the plugin. </param>
+    /// <param name="version"> The version of the plugin. </param>
+    /// <param name="compatibilityLevel"> The compatibility level of the plugin. </param>
+    /// <param name="versionStrictness"> The version strictness of the plugin. </param>
+    public static void RegisterPlugin(string guid, Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
+    {
+        RegisteredPluginInfoRecords.Add(new PluginInfoRecord(guid, version, compatibilityLevel, versionStrictness));
+        _cachedChecksum = null;
+    }
+
+    /// <summary>
     ///     Check if a plugin has the <see cref="LobbyCompatibilityAttribute" /> attribute.
     /// </summary>
     /// <param name="plugin"> The plugin to check. </param>
@@ -67,7 +84,7 @@ internal static class PluginHelper
         pluginInfos.AddRange(nonCompatibilityPlugins.Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version, null, null)));
 
-        return pluginInfos;
+        return pluginInfos.Concat(RegisteredPluginInfoRecords);
     }
 
     /// <summary>
