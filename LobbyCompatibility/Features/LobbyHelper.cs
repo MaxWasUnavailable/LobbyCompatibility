@@ -202,6 +202,18 @@ internal static class LobbyHelper
                 allLobbies.AddRange(incompatibleNormalLobbies);
             }
         }
+        else if (filteredLobbies == null && currentFilter is ModdedLobbyFilter.CompatibleFirst)
+        {
+            // Even if we can't find any filtered lobbies, try to sort any compatible lobbies we happen to find towards the front
+            var (compatibleNormalLobbies, otherNormalLobbies) =
+                SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Compatible);
+            var (presumedCompatibleNormalLobbies, incompatibleNormalLobbies) =
+                SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.PresumedCompatible);
+
+            allLobbies.AddRange(compatibleNormalLobbies);
+            allLobbies.AddRange(presumedCompatibleNormalLobbies);
+            allLobbies.AddRange(incompatibleNormalLobbies);
+        }
         else if (filteredLobbies == null && currentFilter == ModdedLobbyFilter.CompatibleOnly)
         {
             // Handle the special case where we're sorting for compatible only and nothing comes up, so we need to force return nothing
