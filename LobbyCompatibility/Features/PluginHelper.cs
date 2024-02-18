@@ -109,20 +109,15 @@ internal static class PluginHelper
     internal static IEnumerable<string> GetLobbyPluginsMetadata()
     {
         var json = JsonConvert.SerializeObject(GetAllPluginInfo().ToList(), new VersionConverter());
-        
-        LobbyCompatibilityPlugin.Logger?.LogDebug(json);
 
-        // The maximum string size for steam lobby metadata is 8196 (2^13).
+        // The maximum string size for steam lobby metadata is 8192 (2^13).
         // We want one less than the maximum to allow space for a delimiter
-        var maxChunkLength = 8195;
+        var maxChunkLength = 8191;
         
         for (var i = 0; i < json.Length; i += maxChunkLength)
         {
             if (maxChunkLength + i > json.Length)
                 maxChunkLength = json.Length - i;
-            
-            
-            LobbyCompatibilityPlugin.Logger?.LogDebug(json.Substring(i, maxChunkLength));
 
             yield return json.Substring(i, maxChunkLength);
         }
