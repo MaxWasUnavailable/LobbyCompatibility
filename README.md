@@ -1,8 +1,9 @@
 # Lobby Compatibility
 
-[![Build](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
-[![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
-[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
+[![Build](https://img.shields.io/github/actions/workflow/status/MaxWasUnavailable/LobbyCompatibility/build.yml?style=for-the-badge&logo=github&branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
+[![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?style=for-the-badge&logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
+[![Thunderstore Downloads](https://img.shields.io/thunderstore/dt/BMX/LobbyCompatibility?style=for-the-badge&logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
+[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
 
 This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
@@ -16,17 +17,17 @@ you need to update, downgrade, download, or remove to join that lobby.
 You will notice an icon at the bottom left of every lobby in the lobby browser, and you can see more information (such
 as whether it's incompatible, and what mods are causing it) by hovering over it.
 
-![Hovering over the Lobby Compatibility icon.]()
+![Hovering over the Lobby Compatibility icon]()
 
 If you click on the icon, you can then see an in-depth view of the mod list, with a scrollbar to view all mods required
 to connect to that server. Note that this only works if the server is running this mod.
 
-![The Lobby Compatibility modal.]()
+![The Lobby Compatibility modal]()
 
 If you then attempt to connect to a server - either public or private - with incompatible or missing mods, an error will
 display telling you that you are missing required mods.
 
-![Lobby connection error due to incompatible/missing mods.]()
+![Lobby connection error due to incompatible or missing mods]()
 
 ### Modded Leaderboards
 
