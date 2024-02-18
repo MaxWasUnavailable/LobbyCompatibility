@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using Steamworks;
@@ -23,13 +24,21 @@ internal static class LobbyHelper
     /// </summary>
     /// <param name="lobby"> The lobby to get the diff from. </param>
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
-    public static LobbyDiff GetLobbyDiff(Lobby lobby)
+    public static LobbyDiff GetLobbyDiff(Lobby lobby) => GetLobbyDiff(lobby, null);
+
+    /// <summary>
+    ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" /> or <see cref="IEnumerable{String}" />.
+    /// </summary>
+    /// <param name="lobby"> The lobby to cache the diff to and/or get the diff from. </param>
+    /// <param name="lobbyPluginString"> The json string to parse. </param>
+    /// <returns> The <see cref="LobbyDiff" />. </returns>
+    internal static LobbyDiff GetLobbyDiff(Lobby lobby, string? lobbyPluginString)
     {
         if (LobbyDiffCache.TryGetValue(lobby.Id, out var cachedLobbyDiff))
             return cachedLobbyDiff;
-
+        
         var lobbyPlugins = PluginHelper
-            .ParseLobbyPluginsMetadata(lobby.GetData(LobbyMetadata.Plugins)).ToList();
+            .ParseLobbyPluginsMetadata(lobbyPluginString ?? GetLobbyPlugins(lobby)).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
 
         var pluginDiffs = new List<PluginDiff>();
@@ -104,6 +113,24 @@ internal static class LobbyHelper
         LobbyDiffCache.Add(lobby.Id, LatestLobbyDiff);
 
         return LatestLobbyDiff;
+    }
+    
+    /// <summary>
+    ///     Get the plugins json from a <see cref="Lobby" />.
+    /// </summary>
+    /// <param name="lobby"> The <see cref="Lobby" /> to get the json string from. </param>
+    /// <returns> A json <see cref="string" /> from the <see cref="Lobby" />. </returns>
+    internal static string GetLobbyPlugins(Lobby lobby)
+    {
+        var lobbyPluginStrings = new List<string>();
+        var i = 0;
+
+        do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
+        while (lobbyPluginStrings[i++].Contains("@"));
+
+        return lobbyPluginStrings
+            .Join(delimiter: string.Empty)
+            .Replace("@", string.Empty);
     }
 
     public static string GetCompatibilityHeader(PluginDiffResult pluginDiffResult)
