@@ -34,10 +34,10 @@ internal static class LobbyDataIsJoinablePostfix
             return PluginHelper.CanJoinVanillaLobbies() && isJoinable;
         }
 
-        var lobbyPluginString = lobby.GetData(LobbyMetadata.Plugins);
+        var lobbyPluginString = LobbyHelper.GetLobbyPlugins(lobby).Join(delimiter: string.Empty);
 
         // Create lobby diff so LatestLobbyDiff is set
-        LobbyHelper.GetLobbyDiff(lobby);
+        LobbyHelper.GetLobbyDiff(lobby, lobbyPluginString);
 
         // If the lobby does not have any plugin information, return original result (since we can't check anything)
         if (string.IsNullOrEmpty(lobbyPluginString))
