@@ -17,7 +17,12 @@ public enum LobbyDiffResult
     Incompatible,
 
     /// <summary>
-    ///     Mod list does not exist, and lobby might be compatible.
+    ///     Mod list is compatible, except for unknown mods.
+    /// </summary>
+    PresumedCompatible,
+
+    /// <summary>
+    ///     Mod list information is not available, server does not have LobbyCompatibility installed, or other unknown cause.
     ///     Also applies to vanilla lobbies.
     /// </summary>
     Unknown
