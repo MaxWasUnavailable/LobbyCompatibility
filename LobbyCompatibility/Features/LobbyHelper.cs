@@ -12,12 +12,11 @@ namespace LobbyCompatibility.Features;
 /// </summary>
 internal static class LobbyHelper
 {
-    public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
     public static Dictionary<string, string> LatestLobbyRequestStringFilters = new();
     public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
-
-    private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; set; } = new();
     private static List<PluginInfoRecord>? _clientPlugins;
+    public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
+    private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
@@ -26,7 +25,7 @@ internal static class LobbyHelper
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
     public static LobbyDiff GetLobbyDiff(Lobby lobby)
     {
-        if (LobbyDiffCache.TryGetValue(lobby.Id, out LobbyDiff cachedLobbyDiff))
+        if (LobbyDiffCache.TryGetValue(lobby.Id, out var cachedLobbyDiff))
             return cachedLobbyDiff;
 
         var lobbyPlugins = PluginHelper
@@ -96,7 +95,7 @@ internal static class LobbyHelper
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.Compatible, clientPlugin.GUID,
                     clientPlugin.Version, null));
         }
-        
+
         var lobbyCompatibilityPresent = lobbyPlugins.Any();
 
         LatestLobbyDiff = new LobbyDiff(pluginDiffs, lobbyCompatibilityPresent);
@@ -126,17 +125,16 @@ internal static class LobbyHelper
     /// <param name="filteredLobbies"> A custom list of lobbies, with special search filters applied. </param>
     /// <param name="currentFilter"> The <see cref="ModdedLobbyFilter" /> to filter the lobbies against. </param>
     /// <returns> A <see cref="Lobby" /> array with the <see cref="ModdedLobbyFilter" /> applied. </returns>
-    public static Lobby[] FilterLobbies(Lobby[] normalLobbies, Lobby[]? filteredLobbies, ModdedLobbyFilter currentFilter)
+    public static Lobby[] FilterLobbies(Lobby[] normalLobbies, Lobby[]? filteredLobbies,
+        ModdedLobbyFilter currentFilter)
     {
         List<Lobby> allLobbies = new();
 
         if (filteredLobbies != null)
-        {
             // Remove duplicate "normal" lobbies if they were also caught by the hashfilter
             normalLobbies = normalLobbies
                 .Where(lobby => !filteredLobbies.Any(check => lobby.Equals(check)))
                 .ToArray();
-        }
 
         if (currentFilter == ModdedLobbyFilter.VanillaAndUnknownOnly)
         {
@@ -148,11 +146,13 @@ internal static class LobbyHelper
             // Add only lobbies that are vanilla/unknown
             allLobbies.AddRange(FilterLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Unknown));
         }
-        else if (filteredLobbies != null && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
+        else if (filteredLobbies != null && currentFilter is ModdedLobbyFilter.CompatibleFirst or ModdedLobbyFilter.CompatibleOnly)
         {
             // Lobbies returned by the hashfilter are not 100% going to always be compatible, so we'll still need to filter them
-            var (compatibleFilteredLobbies, otherFilteredLobbies) = SplitLobbiesByDiffResult(filteredLobbies, LobbyDiffResult.Compatible);
-            var (compatibleNormalLobbies, otherNormalLobbies) = SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Compatible);
+            var (compatibleFilteredLobbies, otherFilteredLobbies) =
+                SplitLobbiesByDiffResult(filteredLobbies, LobbyDiffResult.Compatible);
+            var (compatibleNormalLobbies, otherNormalLobbies) =
+                SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Compatible);
 
             // Add filtered lobbies that are 100% compatible first, then any extra compatible lobbies not caught by the hashfilter
             allLobbies.AddRange(compatibleFilteredLobbies);
@@ -168,7 +168,7 @@ internal static class LobbyHelper
         else if (filteredLobbies == null && currentFilter == ModdedLobbyFilter.CompatibleOnly)
         {
             // Handle the special case where we're sorting for compatible only and nothing comes up, so we need to force return nothing
-            allLobbies = new();
+            allLobbies = new List<Lobby>();
         }
         else
         {
@@ -180,12 +180,17 @@ internal static class LobbyHelper
     }
 
     /// <summary>
-    ///     Splits a <see cref="Lobby" /> IEnumerable into two arrays based on of it matches <see cref="LobbyDiffResult" /> or not.
+    ///     Splits a <see cref="Lobby" /> IEnumerable into two arrays based on of it matches <see cref="LobbyDiffResult" /> or
+    ///     not.
     /// </summary>
     /// <param name="lobbies"> The lobbies. </param>
     /// <param name="filteredLobbyDiffResult"> The <see cref="LobbyDiffResult" /> to match against. </param>
-    /// <returns> A tuple containing two <see cref="Lobby"/> IEnumerables. matchedLobbies contains the lobbies that match the LobbyDiffResult, and unmatchedLobbies contains everything else. </returns>
-    private static (IEnumerable<Lobby> matchedLobbies, IEnumerable<Lobby> unmatchedLobbies) SplitLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
+    /// <returns>
+    ///     A tuple containing two <see cref="Lobby" /> IEnumerables. matchedLobbies contains the lobbies that match the
+    ///     LobbyDiffResult, and unmatchedLobbies contains everything else.
+    /// </returns>
+    private static (IEnumerable<Lobby> matchedLobbies, IEnumerable<Lobby> unmatchedLobbies) SplitLobbiesByDiffResult(
+        IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
     {
         List<Lobby> matchedLobbies = new();
         List<Lobby> unmatchedLobbies = new();
@@ -208,11 +213,14 @@ internal static class LobbyHelper
     /// <param name="lobbies"> The lobbies. </param>
     /// <param name="filteredLobbyDiffResult"> The <see cref="LobbyDiffResult" /> to match against. </param>
     /// <returns> A filtered <see cref="Lobby" /> IEnumerable. </returns>
-    private static IEnumerable<Lobby> FilterLobbiesByDiffResult(IEnumerable<Lobby> lobbies, LobbyDiffResult filteredLobbyDiffResult)
-        => SplitLobbiesByDiffResult(lobbies, filteredLobbyDiffResult).matchedLobbies;
+    private static IEnumerable<Lobby> FilterLobbiesByDiffResult(IEnumerable<Lobby> lobbies,
+        LobbyDiffResult filteredLobbyDiffResult)
+    {
+        return SplitLobbiesByDiffResult(lobbies, filteredLobbyDiffResult).matchedLobbies;
+    }
 
     /// <summary>
-    ///     Gets the error message for when no lobbies are found using a <see cref="ModdedLobbyFilter"/>.
+    ///     Gets the error message for when no lobbies are found using a <see cref="ModdedLobbyFilter" />.
     /// </summary>
     /// <param name="moddedLobbyFilter"> The <see cref="ModdedLobbyFilter" /> to get the error message for. </param>
     public static string GetEmptyLobbyListString(ModdedLobbyFilter moddedLobbyFilter)
