@@ -65,6 +65,18 @@ public class ButtonEventHandler : MonoBehaviour, IPointerEnterHandler, IPointerE
         _image = image;
         _normalSprite = normalSprite;
         _highlightedSprite = highlightedSprite;
+
+        SetColor(normalColor, highlightedColor);
+        SetHighlighted(false);
+    }
+
+    /// <summary>
+    ///     Sets the button's color data
+    /// </summary>
+    /// <param name="normalColor"> Color to use when the button is not highlighted </param>
+    /// <param name="highlightedColor"> Color to use when the button is highlighted </param>
+    public void SetColor(Color normalColor, Color highlightedColor)
+    {
         _normalColor = normalColor;
         _highlightedColor = highlightedColor;
 
