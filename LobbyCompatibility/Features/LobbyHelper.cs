@@ -121,10 +121,10 @@ internal static class LobbyHelper
     /// <returns> A json <see cref="string" /> from the <see cref="Lobby" />. </returns>
     internal static string GetLobbyPlugins(Lobby lobby)
     {
-        string[] lobbyPluginStrings = [];
+        var lobbyPluginStrings = new List<string>();
         var i = 0;
 
-        do lobbyPluginStrings[i] = lobby.GetData($"{LobbyMetadata.Plugins}{i}");
+        do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
         while (lobbyPluginStrings[i++].Contains("@"));
 
         return lobbyPluginStrings
