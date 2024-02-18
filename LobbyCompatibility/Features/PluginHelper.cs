@@ -186,12 +186,15 @@ internal static class PluginHelper
     }
 
     /// <summary>
-    ///     Checks if client is allowed to join vanilla lobbies.
+    ///     Checks if client is allowed to join vanilla or unknown lobbies.
     /// </summary>
-    /// <returns> True if client is allowed to join vanilla lobbies, false otherwise. </returns>
+    /// <returns> True if client is allowed to join vanilla or unknown lobbies, false otherwise. </returns>
+    /// <remarks> This means the client is allowed to have unknown or clientside mods. </remarks>
     internal static bool CanJoinVanillaLobbies()
     {
-        return GetAllPluginInfo().All(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ClientOnly or null);
+        return GetAllPluginInfo().All(plugin =>
+            plugin.CompatibilityLevel != CompatibilityLevel.ServerOnly &&
+            plugin.CompatibilityLevel != CompatibilityLevel.ClientOptional);
     }
 
     /// <summary>
