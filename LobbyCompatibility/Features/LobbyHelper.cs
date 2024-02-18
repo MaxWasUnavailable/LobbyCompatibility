@@ -187,9 +187,19 @@ internal static class LobbyHelper
 
             if (currentFilter == ModdedLobbyFilter.CompatibleFirst)
             {
+                // Run a second pass to further seperate presumed compatible and non-compatible lobbies
+                var (presumedCompatibleFilteredLobbies, incompatibleFilteredLobbies) =
+                    SplitLobbiesByDiffResult(otherFilteredLobbies, LobbyDiffResult.PresumedCompatible);
+                var (presumedCompatibleNormalLobbies, incompatibleNormalLobbies) =
+                    SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.PresumedCompatible);
+
+                // Add presumed compatible lobbies as a secondary, as they're very likely compatible (but not 100%)
+                allLobbies.AddRange(presumedCompatibleFilteredLobbies);
+                allLobbies.AddRange(presumedCompatibleNormalLobbies);
+
                 // Finally, add the non-compatible lobbies. We want to prioritize hashfilter non-compatible lobbies, as they're likely closer to compatibility.
-                allLobbies.AddRange(otherFilteredLobbies);
-                allLobbies.AddRange(otherNormalLobbies);
+                allLobbies.AddRange(incompatibleFilteredLobbies);
+                allLobbies.AddRange(incompatibleNormalLobbies);
             }
         }
         else if (filteredLobbies == null && currentFilter == ModdedLobbyFilter.CompatibleOnly)

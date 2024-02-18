@@ -224,7 +224,7 @@ public class ModdedLobbySlot : MonoBehaviour
         if (inverted)
             path += "Inverted";
 
-        if (lobbyDiffResult == LobbyDiffResult.Compatible)
+        if (lobbyDiffResult == LobbyDiffResult.Compatible || lobbyDiffResult == LobbyDiffResult.PresumedCompatible)
             path += "ModSettings";
         else if (lobbyDiffResult == LobbyDiffResult.Incompatible)
             path += "ModSettingsExclamationPoint";
