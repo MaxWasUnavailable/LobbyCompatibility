@@ -193,7 +193,7 @@ internal static class PluginHelper
     internal static bool CanJoinVanillaLobbies()
     {
         return GetAllPluginInfo().All(plugin =>
-            plugin.CompatibilityLevel != CompatibilityLevel.ServerOnly &&
+            plugin.CompatibilityLevel != CompatibilityLevel.Everyone &&
             plugin.CompatibilityLevel != CompatibilityLevel.ClientOptional);
     }
 
