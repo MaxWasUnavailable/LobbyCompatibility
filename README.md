@@ -36,7 +36,8 @@ with vanilla runs.
 
 ## For Developers
 
-To use this, you need to add a package reference to `LethalCompany.LobbyCompatibility` in your `.csproj` file. You can use the
+To use this, you need to add a package reference to `LethalCompany.LobbyCompatibility` in your `.csproj` file. You can
+use the
 following code:
 
 ```xml
@@ -46,10 +47,13 @@ following code:
 ```
 
 You can also use your IDE's interface to add the reference. For Visual Studio 2022, you do so by clicking on
-the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `LethalCompany.LobbyCompatibility` and add
+the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `LethalCompany.LobbyCompatibility`
+and add
 it from there.
 
 ### Usage
+
+#### Attribute
 
 Simply add `[LobbyCompatibility(CompatibilityLevel, VersionStrictness)]` above your `Plugin` class like so:
 
@@ -65,7 +69,7 @@ class MyPlugin : BaseUnityPlugin
 
 The enums used are as follows:
 
-#### `CompatibilityLevel`
+##### `CompatibilityLevel`
 
 - `ClientOnly`
     - Mod only impacts the client.
@@ -82,7 +86,7 @@ The enums used are as follows:
       Generally used for mods that add extra (optional) functionality to the client if the server has it installed.
     - Mod must be loaded on server. Version checking depends on the VersionStrictness.
 
-#### `VersionStrictness`
+##### `VersionStrictness`
 
 - `None`
     - No version check is done (x.x.x)
@@ -92,3 +96,17 @@ The enums used are as follows:
     - Mods must have the same Minor and Major version (1.1.x)
 - `Patch`
     - Mods must have the same Patch, Minor, and Major version (1.1.1)
+
+#### Method
+
+Alternatively, as a way to support soft dependencies, you can use the `PluginHelper.RegisterPlugin` method with the
+following signature:
+
+```csharp
+public static void RegisterPlugin(string guid, Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
+```
+
+> [!IMPORTANT]
+>
+> This method should be called in the `Awake` method of your plugin's main class, as we cache some data when fetching
+> the lobby list.

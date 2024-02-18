@@ -19,6 +19,38 @@ namespace LobbyCompatibility.Features;
 internal static class PluginHelper
 {
     /// <summary>
+    ///     PluginInfos registered through the register command, rather than found using the attribute.
+    /// </summary>
+    private static readonly List<PluginInfoRecord> RegisteredPluginInfoRecords = new();
+    
+    /// <summary>
+    ///     Cached checksum of the required plugins.
+    /// </summary>
+    private static string? _cachedChecksum;
+
+    /// <summary>
+    ///     Get the checksum of the required plugins, using the cached value if available.
+    /// </summary>
+    internal static string Checksum
+    {
+        get => _cachedChecksum ?? GetRequiredPluginsChecksum();
+        set => _cachedChecksum = value;
+    }
+    
+    /// <summary>
+    ///     Register a plugin's compatibility information manually.
+    /// </summary>
+    /// <param name="guid"> The GUID of the plugin. </param>
+    /// <param name="version"> The version of the plugin. </param>
+    /// <param name="compatibilityLevel"> The compatibility level of the plugin. </param>
+    /// <param name="versionStrictness"> The version strictness of the plugin. </param>
+    public static void RegisterPlugin(string guid, Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
+    {
+        RegisteredPluginInfoRecords.Add(new PluginInfoRecord(guid, version, compatibilityLevel, versionStrictness));
+        _cachedChecksum = null;
+    }
+
+    /// <summary>
     ///     Check if a plugin has the <see cref="LobbyCompatibilityAttribute" /> attribute.
     /// </summary>
     /// <param name="plugin"> The plugin to check. </param>
@@ -67,14 +99,14 @@ internal static class PluginHelper
         pluginInfos.AddRange(nonCompatibilityPlugins.Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version, null, null)));
 
-        return pluginInfos;
+        return pluginInfos.Concat(RegisteredPluginInfoRecords);
     }
 
     /// <summary>
     ///     Creates a json string containing the metadata of all plugins, to add to the lobby.
     /// </summary>
     /// <returns> A json string containing the metadata of all plugins. </returns>
-    public static string GetLobbyPluginsMetadata()
+    internal static string GetLobbyPluginsMetadata()
     {
         return JsonConvert.SerializeObject(GetAllPluginInfo().ToList(), new VersionConverter());
     }
@@ -191,7 +223,8 @@ internal static class PluginHelper
     }
 
     /// <summary>
-    ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone"/> level plugins at their lowest acceptable version.
+    ///     Creates a checksum of all <see cref="CompatibilityLevel.Everyone" /> level plugins at their lowest acceptable
+    ///     version.
     /// </summary>
     /// <returns> The generated filter checksum of installed plugins </returns>
     private static string GetRequiredPluginsChecksum()
@@ -209,7 +242,7 @@ internal static class PluginHelper
         foreach (var plugin in requiredPlugins)
         {
             pluginString += plugin.GUID;
-            
+
             // ReSharper disable twice RedundantCaseLabel
             switch (plugin.VersionStrictness)
             {
@@ -228,23 +261,15 @@ internal static class PluginHelper
                     break;
             }
         }
-        
+
         var checksum = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(pluginString));
-        
+
         var stringBuilder = new StringBuilder();
-        
+
         // Convert every byte to hexadecimal
         foreach (var checksumByte in checksum)
             stringBuilder.Append(checksumByte.ToString("X2"));
-        
-        return _cachedChecksum = stringBuilder.ToString();
-    }
 
-    private static string? _cachedChecksum;
-    
-    public static string Checksum
-    {
-        get => _cachedChecksum ?? GetRequiredPluginsChecksum();
-        internal set => _cachedChecksum = value;
+        return _cachedChecksum = stringBuilder.ToString();
     }
 }
