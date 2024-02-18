@@ -8,7 +8,8 @@ namespace LobbyCompatibility.Models;
 ///     Container for diffs between lobby and client plugins.
 /// </summary>
 /// <param name="PluginDiffs"> The diffs between the lobby and client plugins. </param>
-public record LobbyDiff(List<PluginDiff> PluginDiffs)
+/// <param name="LobbyCompatibilityPresent"> Whether or not the lobby has this mod installed. </param>
+public record LobbyDiff(List<PluginDiff> PluginDiffs, bool LobbyCompatibilityPresent = true)
 {
     private LobbyDiffResult? _cachedResult;
 
@@ -30,20 +31,18 @@ public record LobbyDiff(List<PluginDiff> PluginDiffs)
         if (_cachedResult != null)
             return (LobbyDiffResult)_cachedResult;
 
-        if (PluginDiffs.Count == 0)
-        {
-            _cachedResult = LobbyDiffResult.Unknown;
-            return LobbyDiffResult.Unknown;
-        }
+        if (!LobbyCompatibilityPresent)
+            return (LobbyDiffResult)(_cachedResult = LobbyDiffResult.Unknown);
+
+        var unknownFound = PluginDiffs.Any(pluginDiff => pluginDiff.PluginDiffResult == PluginDiffResult.Unknown);
 
         if (PluginDiffs.Any(pluginDiff => pluginDiff.PluginDiffResult != PluginDiffResult.Compatible &&
                                           pluginDiff.PluginDiffResult != PluginDiffResult.Unknown))
-        {
-            _cachedResult = LobbyDiffResult.Incompatible;
-            return LobbyDiffResult.Incompatible;
-        }
+            return (LobbyDiffResult)(_cachedResult = LobbyDiffResult.Incompatible);
 
-        _cachedResult = LobbyDiffResult.Compatible;
-        return LobbyDiffResult.Compatible;
+        if (unknownFound)
+            return (LobbyDiffResult)(_cachedResult = LobbyDiffResult.PresumedCompatible);
+
+        return (LobbyDiffResult)(_cachedResult = LobbyDiffResult.Compatible);
     }
 }
