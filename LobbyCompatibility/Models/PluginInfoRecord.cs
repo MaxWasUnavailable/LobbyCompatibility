@@ -16,9 +16,16 @@ namespace LobbyCompatibility.Models;
 /// <param name="VersionStrictness"> The version strictness of the plugin. </param>
 [Serializable]
 public record PluginInfoRecord(
+    [property:JsonProperty("id")]
     string GUID,
+    
+    [property:JsonProperty("v")]
     [property: JsonConverter(typeof(VersionConverter))]
     Version Version,
+    
+    [property:JsonProperty("cl")]
     CompatibilityLevel? CompatibilityLevel,
+    
+    [property:JsonProperty("vs")]
     VersionStrictness? VersionStrictness
 );
