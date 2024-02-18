@@ -96,8 +96,10 @@ internal static class LobbyHelper
                 pluginDiffs.Add(new PluginDiff(PluginDiffResult.Compatible, clientPlugin.GUID,
                     clientPlugin.Version, null));
         }
+        
+        var lobbyCompatibilityPresent = lobbyPlugins.Any();
 
-        LatestLobbyDiff = new LobbyDiff(pluginDiffs);
+        LatestLobbyDiff = new LobbyDiff(pluginDiffs, lobbyCompatibilityPresent);
 
         // Add to cache to avoid making multiple unnecessary GetData() calls
         LobbyDiffCache.Add(lobby.Id, LatestLobbyDiff);
