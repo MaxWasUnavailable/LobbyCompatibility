@@ -194,7 +194,7 @@ internal static class UIHelper
             // Respawn mod diffs
             foreach (var mod in plugins)
             {
-                var pluginDiffSlot = pluginDiffSlotPool.Spawn(mod);
+                var pluginDiffSlot = pluginDiffSlotPool.Spawn(mod, lobbyDiff.LobbyCompatibilityPresent);
                 if (pluginDiffSlot == null)
                     continue;
 
