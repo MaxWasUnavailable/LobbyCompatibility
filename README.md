@@ -17,17 +17,17 @@ you need to update, downgrade, download, or remove to join that lobby.
 You will notice an icon at the bottom left of every lobby in the lobby browser, and you can see more information (such
 as whether it's incompatible, and what mods are causing it) by hovering over it.
 
-![Hovering over the Lobby Compatibility icon]()
+![Hovering over the Lobby Compatibility icon](https://raw.githubusercontent.com/MaxWasUnavailable/LobbyCompatibility/master/assets/hover.png)
 
 If you click on the icon, you can then see an in-depth view of the mod list, with a scrollbar to view all mods required
 to connect to that server. Note that this only works if the server is running this mod.
 
-![The Lobby Compatibility modal]()
+![The Lobby Compatibility modal](https://raw.githubusercontent.com/MaxWasUnavailable/LobbyCompatibility/master/assets/modal.png)
 
 If you then attempt to connect to a server - either public or private - with incompatible or missing mods, an error will
 display telling you that you are missing required mods.
 
-![Lobby connection error due to incompatible or missing mods]()
+![Lobby connection error due to incompatible or missing mods](https://raw.githubusercontent.com/MaxWasUnavailable/LobbyCompatibility/master/assets/error.png)
 
 ### Modded Leaderboards
 
