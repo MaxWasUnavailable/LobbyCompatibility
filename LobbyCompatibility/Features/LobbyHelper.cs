@@ -35,8 +35,11 @@ internal static class LobbyHelper
     internal static LobbyDiff GetLobbyDiff(Lobby lobby, string? lobbyPluginString)
     {
         if (LobbyDiffCache.TryGetValue(lobby.Id, out var cachedLobbyDiff))
+        {
+            LatestLobbyDiff = cachedLobbyDiff;
             return cachedLobbyDiff;
-        
+        }
+
         var lobbyPlugins = PluginHelper
             .ParseLobbyPluginsMetadata(lobbyPluginString ?? GetLobbyPlugins(lobby)).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
