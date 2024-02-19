@@ -34,7 +34,7 @@
     <PropertyGroup>
         <PackageId>BMX.LobbyCompatibility</PackageId>
         <Title>Lobby Compatibility</Title>
-        <Authors>legoandmars;xilophor</Authors>
+        <Authors>MaxWasUnavailable;legoandmars;xilophor</Authors>
         <PackageTags>lethal;company;bepinex</PackageTags>
 
         <PackageIcon>icon_128x128.png</PackageIcon>
