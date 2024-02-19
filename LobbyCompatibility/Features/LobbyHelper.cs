@@ -50,7 +50,7 @@ internal static class LobbyHelper
             if (lobbyPlugin.CompatibilityLevel == null || lobbyPlugin.VersionStrictness == null)
             {
                 var clientVersion = clientPlugin?.Version;
-                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, lobbyPlugin.GUID, clientVersion,
+                pluginDiffs.Add(new PluginDiff(clientVersion == lobbyPlugin.Version ? PluginDiffResult.Compatible : PluginDiffResult.Unknown, lobbyPlugin.GUID, clientVersion,
                     lobbyPlugin.Version));
                 continue;
             }
