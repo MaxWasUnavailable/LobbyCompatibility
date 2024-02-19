@@ -33,7 +33,7 @@
     <!-- NuGet Package Info -->
     <PropertyGroup>
         <PackageId>BMX.LobbyCompatibility</PackageId>
-        <Title>Lobby Compatibility</Title>
+        <Title>LobbyCompatibility</Title>
         <Authors>MaxWasUnavailable;legoandmars;xilophor</Authors>
         <PackageTags>lethal;company;bepinex</PackageTags>
 
