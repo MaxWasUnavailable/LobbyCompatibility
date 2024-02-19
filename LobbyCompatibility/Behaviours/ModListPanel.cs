@@ -203,6 +203,9 @@ public class ModListPanel : MonoBehaviour
         // Reset scroll to default position
         scrollRect.verticalNormalizedPosition = 1f;
 
+        // Make scrollrect width consistent
+        scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+
         // Setup ContentSizeFilter and VerticalLayoutGroup so diff elements are automagically spaced
         UIHelper.AddVerticalLayoutGroup(scrollRect.content.gameObject);
 
