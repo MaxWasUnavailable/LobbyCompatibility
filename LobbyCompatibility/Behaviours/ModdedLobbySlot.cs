@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
+using System.Linq;
 
 namespace LobbyCompatibility.Behaviours;
 
@@ -18,6 +19,7 @@ public class ModdedLobbySlot : MonoBehaviour
 {
     private List<ButtonEventHandler> _buttonEventHandlers = new();
     private RectTransform? _buttonTransform;
+    private Button? _joinButton;
     private LobbyDiff? _lobbyDiff;
     private LobbySlot? _lobbySlot;
     private Transform? _parentContainer;
@@ -36,8 +38,8 @@ public class ModdedLobbySlot : MonoBehaviour
             return;
 
         // Find "Join Lobby" button template
-        var joinButton = GetComponentInChildren<Button>();
-        if (joinButton == null)
+        _joinButton = GetComponentInChildren<Button>();
+        if (_joinButton == null)
             return;
 
         // Get button sprites (depending on the lobby type/status, sometimes it will need to be a warning/alert for incompatible lobbies)
@@ -51,17 +53,28 @@ public class ModdedLobbySlot : MonoBehaviour
             playerCount.transform.localPosition = new Vector3(32f, localPosition.y, localPosition.z);
 
             // Create the actual modlist button to the left of the player count text
-            CreateModListButton(joinButton, sprite, invertedSprite, _lobbySlot.LobbyName.color, playerCount.transform);
+            CreateModListButton(_joinButton, sprite, invertedSprite, _lobbySlot.LobbyName.color, playerCount.transform);
         }
+    }
+
+    // Join button isn't initialized until Awake, so we need to wait until then to modify join button data
+    private void Start()
+    {
+        var buttonText = _joinButton?.GetComponentInChildren<TextMeshProUGUI>();
+        if (_lobbyDiff == null || _joinButton == null || buttonText == null)
+            return;
+
+        if (_lobbyDiff.GetModdedLobbyType() != LobbyDiffResult.Incompatible)
+            return;
 
         // If lobby is incompatible, disable the join button (because it won't work)
-        if (_lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Incompatible)
-        {
-            joinButton.interactable = false;
+        _joinButton.interactable = false;
 
-            // Turn joinButton into a modlist button, so we can get the modlist on hover
-            SetupModListButtonEvents(joinButton);
-        }
+        // If needed, setup brighter button color based on the now-enabled button text
+        _buttonEventHandlers.ForEach(handler => handler.SetColor(buttonText.color, buttonText.color));
+
+        // Turn joinButton into a modlist button, so we can get the modlist on hover
+        SetupModListButtonEvents(_joinButton);
     }
 
     /// <summary>
@@ -131,14 +144,9 @@ public class ModdedLobbySlot : MonoBehaviour
         SetupButtonPositioning(_buttonTransform);
         SetupButtonImage(buttonImageTransform, buttonImage);
 
-        // Get brighter color for incompatible lobbies
-        var incompatibleColor = buttonText?.color ?? color;
-
         // Inject custom event handling
         var buttonEventHandler = SetupModListButtonEvents(button);
-        buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite,
-            _lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Compatible ? color : incompatibleColor,
-            _lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Compatible ? color : incompatibleColor);
+        buttonEventHandler.SetButtonImageData(buttonImage, sprite, invertedSprite, color, color);
 
         return button;
     }
