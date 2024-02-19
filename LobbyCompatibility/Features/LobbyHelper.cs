@@ -53,8 +53,10 @@ internal static class LobbyHelper
             if (lobbyPlugin.CompatibilityLevel == null || lobbyPlugin.VersionStrictness == null)
             {
                 var clientVersion = clientPlugin?.Version;
-                pluginDiffs.Add(new PluginDiff(clientVersion == lobbyPlugin.Version ? PluginDiffResult.Compatible : PluginDiffResult.Unknown, lobbyPlugin.GUID, clientVersion,
-                    lobbyPlugin.Version));
+                // Unknown mods with the same version are implicitly compatible, and will be added as compatible here
+                pluginDiffs.Add(new PluginDiff(
+                    clientVersion == lobbyPlugin.Version ? PluginDiffResult.Compatible : PluginDiffResult.Unknown,
+                    lobbyPlugin.GUID, clientVersion, lobbyPlugin.Version));
                 continue;
             }
 
@@ -92,8 +94,9 @@ internal static class LobbyHelper
             if (clientPlugin.CompatibilityLevel == null || clientPlugin.VersionStrictness == null)
             {
                 var lobbyVersion = lobbyPlugin?.Version;
-                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, clientPlugin.GUID, clientPlugin.Version,
-                    lobbyVersion));
+                if (lobbyVersion != clientPlugin.Version)
+                    pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, clientPlugin.GUID, clientPlugin.Version,
+                        lobbyVersion));
                 continue;
             }
 
