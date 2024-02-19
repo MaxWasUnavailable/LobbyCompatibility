@@ -141,7 +141,7 @@ internal static class LobbyHelper
             PluginDiffResult.ClientMissingMod => "Missing lobby-required mods",
             PluginDiffResult.ServerMissingMod => "Incompatible with lobby",
             PluginDiffResult.ModVersionMismatch => "Incompatible mod versions",
-            _ => "Unspecified"
+            _ => "Unknown"
         };
     }
 
