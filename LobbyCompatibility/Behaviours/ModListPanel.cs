@@ -319,7 +319,11 @@ public class ModListPanel : MonoBehaviour
         _lobbyDiff = lobbyDiff;
 
         // Add some text if necessary on failed join
-        if (titleOverride != null && lobbyDiff.PluginDiffs.Any(x => x.PluginDiffResult == PluginDiffResult.Unknown))
+        if (titleOverride != null && lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Unknown)
+        {
+            _descriptionText.text = "No lobby mod data available. This lobby is either unmodded, or doesn't have LobbyCompatibility.";
+        }
+        else if (titleOverride != null && lobbyDiff.PluginDiffs.Any(x => x.PluginDiffResult == PluginDiffResult.Unknown))
         {
             _descriptionText.text = "Having trouble joining? Try syncing up your Unknown mods, as they could be causing incompatibilites.";
         }
