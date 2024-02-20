@@ -8,7 +8,6 @@ using HarmonyLib;
 using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Features;
-using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
 

@@ -3,7 +3,6 @@ using System.Linq;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
-using Steamworks;
 using Steamworks.Data;
 
 namespace LobbyCompatibility.Features;
