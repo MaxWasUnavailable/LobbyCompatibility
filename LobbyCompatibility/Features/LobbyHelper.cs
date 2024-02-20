@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
@@ -13,6 +14,8 @@ namespace LobbyCompatibility.Features;
 /// </summary>
 internal static class LobbyHelper
 {
+    public static readonly Regex ModdedLobbyIdentifierRegex = new Regex(@"(\bmod(s|ded)?\b)", RegexOptions.IgnoreCase);
+
     public static Dictionary<string, string> LatestLobbyRequestStringFilters = new();
     public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
     private static List<PluginInfoRecord>? _clientPlugins;
@@ -286,5 +289,15 @@ internal static class LobbyHelper
             ModdedLobbyFilter.VanillaAndUnknownOnly => "No available vanilla or unknown\nservers to join.",
             _ => "No available servers to join."
         };
+    }
+
+    /// <summary>
+    ///     Returns true if a lobby name already contains a mod identifier, such as [MOD] or modded
+    /// </summary>
+    /// <param name="lobby"> The <see cref="Lobby" /> to check. </param>
+    /// <returns> True if the lobby name contains a mod idenitfier. </returns>
+    public static bool LobbyNameContainsModIdentifier(Lobby lobby)
+    {
+        return ModdedLobbyIdentifierRegex.IsMatch(lobby.GetData(LobbyMetadata.Name));
     }
 }
