@@ -16,6 +16,7 @@ internal static class LobbyHelper
     private static List<PluginInfoRecord>? _clientPlugins;
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
     private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
+    public static List<LobbyQuery> LobbyQueries { get; private set; } = new List<LobbyQuery>();
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
