@@ -83,43 +83,43 @@
 
     <!-- Import Package References -->
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
-        <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" PrivateAssets="all" />
-        <PackageReference Include="MinVer" Version="4.*" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" Private="false" />
+        <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" Private="false" />
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" PrivateAssets="all" Private="false" />
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" Private="false" />
+        <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" PrivateAssets="all" Private="false" />
+        <PackageReference Include="MinVer" Version="4.*" PrivateAssets="all" Private="false" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" Private="false" />
     </ItemGroup>
 
     <!-- IDE Assemblies - Easier to Find Source Code -->
     <ItemGroup Condition="$(CI) != 'true'">
-        <Reference Include="Assembly-CSharp" Publicize="true">
+        <Reference Include="Assembly-CSharp" Publicize="true" Private="false">
             <HintPath>$(DependenciesDirectory)Assembly-CSharp.dll</HintPath>
         </Reference>
-        <Reference Include="Assembly-CSharp-firstpass" Publicize="true">
+        <Reference Include="Assembly-CSharp-firstpass" Publicize="true" Private="false">
             <HintPath>$(DependenciesDirectory)Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
-        <Reference Include="Newtonsoft.Json">
+        <Reference Include="Newtonsoft.Json" Private="false">
             <HintPath>$(DependenciesDirectory)Newtonsoft.Json.dll</HintPath>
         </Reference>
-        <Reference Include="Facepunch.Steamworks.Win64" Publicize="true">
+        <Reference Include="Facepunch.Steamworks.Win64" Publicize="true" Private="false">
             <HintPath>$(DependenciesDirectory)Facepunch.Steamworks.Win64.dll</HintPath>
         </Reference>
-        <Reference Include="Unity.TextMeshPro">
+        <Reference Include="Unity.TextMeshPro" Private="false">
             <HintPath>$(DependenciesDirectory)Unity.TextMeshPro.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine.UI">
+        <Reference Include="UnityEngine.UI" Private="false">
             <HintPath>$(DependenciesDirectory)UnityEngine.UI.dll</HintPath>
         </Reference>
     </ItemGroup>
 
     <!-- CLI Package Reference for Game Libs -->
     <ItemGroup Condition="$(CI) == 'true'">
-        <PackageReference Include="LethalCompany.GameLibs.Steam" Version="49.0.0-*" Publicize="true" PrivateAssets="all" />
+        <PackageReference Include="LethalCompany.GameLibs.Steam" Version="49.0.0-*" Publicize="true" PrivateAssets="all" Private="false" />
     </ItemGroup>
 
     <!-- MinVer Set Mod Version from Git -->
