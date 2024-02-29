@@ -12,13 +12,13 @@ namespace LobbyCompatibility.Models;
 /// </summary>
 /// <param name="PluginDiffResult"> The compatibility result of the plugin. </param>
 /// <param name="GUID"> The GUID of the plugin. </param>
-/// <param name="Version"> The version of the plugin. </param>
-/// <param name="RequiredVersion"> The required version of the plugin (null if not required) </param>
+/// <param name="ClientVersion"> The version of the plugin. </param>
+/// <param name="ServerVersion"> The required version of the plugin (null if not required) </param>
 public record PluginDiff(
     PluginDiffResult PluginDiffResult,
     string GUID,
-    Version? Version,
-    Version? RequiredVersion)
+    Version? ClientVersion,
+    Version? ServerVersion)
 {
     /// <summary>
     ///     The text to display for this plugin in the UI.
@@ -27,11 +27,11 @@ public record PluginDiff(
     {
         var name = $"{GUID}";
 
-        if (Version != null)
-            name += $"-v{Version}";
+        if (ClientVersion != null)
+            name += $"-v{ClientVersion}";
 
-        if (PluginDiffResult == PluginDiffResult.ModVersionMismatch && RequiredVersion != null)
-            name += $" — v{RequiredVersion} was required";
+        if (PluginDiffResult == PluginDiffResult.ModVersionMismatch && ServerVersion != null)
+            name += $" — v{ServerVersion} was required";
 
         return name;
     }

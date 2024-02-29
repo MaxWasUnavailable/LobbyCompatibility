@@ -51,7 +51,7 @@ internal class PluginDiffSlot : MonoBehaviour
         // TODO: Something less scary than "X" for compatible mods, but something that still gets the point across
         // TODO: Once we make the unknown lobby changes, all mods should show a "?" for unknown lobbies, because we don't know if they have it or not
         string missingText;
-        if (!lobbyCompatibilityPresent && pluginDiff.RequiredVersion == null)
+        if (!lobbyCompatibilityPresent && pluginDiff.ServerVersion == null)
             missingText = "?";
         else
             missingText = "X";
@@ -62,8 +62,8 @@ internal class PluginDiffSlot : MonoBehaviour
         if (ClientVersionText == null || ServerVersionText == null)
             return;
 
-        ClientVersionText.text = pluginDiff.Version?.ToString() ?? missingText;
-        ServerVersionText.text = pluginDiff.RequiredVersion?.ToString() ?? missingText;
+        ClientVersionText.text = pluginDiff.ClientVersion?.ToString() ?? missingText;
+        ServerVersionText.text = pluginDiff.ServerVersion?.ToString() ?? missingText;
     }
 
     /// <summary>
