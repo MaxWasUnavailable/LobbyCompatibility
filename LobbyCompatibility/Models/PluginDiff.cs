@@ -12,8 +12,8 @@ namespace LobbyCompatibility.Models;
 /// </summary>
 /// <param name="PluginDiffResult"> The compatibility result of the plugin. </param>
 /// <param name="GUID"> The GUID of the plugin. </param>
-/// <param name="ClientVersion"> The version of the plugin. </param>
-/// <param name="ServerVersion"> The required version of the plugin (null if not required) </param>
+/// <param name="ClientVersion"> The client version of the plugin. </param>
+/// <param name="ServerVersion"> The server version of the plugin (null if not installed/found on server) </param>
 public record PluginDiff(
     PluginDiffResult PluginDiffResult,
     string GUID,
