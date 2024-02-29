@@ -289,6 +289,10 @@ internal static class PluginHelper
         foreach (var checksumByte in checksum)
             stringBuilder.Append(checksumByte.ToString("X2"));
 
-        return _cachedChecksum = stringBuilder.ToString();
+        _cachedChecksum = stringBuilder.ToString();
+        
+        LobbyCompatibilityPlugin.Logger?.LogDebug(_cachedChecksum);
+
+        return _cachedChecksum;
     }
 }
