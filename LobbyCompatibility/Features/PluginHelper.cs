@@ -204,9 +204,13 @@ internal static class PluginHelper
     /// <remarks> This means the client is allowed to have unknown or clientside mods. </remarks>
     internal static bool CanJoinVanillaLobbies()
     {
-        return GetAllPluginInfo().All(plugin =>
+        // Disabled until we have enough people using the mod to make this realistic to do
+        // If this was enabled immediately in first release, you would be unable to play with anyone who's missing LC, which will be nearly everyone
+        /* return GetAllPluginInfo().All(plugin =>
             plugin.CompatibilityLevel != CompatibilityLevel.Everyone &&
-            plugin.CompatibilityLevel != CompatibilityLevel.ClientOptional);
+            plugin.CompatibilityLevel != CompatibilityLevel.ClientOptional); */
+
+        return true;
     }
 
     /// <summary>

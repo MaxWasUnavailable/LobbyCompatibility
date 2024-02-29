@@ -16,10 +16,19 @@ public record LobbyDiff(List<PluginDiff> PluginDiffs, bool LobbyCompatibilityPre
     /// <summary>
     ///     The text to display for this lobby in the UI.
     /// </summary>
+    /// <param name="shortened"> Shorten longer lobby type strings. </param>
     /// <returns> The text to display for this lobby in the UI. </returns>
-    public string GetDisplayText()
+    public string GetDisplayText(bool shortened = false)
     {
-        return $"Mod Status: {GetModdedLobbyType().ToString()}";
+        var lobbyType = GetModdedLobbyType();
+        string lobbyTypeString;
+
+        if (lobbyType == LobbyDiffResult.PresumedCompatible)
+            lobbyTypeString = shortened ? "Compatible?" : "Presumed Compatible";
+        else
+            lobbyTypeString = lobbyType.ToString();
+
+        return $"Mod Status: {lobbyTypeString}";
     }
 
     /// <summary>

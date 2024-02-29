@@ -31,6 +31,7 @@ public class ModListPanel : MonoBehaviour
     // Needed for scrolling / content size recalculation
     private ScrollRect? _scrollRect;
     private TextMeshProUGUI? _titleText;
+    private TextMeshProUGUI? _descriptionText;
 
     // Tab data
     private List<ModListTab> _tabs = new();
@@ -50,11 +51,12 @@ public class ModListPanel : MonoBehaviour
     }
 
     /// <summary>
-    ///     Set up our mod list panel using notification & lobby list objects as donors.
+    ///     Set up our mod list panel using notification, lobby list, and host panel objects as donors.
     /// </summary>
     /// <param name="panel"> A notification panel to use as a donor. </param>
     /// <param name="scrollViewTemplate"> A lobby list's scroll view to use as a donor. </param>
-    public void SetupPanel(GameObject panel, Transform scrollViewTemplate)
+    /// <param name="privatePublicDescription"> The host panel's private/public description to use as a donor. </param>
+    public void SetupPanel(GameObject panel, Transform scrollViewTemplate, TextMeshProUGUI privatePublicDescription)
     {
         var panelImage = panel.transform.Find("Panel")?.GetComponent<Image>();
         _panelTransform = panelImage?.rectTransform;
@@ -74,6 +76,12 @@ public class ModListPanel : MonoBehaviour
 
         // Move header up
         _titleText.rectTransform.anchoredPosition = new Vector2(-2f, 155f);
+
+        // Make non-title text
+        _descriptionText = Instantiate(privatePublicDescription, _titleText.transform.parent);
+        _descriptionText.rectTransform.anchoredPosition = new Vector2(-3f, -60f);
+        _descriptionText.rectTransform.sizeDelta = new Vector2(400f, _descriptionText.rectTransform.sizeDelta.y);
+        _descriptionText.text = "";
 
         // Initialize scroll view by taking the game's lobby list and modifying it
         _scrollRect = SetupScrollRect(_panelTransform, scrollViewTemplate, _titleText.color);
@@ -203,6 +211,9 @@ public class ModListPanel : MonoBehaviour
         // Reset scroll to default position
         scrollRect.verticalNormalizedPosition = 1f;
 
+        // Make scrollrect width consistent
+        scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+
         // Setup ContentSizeFilter and VerticalLayoutGroup so diff elements are automagically spaced
         UIHelper.AddVerticalLayoutGroup(scrollRect.content.gameObject);
 
@@ -297,7 +308,7 @@ public class ModListPanel : MonoBehaviour
     /// <param name="titleOverride"> Override the title text of the mod list panel. </param>
     public void DisplayNotification(LobbyDiff lobbyDiff, string? titleOverride = null)
     {
-        if (_scrollRect == null || _titleText == null)
+        if (_scrollRect == null || _titleText == null || _descriptionText == null)
             return;
 
         // Set scroll to zero
@@ -306,6 +317,20 @@ public class ModListPanel : MonoBehaviour
         
         // Cache lobby diff to allow tab switching after load
         _lobbyDiff = lobbyDiff;
+
+        // Add some text if necessary on failed join
+        if (titleOverride != null && lobbyDiff.GetModdedLobbyType() == LobbyDiffResult.Unknown)
+        {
+            _descriptionText.text = "No lobby mod data available. This lobby is either unmodded, or doesn't have LobbyCompatibility.";
+        }
+        else if (titleOverride != null && lobbyDiff.PluginDiffs.Any(x => x.PluginDiffResult == PluginDiffResult.Unknown))
+        {
+            _descriptionText.text = "Having trouble joining? Try syncing up your Unknown mods, as they could be causing incompatibilites.";
+        }
+        else
+        {
+            _descriptionText.text = "";
+        }
 
         // Set the default tab using the config's value, with ModListFilter.All as the default
         SetTab(LobbyCompatibilityPlugin.Config?.DefaultModListTab.Value ?? ModListFilter.All);

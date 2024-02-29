@@ -44,8 +44,8 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
         // Add a prefix to the lobby name to indicate that it's modded, if it doesn't already have some kind of modded mention
         if (pluginInfo.Any(plugin => plugin.CompatibilityLevel is CompatibilityLevel.ServerOnly
                 or CompatibilityLevel.Everyone or CompatibilityLevel.ClientOptional) &&
-            !lobby.GetData(LobbyMetadata.Name).ToLower().Contains("modded"))
-            lobby.SetData(LobbyMetadata.Name, "modded // " + lobby.GetData(LobbyMetadata.Name));
+            !LobbyHelper.LobbyNameContainsModIdentifier(lobby))
+            lobby.SetData(LobbyMetadata.Name, LobbyMetadata.ModdedLobbyPrefix + lobby.GetData(LobbyMetadata.Name));
 
         // Check if there are any required plugins in the lobby
         if (pluginInfo.Any(plugin => plugin.CompatibilityLevel == CompatibilityLevel.Everyone))

@@ -211,7 +211,7 @@ public class ModListTooltipPanel : MonoBehaviour
             incompatibleMods = $"<color=red>{incompatibleMods}</color>";
 
         _titleText.text =
-            $"{lobbyDiff.GetDisplayText()}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: {incompatibleMods}\n========================";
+            $"{lobbyDiff.GetDisplayText(true)}\nTotal Mods: ({lobbyDiff.PluginDiffs.Count})\nIncompatible Mods: {incompatibleMods}\n========================";
 
         // Spawn new diffslots
         (_spawnedPluginDiffSlots, _spawnedPluginCategorySlots) = UIHelper.GenerateDiffSlotsFromLobbyDiff(

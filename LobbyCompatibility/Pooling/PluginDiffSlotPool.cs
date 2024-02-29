@@ -33,10 +33,11 @@ internal class PluginDiffSlotPool : MonoBehaviour
     ///     Spawns a <see cref="PluginDiffSlot"/> using the pool, and sets the text to match a <see cref="PluginDiff"/>.
     /// </summary>
     /// <param name="pluginDiff"> The <see cref="PluginDiff"/> to set the diff text to. </param>
-    public PluginDiffSlot? Spawn(PluginDiff pluginDiff)
+    /// <param name="lobbyCompatibilityPresent"> LobbyCompatibility is installed on the lobby. </param>
+    public PluginDiffSlot? Spawn(PluginDiff pluginDiff, bool lobbyCompatibilityPresent)
     {
         var pluginDiffSlot = SpawnInternal();
-        pluginDiffSlot?.SetPluginDiff(pluginDiff);
+        pluginDiffSlot?.SetPluginDiff(pluginDiff, lobbyCompatibilityPresent);
         return pluginDiffSlot;
     }
 
