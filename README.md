@@ -61,6 +61,7 @@ Simply add `[LobbyCompatibility(CompatibilityLevel, VersionStrictness)]` above y
 ```csharp
 // ...
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+[BepInDependency("BMX.LobbyCompatibility", DependencyFlags.HardDependency)]
 [LobbyCompatibility(CompatibilityLevel = CompatibilityLevel.Everyone, VersionStrictness = VersionStrictness.Minor)]
 class MyPlugin : BaseUnityPlugin
 {
@@ -111,3 +112,29 @@ public static void RegisterPlugin(string guid, Version version, CompatibilityLev
 >
 > This method should be called in the `Awake` method of your plugin's main class, as we cache some data when fetching
 > the lobby list.
+
+#### Retrieving & Using the LobbyDiff
+
+If you want to use the lobby diff (the "diff" of mods installed by the lobby and client), it is accessible via `LobbyCompatibility.Features.LobbyHelper.GetLobbyDiff(Lobby lobby)`, like so:
+
+```csharp
+using LobbyCompatibility.Features;
+using Steamworks.Data;
+
+/* ... */
+
+// Just an example - no data would be returned since the lobby is non-existant.
+Lobby lobby = new();
+LobbyDiff lobbyDiff = LobbyHelper.GetLobbyDiff(lobby);
+```
+
+Then, if you want to check to see if the lobby has a specific mod downloaded, you can it like so:
+
+```csharp
+if (lobbyDiff.PluginDiffs.Any(diff => diff.GUID == "example.guid" && diff.ServerVersion != null))
+{
+    /* Code Here */
+}
+```
+
+`diff.ServerVersion != null` is used to see if the lobby/server has the mod, as it is set only when the server has the corresponding mod installed.
