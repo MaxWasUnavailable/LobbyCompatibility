@@ -45,8 +45,7 @@ jobs:
   upload-release-artifacts:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    permissions: write-all
     steps:
       - uses: actions/checkout@v4
         
