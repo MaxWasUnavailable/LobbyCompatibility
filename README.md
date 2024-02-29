@@ -131,10 +131,10 @@ LobbyDiff lobbyDiff = LobbyHelper.GetLobbyDiff(lobby);
 Then, if you want to check to see if the lobby has a specific mod downloaded, you can it like so:
 
 ```csharp
-if (lobbyDiff.PluginDiffs.Any(diff => diff.GUID == "example.guid" && diff.RequiredVersion != null))
+if (lobbyDiff.PluginDiffs.Any(diff => diff.GUID == "example.guid" && diff.ServerVersion != null))
 {
     /* Code Here */
 }
 ```
 
-`diff.RequiredVersion != null` is used to see if the lobby/server has the mod, as it is set only when the server has the corresponding mod installed.
+`diff.ServerVersion != null` is used to see if the lobby/server has the mod, as it is set only when the server has the corresponding mod installed.
