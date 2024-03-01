@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HarmonyLib;
@@ -12,7 +12,7 @@ namespace LobbyCompatibility.Features;
 /// <summary>
 ///     Helper class for Lobby related functions.
 /// </summary>
-internal static class LobbyHelper
+public static class LobbyHelper
 {
     public static readonly Regex ModdedLobbyIdentifierRegex = new Regex(@"(\bmod(s|ded)?\b)", RegexOptions.IgnoreCase);
 

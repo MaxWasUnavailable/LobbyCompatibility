@@ -16,7 +16,7 @@ namespace LobbyCompatibility.Features;
 /// <summary>
 ///     Helper class for plugin related functions.
 /// </summary>
-internal static class PluginHelper
+public static class PluginHelper
 {
     /// <summary>
     ///     PluginInfos registered through the register command, rather than found using the attribute.
