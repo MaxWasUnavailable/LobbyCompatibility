@@ -69,6 +69,25 @@ class MyPlugin : BaseUnityPlugin
 }
 ```
 
+Another attribute available for soft dependencies is the `SoftLobbyCompatibility` attribute. To use this, you must provide the
+main plugin class type, the compatibility level, and the version strictness. This attribute ***must*** be located outside of the
+namespace definition in you classes. It only has to be used once, but can be used to register multiple mods if necessary.
+
+To use it, you can do it like so:
+
+```csharp
+[assembly: SoftLobbyCompatibility(typeof(ExampleMod.MyPlugin), CompatibilityLevel.Everyone, VersionStrictness.Minor)]
+
+namespace ExampleMod;
+
+[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+[BepInDependency("BMX.LobbyCompatibility", DependencyFlags.SoftDependency)]
+class MyPlugin : BaseUnityPlugin
+{
+    // ...
+}
+```
+
 The enums used are as follows:
 
 ##### `CompatibilityLevel`
@@ -101,7 +120,7 @@ The enums used are as follows:
 
 #### Method
 
-Alternatively, as a way to support soft dependencies, you can use the `PluginHelper.RegisterPlugin` method with the
+Alternatively, as another way to support soft dependencies, you can use the `PluginHelper.RegisterPlugin` method with the
 following signature:
 
 ```csharp
@@ -111,7 +130,7 @@ public static void RegisterPlugin(string guid, Version version, CompatibilityLev
 > [!IMPORTANT]
 >
 > This method should be called in the `Awake` method of your plugin's main class, as we cache some data when fetching
-> the lobby list.
+> the lobby list or creating a new lobby.
 
 #### Retrieving & Using the LobbyDiff
 
