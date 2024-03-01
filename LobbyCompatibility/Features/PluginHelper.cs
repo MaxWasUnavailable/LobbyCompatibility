@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using BepInEx;
 using BepInEx.Bootstrap;
+using HarmonyLib;
 using LobbyCompatibility.Attributes;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
@@ -51,16 +52,20 @@ internal static class PluginHelper
     }
 
     /// <summary>
-    ///     Check if a plugin has the <see cref="LobbyCompatibilityAttribute" /> attribute.
+    ///     Check if a plugin has either the <see cref="LobbyCompatibilityAttribute" />
+    ///     or <see cref="SoftLobbyCompatibilityAttribute" /> attribute.
     /// </summary>
     /// <param name="plugin"> The plugin to check. </param>
     private static bool HasCompatibilityAttribute(BaseUnityPlugin plugin)
     {
-        return plugin.GetType().GetCustomAttributes(typeof(LobbyCompatibilityAttribute), false).Any();
+        return plugin.GetType().GetCustomAttributes(typeof(LobbyCompatibilityAttribute), false).Any()
+               || plugin.GetType().Assembly.GetCustomAttributes(typeof(SoftLobbyCompatibilityAttribute), false)
+                   .Any(attribute => ((SoftLobbyCompatibilityAttribute)attribute).Plugin == plugin.GetType());
     }
 
     /// <summary>
-    ///     Get all plugins that have the <see cref="LobbyCompatibilityAttribute" /> attribute.
+    ///     Get all plugins that have either the <see cref="LobbyCompatibilityAttribute" />
+    ///     or <see cref="SoftLobbyCompatibilityAttribute" /> attribute.
     /// </summary>
     private static IEnumerable<BepInEx.PluginInfo> GetCompatibilityPlugins()
     {
@@ -69,14 +74,16 @@ internal static class PluginHelper
     }
 
     /// <summary>
-    ///     Get the <see cref="LobbyCompatibilityAttribute" /> attribute of a plugin.
+    ///     Get the <see cref="ICompatibilityAttribute" /> attribute of a plugin.
     /// </summary>
     /// <param name="plugin"> The plugin to get the attribute from. </param>
-    /// <returns> The <see cref="LobbyCompatibilityAttribute" /> attribute of the plugin. </returns>
-    private static LobbyCompatibilityAttribute? GetCompatibilityAttribute(BaseUnityPlugin plugin)
+    /// <returns> The <see cref="ICompatibilityAttribute" /> attribute of the plugin. </returns>
+    private static ICompatibilityAttribute? GetCompatibilityAttribute(BaseUnityPlugin plugin)
     {
-        return (LobbyCompatibilityAttribute?)plugin.GetType()
-            .GetCustomAttributes(typeof(LobbyCompatibilityAttribute), false).FirstOrDefault();
+        return (plugin.GetType().GetCustomAttributes(typeof(LobbyCompatibilityAttribute), false).FirstOrDefault()
+                ?? plugin.GetType().Assembly.GetCustomAttributes(typeof(SoftLobbyCompatibilityAttribute), false)
+                    .FirstOrDefault(attribute => ((SoftLobbyCompatibilityAttribute)attribute).Plugin == plugin.GetType()))
+            as ICompatibilityAttribute;
     }
 
     /// <summary>
