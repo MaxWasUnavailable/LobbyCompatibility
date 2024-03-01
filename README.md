@@ -37,18 +37,18 @@ with vanilla runs.
 
 ## For Developers
 
-To use this, you need to add a package reference to `BMX.LobbyCompatibility` in your `.csproj` file. You can
+To use this, you need to add a package reference to `TeamBMX.LobbyCompatibility` in your `.csproj` file. You can
 use the
 following code:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="BMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
 </ItemGroup>
 ```
 
 You can also use your IDE's interface to add the reference. For Visual Studio 2022, you do so by clicking on
-the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `BMX.LobbyCompatibility`
+the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `TeamBMX.LobbyCompatibility`
 and add
 it from there.
 
