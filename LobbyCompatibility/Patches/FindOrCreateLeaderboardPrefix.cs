@@ -16,6 +16,6 @@ internal class FindOrCreateLeaderboardPrefix
     [HarmonyPrefix]
     private static void Prefix(ref string pchLeaderboardName)
     {
-        pchLeaderboardName = (pchLeaderboardName.StartsWith("challenge")) ? $"modded_{pchLeaderboardName}" : pchLeaderboardName;
+        pchLeaderboardName = pchLeaderboardName.StartsWith("challenge") ? $"modded_{pchLeaderboardName}" : pchLeaderboardName;
     }
 }

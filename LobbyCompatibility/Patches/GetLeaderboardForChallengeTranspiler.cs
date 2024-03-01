@@ -17,7 +17,7 @@ namespace LobbyCompatibility.Patches;
 internal static class GetLeaderboardForChallengeTranspiler
 {
     [HarmonyTargetMethod]
-    private static MethodBase TargetMethod()
+    private static MethodBase? TargetMethod()
     {
         return AccessTools.Method(typeof(MenuManager), nameof(MenuManager.GetLeaderboardForChallenge))
             .GetCustomAttribute<AsyncStateMachineAttribute>()

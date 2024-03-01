@@ -24,7 +24,7 @@ internal static class MenuManagerPostfix
             return;
 
         var listPanel = __instance.serverListUIContainer.transform.Find("ListPanel");
-        var lobbyListScrollView = listPanel?.Find("Scroll View");
+        var lobbyListScrollView = listPanel != null ? listPanel.Find("Scroll View") : null;
         var privatePublicDescription = __instance.privatePublicDescription;
         if (listPanel == null || lobbyListScrollView == null || privatePublicDescription == null)
             return;
@@ -35,20 +35,22 @@ internal static class MenuManagerPostfix
         __instance.leaderboardHeaderText.rectTransform.offsetMax = new Vector2(2000, __instance.leaderboardHeaderText.rectTransform.offsetMax.y);
 
         // Setup hover notification/tooltip UI
+        var parent = __instance.menuNotification.transform.parent;
+        
         var modListTooltipPanel =
-            Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+            Object.Instantiate(__instance.menuNotification, parent);
         modListTooltipPanel.AddComponent<ModListTooltipPanel>();
         modListTooltipPanel.SetActive(true);
 
         // Setup modlist panel
         var modListPanelNotification =
-            Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
+            Object.Instantiate(__instance.menuNotification, parent);
 
         // Get description text for bottom of modlist panel
 
         // Create actual panel handler (needs to be a seperate object because of the way notifications are structured)
         var modListPanelObject = new GameObject("ModListPanel Handler");
-        modListPanelObject.transform.SetParent(__instance.menuNotification.transform.parent);
+        modListPanelObject.transform.SetParent(parent);
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
         modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView, privatePublicDescription);
 
