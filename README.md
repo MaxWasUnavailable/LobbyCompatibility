@@ -3,7 +3,7 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/MaxWasUnavailable/LobbyCompatibility/build.yml?style=for-the-badge&logo=github&branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
 [![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?style=for-the-badge&logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
 [![Thunderstore Downloads](https://img.shields.io/thunderstore/dt/BMX/LobbyCompatibility?style=for-the-badge&logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
-[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
+[![NuGet Version](https://img.shields.io/nuget/v/TeamBMX.LobbyCompatibility?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/TeamBMX.LobbyCompatibility)
 
 This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
