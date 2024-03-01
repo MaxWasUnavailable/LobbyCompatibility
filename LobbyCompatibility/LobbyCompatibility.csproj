@@ -32,7 +32,7 @@
 
     <!-- NuGet Package Info -->
     <PropertyGroup>
-        <PackageId>BMX.LobbyCompatibility</PackageId>
+        <PackageId>TeamBMX.LobbyCompatibility</PackageId>
         <Title>LobbyCompatibility</Title>
         <Authors>MaxWasUnavailable;legoandmars;xilophor</Authors>
         <PackageTags>lethal;company;bepinex</PackageTags>
