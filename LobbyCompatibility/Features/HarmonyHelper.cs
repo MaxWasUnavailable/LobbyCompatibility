@@ -8,7 +8,7 @@ namespace LobbyCompatibility.Features;
 /// <summary>
 ///     Helper class related to Harmony Patching.
 /// </summary>
-internal class HarmonyHelper
+internal static class HarmonyHelper
 {
     /// <summary>
     /// Retrieves the MethodInfo of the compiler-generated async method.

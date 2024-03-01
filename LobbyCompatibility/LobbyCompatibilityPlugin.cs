@@ -16,7 +16,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
 {
     private bool _isPatched;
     private Harmony? Harmony { get; set; }
-    internal new static ManualLogSource? Logger { get; set; }
+    internal new static ManualLogSource? Logger { get; private set; }
     public static LobbyCompatibilityPlugin? Instance { get; private set; }
     public new static Config? Config { get; private set; }
 
@@ -29,7 +29,7 @@ public class LobbyCompatibilityPlugin : BaseUnityPlugin
         Logger = base.Logger;
 
         // Init config
-        Config = new(base.Config);
+        Config = new Config(base.Config);
 
         // Patch using Harmony
         PatchAll();

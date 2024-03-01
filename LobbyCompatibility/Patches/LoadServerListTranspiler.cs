@@ -22,7 +22,7 @@ namespace LobbyCompatibility.Patches;
 [HarmonyPatch]
 [HarmonyPriority(Priority.First)]
 [HarmonyWrapSafe]
-public class LoadServerListTranspiler
+internal class LoadServerListTranspiler
 {
     [HarmonyTargetMethod]
     private static MethodBase? TargetMethod()
