@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
@@ -12,10 +13,13 @@ namespace LobbyCompatibility.Features;
 /// </summary>
 internal static class LobbyHelper
 {
-    private static List<PluginInfoRecord>? _clientPlugins;
+    public static readonly Regex ModdedLobbyIdentifierRegex = new Regex(@"(\bmod(s|ded)?\b)", RegexOptions.IgnoreCase);
+  
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
-    private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
     public static List<LobbyQuery> LobbyQueries { get; private set; } = new List<LobbyQuery>();
+  
+    private static List<PluginInfoRecord>? _clientPlugins;
+    private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
@@ -33,8 +37,11 @@ internal static class LobbyHelper
     internal static LobbyDiff GetLobbyDiff(Lobby lobby, string? lobbyPluginString)
     {
         if (LobbyDiffCache.TryGetValue(lobby.Id, out var cachedLobbyDiff))
+        {
+            LatestLobbyDiff = cachedLobbyDiff;
             return cachedLobbyDiff;
-        
+        }
+
         var lobbyPlugins = PluginHelper
             .ParseLobbyPluginsMetadata(lobbyPluginString ?? GetLobbyPlugins(lobby)).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
@@ -48,8 +55,10 @@ internal static class LobbyHelper
             if (lobbyPlugin.CompatibilityLevel == null || lobbyPlugin.VersionStrictness == null)
             {
                 var clientVersion = clientPlugin?.Version;
-                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, lobbyPlugin.GUID, clientVersion,
-                    lobbyPlugin.Version));
+                // Unknown mods with the same version are implicitly compatible, and will be added as compatible here
+                pluginDiffs.Add(new PluginDiff(
+                    clientVersion == lobbyPlugin.Version ? PluginDiffResult.Compatible : PluginDiffResult.Unknown,
+                    lobbyPlugin.GUID, clientVersion, lobbyPlugin.Version));
                 continue;
             }
 
@@ -87,8 +96,9 @@ internal static class LobbyHelper
             if (clientPlugin.CompatibilityLevel == null || clientPlugin.VersionStrictness == null)
             {
                 var lobbyVersion = lobbyPlugin?.Version;
-                pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, clientPlugin.GUID, clientPlugin.Version,
-                    lobbyVersion));
+                if (lobbyVersion != clientPlugin.Version)
+                    pluginDiffs.Add(new PluginDiff(PluginDiffResult.Unknown, clientPlugin.GUID, clientPlugin.Version,
+                        lobbyVersion));
                 continue;
             }
 
@@ -139,7 +149,7 @@ internal static class LobbyHelper
             PluginDiffResult.ClientMissingMod => "Missing lobby-required mods",
             PluginDiffResult.ServerMissingMod => "Incompatible with lobby",
             PluginDiffResult.ModVersionMismatch => "Incompatible mod versions",
-            _ => "Unspecified"
+            _ => "Unknown"
         };
     }
 
@@ -185,10 +195,32 @@ internal static class LobbyHelper
 
             if (currentFilter == ModdedLobbyFilter.CompatibleFirst)
             {
+                // Run a second pass to further seperate presumed compatible and non-compatible lobbies
+                var (presumedCompatibleFilteredLobbies, incompatibleFilteredLobbies) =
+                    SplitLobbiesByDiffResult(otherFilteredLobbies, LobbyDiffResult.PresumedCompatible);
+                var (presumedCompatibleNormalLobbies, incompatibleNormalLobbies) =
+                    SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.PresumedCompatible);
+
+                // Add presumed compatible lobbies as a secondary, as they're very likely compatible (but not 100%)
+                allLobbies.AddRange(presumedCompatibleFilteredLobbies);
+                allLobbies.AddRange(presumedCompatibleNormalLobbies);
+
                 // Finally, add the non-compatible lobbies. We want to prioritize hashfilter non-compatible lobbies, as they're likely closer to compatibility.
-                allLobbies.AddRange(otherFilteredLobbies);
-                allLobbies.AddRange(otherNormalLobbies);
+                allLobbies.AddRange(incompatibleFilteredLobbies);
+                allLobbies.AddRange(incompatibleNormalLobbies);
             }
+        }
+        else if (filteredLobbies == null && currentFilter is ModdedLobbyFilter.CompatibleFirst)
+        {
+            // Even if we can't find any filtered lobbies, try to sort any compatible lobbies we happen to find towards the front
+            var (compatibleNormalLobbies, otherNormalLobbies) =
+                SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.Compatible);
+            var (presumedCompatibleNormalLobbies, incompatibleNormalLobbies) =
+                SplitLobbiesByDiffResult(normalLobbies, LobbyDiffResult.PresumedCompatible);
+
+            allLobbies.AddRange(compatibleNormalLobbies);
+            allLobbies.AddRange(presumedCompatibleNormalLobbies);
+            allLobbies.AddRange(incompatibleNormalLobbies);
         }
         else if (filteredLobbies == null && currentFilter == ModdedLobbyFilter.CompatibleOnly)
         {
@@ -256,5 +288,15 @@ internal static class LobbyHelper
             ModdedLobbyFilter.VanillaAndUnknownOnly => "No available vanilla or unknown\nservers to join.",
             _ => "No available servers to join."
         };
+    }
+
+    /// <summary>
+    ///     Returns true if a lobby name already contains a mod identifier, such as [MOD] or modded
+    /// </summary>
+    /// <param name="lobby"> The <see cref="Lobby" /> to check. </param>
+    /// <returns> True if the lobby name contains a mod idenitfier. </returns>
+    public static bool LobbyNameContainsModIdentifier(Lobby lobby)
+    {
+        return ModdedLobbyIdentifierRegex.IsMatch(lobby.GetData(LobbyMetadata.Name));
     }
 }

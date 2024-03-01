@@ -1,8 +1,9 @@
 # Lobby Compatibility
 
-[![Build](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
-[![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
-[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
+[![Build](https://img.shields.io/github/actions/workflow/status/MaxWasUnavailable/LobbyCompatibility/build.yml?style=for-the-badge&logo=github&branch=master)](https://github.com/MaxWasUnavailable/LobbyCompatibility/actions/workflows/build.yml)
+[![Latest Version](https://img.shields.io/thunderstore/v/BMX/LobbyCompatibility?style=for-the-badge&logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
+[![Thunderstore Downloads](https://img.shields.io/thunderstore/dt/BMX/LobbyCompatibility?style=for-the-badge&logo=thunderstore&logoColor=white)](https://thunderstore.io/c/lethal-company/p/BMX/LobbyCompatibility)
+[![NuGet Version](https://img.shields.io/nuget/v/LethalCompany.LobbyCompatibility?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/LethalCompany.LobbyCompatibility)
 
 This mod aims to provide better vanilla/modded lobby compatibility and browsing.
 
@@ -16,17 +17,17 @@ you need to update, downgrade, download, or remove to join that lobby.
 You will notice an icon at the bottom left of every lobby in the lobby browser, and you can see more information (such
 as whether it's incompatible, and what mods are causing it) by hovering over it.
 
-![Hovering over the Lobby Compatibility icon.]()
+![Hovering over the Lobby Compatibility icon](https://raw.githubusercontent.com/MaxWasUnavailable/LobbyCompatibility/master/assets/hover.png)
 
 If you click on the icon, you can then see an in-depth view of the mod list, with a scrollbar to view all mods required
 to connect to that server. Note that this only works if the server is running this mod.
 
-![The Lobby Compatibility modal.]()
+![The Lobby Compatibility modal](https://raw.githubusercontent.com/MaxWasUnavailable/LobbyCompatibility/master/assets/modal.png)
 
 If you then attempt to connect to a server - either public or private - with incompatible or missing mods, an error will
 display telling you that you are missing required mods.
 
-![Lobby connection error due to incompatible/missing mods.]()
+![Lobby connection error due to incompatible or missing mods](https://raw.githubusercontent.com/MaxWasUnavailable/LobbyCompatibility/master/assets/error.png)
 
 ### Modded Leaderboards
 
@@ -36,18 +37,18 @@ with vanilla runs.
 
 ## For Developers
 
-To use this, you need to add a package reference to `LethalCompany.LobbyCompatibility` in your `.csproj` file. You can
+To use this, you need to add a package reference to `BMX.LobbyCompatibility` in your `.csproj` file. You can
 use the
 following code:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="LethalCompany.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
 </ItemGroup>
 ```
 
 You can also use your IDE's interface to add the reference. For Visual Studio 2022, you do so by clicking on
-the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `LethalCompany.LobbyCompatibility`
+the `Project` dropdown, and clicking `Manage NuGet Packages`. You then can search for `BMX.LobbyCompatibility`
 and add
 it from there.
 
@@ -60,6 +61,7 @@ Simply add `[LobbyCompatibility(CompatibilityLevel, VersionStrictness)]` above y
 ```csharp
 // ...
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+[BepInDependency("BMX.LobbyCompatibility", DependencyFlags.HardDependency)]
 [LobbyCompatibility(CompatibilityLevel = CompatibilityLevel.Everyone, VersionStrictness = VersionStrictness.Minor)]
 class MyPlugin : BaseUnityPlugin
 {
@@ -110,3 +112,29 @@ public static void RegisterPlugin(string guid, Version version, CompatibilityLev
 >
 > This method should be called in the `Awake` method of your plugin's main class, as we cache some data when fetching
 > the lobby list.
+
+#### Retrieving & Using the LobbyDiff
+
+If you want to use the lobby diff (the "diff" of mods installed by the lobby and client), it is accessible via `LobbyCompatibility.Features.LobbyHelper.GetLobbyDiff(Lobby lobby)`, like so:
+
+```csharp
+using LobbyCompatibility.Features;
+using Steamworks.Data;
+
+/* ... */
+
+// Just an example - no data would be returned since the lobby is non-existant.
+Lobby lobby = new();
+LobbyDiff lobbyDiff = LobbyHelper.GetLobbyDiff(lobby);
+```
+
+Then, if you want to check to see if the lobby has a specific mod downloaded, you can it like so:
+
+```csharp
+if (lobbyDiff.PluginDiffs.Any(diff => diff.GUID == "example.guid" && diff.ServerVersion != null))
+{
+    /* Code Here */
+}
+```
+
+`diff.ServerVersion != null` is used to see if the lobby/server has the mod, as it is set only when the server has the corresponding mod installed.

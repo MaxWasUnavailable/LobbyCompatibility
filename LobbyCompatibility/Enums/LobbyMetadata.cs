@@ -51,4 +51,9 @@ public static class LobbyMetadata
     ///     The required plugins checksum to filter against.
     /// </summary>
     public const string RequiredChecksum = "checksum";
+
+    /// <summary>
+    ///     The prefix added before modded lobbies.
+    /// </summary>
+    public const string ModdedLobbyPrefix = "[MOD]";
 }

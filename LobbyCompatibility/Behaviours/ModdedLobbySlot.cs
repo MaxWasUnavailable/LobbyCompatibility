@@ -61,17 +61,22 @@ public class ModdedLobbySlot : MonoBehaviour
     private void Start()
     {
         var buttonText = _joinButton?.GetComponentInChildren<TextMeshProUGUI>();
-        if (_lobbyDiff == null || _joinButton == null || buttonText == null)
+        var lobbyDiffResult = _lobbyDiff?.GetModdedLobbyType();
+        if (lobbyDiffResult == null || _joinButton == null || buttonText == null)
             return;
 
-        if (_lobbyDiff.GetModdedLobbyType() != LobbyDiffResult.Incompatible)
+        // Brighter button color should only be applied to incompatible or unknown lobbies
+        if (lobbyDiffResult != LobbyDiffResult.Incompatible && lobbyDiffResult != LobbyDiffResult.Unknown)
             return;
-
-        // If lobby is incompatible, disable the join button (because it won't work)
-        _joinButton.interactable = false;
 
         // If needed, setup brighter button color based on the now-enabled button text
         _buttonEventHandlers.ForEach(handler => handler.SetColor(buttonText.color, buttonText.color));
+
+        // If lobby is incompatible, disable the join button (because it won't work)
+        if (lobbyDiffResult != LobbyDiffResult.Incompatible)
+            return;
+
+        _joinButton.interactable = false;
 
         // Turn joinButton into a modlist button, so we can get the modlist on hover
         SetupModListButtonEvents(_joinButton);
@@ -232,7 +237,7 @@ public class ModdedLobbySlot : MonoBehaviour
         if (inverted)
             path += "Inverted";
 
-        if (lobbyDiffResult == LobbyDiffResult.Compatible)
+        if (lobbyDiffResult == LobbyDiffResult.Compatible || lobbyDiffResult == LobbyDiffResult.PresumedCompatible)
             path += "ModSettings";
         else if (lobbyDiffResult == LobbyDiffResult.Incompatible)
             path += "ModSettingsExclamationPoint";

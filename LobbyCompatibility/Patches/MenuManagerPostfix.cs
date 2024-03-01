@@ -25,7 +25,8 @@ internal static class MenuManagerPostfix
 
         var listPanel = __instance.serverListUIContainer.transform.Find("ListPanel");
         var lobbyListScrollView = listPanel?.Find("Scroll View");
-        if (listPanel == null || lobbyListScrollView == null)
+        var privatePublicDescription = __instance.privatePublicDescription;
+        if (listPanel == null || lobbyListScrollView == null || privatePublicDescription == null)
             return;
 
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
@@ -43,11 +44,13 @@ internal static class MenuManagerPostfix
         var modListPanelNotification =
             Object.Instantiate(__instance.menuNotification, __instance.menuNotification.transform.parent);
 
+        // Get description text for bottom of modlist panel
+
         // Create actual panel handler (needs to be a seperate object because of the way notifications are structured)
         var modListPanelObject = new GameObject("ModListPanel Handler");
         modListPanelObject.transform.SetParent(__instance.menuNotification.transform.parent);
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
-        modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView);
+        modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView, privatePublicDescription);
 
         // Make refresh button a more compact image so we have space for our custom dropdown
         var refreshButton = listPanel.Find("RefreshButton")?.GetComponent<Button>();
