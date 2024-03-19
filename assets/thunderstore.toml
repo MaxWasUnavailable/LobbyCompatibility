@@ -11,7 +11,7 @@ containsNsfwContent = false
 BepInEx-BepInExPack = "5.4.2100"
 
 [build]
-icon = "icon.png"
+icon = "icon_256x256.png"
 readme = "../README.md"
 outdir = "../dist"
 
