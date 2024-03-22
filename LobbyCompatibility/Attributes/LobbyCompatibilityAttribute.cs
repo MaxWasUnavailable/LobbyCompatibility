@@ -8,14 +8,14 @@ namespace LobbyCompatibility.Attributes;
 /// </summary>
 /// <example>
 ///     <code>
-/// [LobbyCompatibility(CompatibilityLevel.ServerOnly, VersionStrictness.Minor)]
+/// [LobbyCompatibilityAttribute(CompatibilityLevel.ServerOnly, VersionStrictness.Minor)]
 /// class MyPlugin : BaseUnityPlugin
 /// {
 /// }
 ///     </code>
 /// </example>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class LobbyCompatibilityAttribute : Attribute, ICompatibilityAttribute
+public sealed class LobbyCompatibilityAttribute : Attribute
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="LobbyCompatibilityAttribute" /> class.
@@ -28,9 +28,19 @@ public sealed class LobbyCompatibilityAttribute : Attribute, ICompatibilityAttri
         VersionStrictness = versionStrictness;
     }
 
-    /// <inheritdoc cref="ICompatibilityAttribute.CompatibilityLevel"/>
+    /// <summary>
+    ///     Gets the compatibility level.
+    /// </summary>
+    /// <value>
+    ///     The compatibility level.
+    /// </value>
     public CompatibilityLevel CompatibilityLevel { get; }
-    
-    /// <inheritdoc cref="ICompatibilityAttribute.VersionStrictness"/>
+
+    /// <summary>
+    ///     Gets the version strictness.
+    /// </summary>
+    /// <value>
+    ///     The version strictness.
+    /// </value>
     public VersionStrictness VersionStrictness { get; }
 }
