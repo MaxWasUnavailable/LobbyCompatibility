@@ -46,9 +46,10 @@
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
-    <!-- NuGet Include README & Icon -->
+    <!-- NuGet Include README, CHANGELOG & Icon -->
     <ItemGroup>
         <None Include="$(ProjectDir)../README.md" Pack="true" PackagePath="/" />
+        <None Include="$(ProjectDir)../CHANGELOG.md" Pack="true" PackagePath="/" />
         <None Include="$(ProjectDir)../assets/icon_128x128.png" Pack="true" PackagePath="/" />
     </ItemGroup>
 
