@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 23/03/2024
+
+### Fixed
+
+- Fixed manually registered plugins not being filtered from the auto-discovered list of plugins, and hence having an "unknown" duplicate entry.
+
 ## [1.0.1]
 
 ### Changed
