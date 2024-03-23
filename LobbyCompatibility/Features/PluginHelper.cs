@@ -83,6 +83,7 @@ public static class PluginHelper
     ///     Get all plugins in the <see cref="PluginInfoRecord" /> format.
     /// </summary>
     /// <returns> An IEnumerable of plugins in the <see cref="PluginInfoRecord" /> format. </returns>
+    /// TODO: We can probably cache the discovered plugins to avoid re-discovering them every time
     internal static IEnumerable<PluginInfoRecord> GetAllPluginInfo()
     {
         var pluginInfos = new List<PluginInfoRecord>();
@@ -90,7 +91,15 @@ public static class PluginHelper
         var compatibilityPlugins = GetCompatibilityPlugins().ToList();
         var nonCompatibilityPlugins = Chainloader.PluginInfos.Where(plugin =>
             !HasCompatibilityAttribute(plugin.Value.Instance)).Select(plugin => plugin.Value).ToList();
+        
+        // We remove any plugins that have been registered manually to avoid duplicates
+        compatibilityPlugins.RemoveAll(plugin =>
+            RegisteredPluginInfoRecords.Any(record => record.GUID == plugin.Metadata.GUID));
+        
+        nonCompatibilityPlugins.RemoveAll(plugin =>
+            RegisteredPluginInfoRecords.Any(record => record.GUID == plugin.Metadata.GUID));
 
+        // We create & add PluginInfoRecords for each plugin
         pluginInfos.AddRange(compatibilityPlugins.Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version,
                 GetCompatibilityAttribute(plugin.Instance)?.CompatibilityLevel ?? null,
@@ -99,6 +108,7 @@ public static class PluginHelper
         pluginInfos.AddRange(nonCompatibilityPlugins.Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.GUID, plugin.Metadata.Version, null, null)));
 
+        // Finally, we concatenate the manually registered plugins and our discovered plugins
         return pluginInfos.Concat(RegisteredPluginInfoRecords);
     }
 
