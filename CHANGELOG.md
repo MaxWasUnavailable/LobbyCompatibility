@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 24/03/2024
+
+### Fixed
+
+- Fixed incorrect LobbyCompatibility spelling in Thunderstore.toml (@1A3Dev)
+
 ## [1.0.2] - 23/03/2024
 
 ### Fixed
