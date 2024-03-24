@@ -25,7 +25,7 @@ target = "/"
 
 [[build.copy]]
 source = "../LobbyCompatibility/bin/Release/netstandard2.1/BMX.LobbyCompatibility.dll"
-target = "/BepInEx/plugins/LobbyCompatiblity/"
+target = "/BepInEx/plugins/LobbyCompatibility/"
 
 [publish]
 communities = [ "lethal-company", ]
