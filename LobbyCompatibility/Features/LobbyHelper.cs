@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
-using Steamworks;
 using Steamworks.Data;
 
 namespace LobbyCompatibility.Features;
@@ -15,11 +14,11 @@ namespace LobbyCompatibility.Features;
 public static class LobbyHelper
 {
     public static readonly Regex ModdedLobbyIdentifierRegex = new Regex(@"(\bmod(s|ded)?\b)", RegexOptions.IgnoreCase);
-
-    public static Dictionary<string, string> LatestLobbyRequestStringFilters = new();
-    public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
-    private static List<PluginInfoRecord>? _clientPlugins;
+  
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
+    public static List<LobbyQuery> LobbyQueries { get; private set; } = new List<LobbyQuery>();
+  
+    private static List<PluginInfoRecord>? _clientPlugins;
     private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
 
     /// <summary>
