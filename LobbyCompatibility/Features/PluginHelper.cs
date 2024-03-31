@@ -56,7 +56,8 @@ public static class PluginHelper
     /// <param name="plugin"> The plugin to check. </param>
     private static bool HasCompatibilityAttribute(BaseUnityPlugin plugin)
     {
-        return plugin.GetType().GetCustomAttributes(typeof(LobbyCompatibilityAttribute), false).Any();
+        return !ReferenceEquals(plugin, null) && 
+               plugin.GetType().GetCustomAttributes(typeof(LobbyCompatibilityAttribute), false).Any();
     }
 
     /// <summary>
@@ -90,7 +91,8 @@ public static class PluginHelper
 
         var compatibilityPlugins = GetCompatibilityPlugins().ToList();
         var nonCompatibilityPlugins = Chainloader.PluginInfos.Where(plugin =>
-            !HasCompatibilityAttribute(plugin.Value.Instance)).Select(plugin => plugin.Value).ToList();
+            !HasCompatibilityAttribute(plugin.Value.Instance) && !ReferenceEquals(plugin.Value.Instance, null))
+            .Select(plugin => plugin.Value).ToList();
         
         // We remove any plugins that have been registered manually to avoid duplicates
         compatibilityPlugins.RemoveAll(plugin =>
