@@ -90,9 +90,9 @@ public static class PluginHelper
         var pluginInfos = new List<PluginInfoRecord>();
 
         var compatibilityPlugins = GetCompatibilityPlugins().ToList();
-        var nonCompatibilityPlugins = Chainloader.PluginInfos.Where(plugin =>
-            !ReferenceEquals(plugin.Value.Instance, null) && !HasCompatibilityAttribute(plugin.Value.Instance))
-            .Select(plugin => plugin.Value).ToList();
+        var nonCompatibilityPlugins = Chainloader.PluginInfos.Values.Where(plugin =>
+            !ReferenceEquals(plugin.Instance, null) && !HasCompatibilityAttribute(plugin.Instance))
+            .Select(plugin => plugin).ToList();
         
         // We remove any plugins that have been registered manually to avoid duplicates
         compatibilityPlugins.RemoveAll(plugin =>
