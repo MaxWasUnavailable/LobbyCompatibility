@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 01/04/2024
+
+### Added
+
+- Prevent vanilla clients from seeing modded lobbies in the lobby list.
+
 ## [1.0.4] - 30/03/2024
 
 ### Fixed
