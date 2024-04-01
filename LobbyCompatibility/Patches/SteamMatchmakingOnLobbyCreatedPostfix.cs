@@ -46,6 +46,9 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
                 or CompatibilityLevel.Everyone or CompatibilityLevel.ClientOptional) &&
             !LobbyHelper.LobbyNameContainsModIdentifier(lobby))
             lobby.SetData(LobbyMetadata.Name, LobbyMetadata.ModdedLobbyPrefix + lobby.GetData(LobbyMetadata.Name));
+        
+        // Add hidden suffix to the lobby name to hide it from vanilla clients
+        lobby.SetData(LobbyMetadata.Name, lobby.GetData(LobbyMetadata.Name) + "<size=0>unisex</size>");
 
         // Check if there are any required plugins in the lobby
         if (pluginInfo.Any(plugin => plugin.CompatibilityLevel == CompatibilityLevel.Everyone))

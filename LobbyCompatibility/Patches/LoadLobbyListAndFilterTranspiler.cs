@@ -88,6 +88,6 @@ internal class LoadLobbyListAndFilterTranspiler
         if (lobbyName.Length == 0)
             return lobbyName;
 
-        return lobbyName.Replace(LobbyMetadata.ModdedLobbyPrefix, "");
+        return lobbyName.Replace(LobbyMetadata.ModdedLobbyPrefix, "").Replace("<size=0>unisex</size>", string.Empty);
     }
 }
