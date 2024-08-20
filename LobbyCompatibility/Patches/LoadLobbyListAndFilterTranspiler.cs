@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using LobbyCompatibility.Behaviours;
@@ -53,8 +53,8 @@ internal class LoadLobbyListAndFilterTranspiler
             .InsertAndAdvance(new[] {
                 new CodeInstruction(OpCodes.Call, replaceLobbyNameMethod)})
             .MatchForward(false, new [] {
-                new CodeMatch(OpCodes.Ldloc_1),
-                new CodeMatch(OpCodes.Ldfld, currentLobbyListField),
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(inst => inst.opcode == OpCodes.Ldfld), // Compiler-generated field
                 new CodeMatch(OpCodes.Ldarg_0),
                 new CodeMatch(inst => inst.opcode == OpCodes.Ldfld), // Compiler-generated field
                 new CodeMatch(OpCodes.Ldelem, typeof(Lobby)),
