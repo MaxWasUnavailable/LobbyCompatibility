@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using LobbyCompatibility.Behaviours;
@@ -88,6 +88,6 @@ internal class LoadLobbyListAndFilterTranspiler
         if (lobbyName.Length == 0)
             return lobbyName;
 
-        return lobbyName.Replace(LobbyMetadata.ModdedLobbyPrefix, "").Replace("<size=0>unisex</size>", string.Empty);
+        return lobbyName.Replace(LobbyMetadata.ModdedLobbyPrefix, "");
     }
 }

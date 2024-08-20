@@ -73,26 +73,36 @@ internal class LoadServerListTranspiler
         query.stringFilters = LobbyHelper.LatestLobbyRequestStringFilters;
         query.distance = LobbyHelper.LatestLobbyRequestDistanceFilter;
 
+        var hasTag = !query.stringFilters.ContainsKey(LobbyMetadata.Tag) ||
+                     query.stringFilters[LobbyMetadata.Tag] != "none";
+
         // If there is not a ModdedLobbyFilterDropdown Instance, treat as if we are doing no filtering
         var currentFilter = ModdedLobbyFilterDropdown.Instance != null ? ModdedLobbyFilterDropdown.Instance.LobbyFilter : ModdedLobbyFilter.All;
 
         // Always apply no filtering when the user is entering a custom tag, as they're likely searching for a specific lobby
-        if (query.stringFilters.ContainsKey(LobbyMetadata.Tag))
+        if (hasTag)
             currentFilter = ModdedLobbyFilter.All;
 
         Lobby[]? filteredLobbies = null;
-
-        // we only need to run the hashfilter if we're specifically looking for compatible lobbies
-        if (PluginHelper.Checksum != "" && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
+        
+        if (currentFilter != ModdedLobbyFilter.VanillaAndUnknownOnly && !hasTag)
         {
-            // If our previous cached query already has a checksum attribute, remove it, as otherwise WithKeyValue throws an error
-            if (query.stringFilters.ContainsKey(LobbyMetadata.RequiredChecksum))
-                query.stringFilters.Remove(LobbyMetadata.RequiredChecksum);
+            // we only need to run the hashfilter if we're specifically looking for compatible lobbies
+            if (PluginHelper.Checksum != "" && (currentFilter == ModdedLobbyFilter.CompatibleFirst || currentFilter == ModdedLobbyFilter.CompatibleOnly))
+            {
+                // If our previous cached query already has a checksum attribute, remove it, as otherwise WithKeyValue throws an error
+                if (query.stringFilters.ContainsKey(LobbyMetadata.RequiredChecksum))
+                    query.stringFilters.Remove(LobbyMetadata.RequiredChecksum);
 
-            else
-                query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
+                else
+                    query.WithKeyValue(LobbyMetadata.RequiredChecksum, PluginHelper.Checksum);
+            }
+            
+            // if it has the tag filter, it has to be "none" at this point
+            if (query.stringFilters.ContainsKey(LobbyMetadata.Tag))
+                query.stringFilters[LobbyMetadata.Tag] = "modded";
 
-            // Make an additional search for lobbies that match the checksum
+            // Make an additional search for lobbies that are modded, or match the checksum
             filteredLobbies = await query.RequestAsync();
         }
 
