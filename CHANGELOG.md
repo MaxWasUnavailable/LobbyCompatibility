@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 20/08/2024
+
+### Changed
+- Changed internal method to hide the lobby from vanilla clients.
+
+### Fixed
+- Fixed the fatal error introduced in Lethal Company v62 that caused the mod to not function correctly.
+
 ## [1.1.0] - 01/04/2024
 
 ### Added
