@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -27,7 +28,7 @@ public static class LobbyHelper
     /// </summary>
     /// <param name="lobby"> The lobby to get the diff from. </param>
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
-    public static LobbyDiff GetLobbyDiff(Lobby lobby) => GetLobbyDiff(lobby, null);
+    public static LobbyDiff GetLobbyDiff(Lobby? lobby) => GetLobbyDiff(lobby, null);
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" /> or <see cref="IEnumerable{String}" />.
@@ -35,16 +36,16 @@ public static class LobbyHelper
     /// <param name="lobby"> The lobby to cache the diff to and/or get the diff from. </param>
     /// <param name="lobbyPluginString"> The json string to parse. </param>
     /// <returns> The <see cref="LobbyDiff" />. </returns>
-    internal static LobbyDiff GetLobbyDiff(Lobby lobby, string? lobbyPluginString)
+    internal static LobbyDiff GetLobbyDiff(Lobby? lobby, string? lobbyPluginString)
     {
-        if (LobbyDiffCache.TryGetValue(lobby.Id, out var cachedLobbyDiff))
+        if (lobby.HasValue && LobbyDiffCache.TryGetValue(lobby.Value.Id, out var cachedLobbyDiff))
         {
             LatestLobbyDiff = cachedLobbyDiff;
             return cachedLobbyDiff;
         }
 
         var lobbyPlugins = PluginHelper
-            .ParseLobbyPluginsMetadata(lobbyPluginString ?? GetLobbyPlugins(lobby)).ToList();
+            .ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue ? GetLobbyPlugins(lobby.Value) : string.Empty)).ToList();
         _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
 
         var pluginDiffs = new List<PluginDiff>();
@@ -119,7 +120,8 @@ public static class LobbyHelper
         LatestLobbyDiff = new LobbyDiff(pluginDiffs, lobbyCompatibilityPresent);
 
         // Add to cache to avoid making multiple unnecessary GetData() calls
-        LobbyDiffCache.Add(lobby.Id, LatestLobbyDiff);
+        if (lobby.HasValue)
+            LobbyDiffCache.Add(lobby.Value.Id, LatestLobbyDiff);
 
         return LatestLobbyDiff;
     }
