@@ -16,8 +16,8 @@ namespace LobbyCompatibility.Patches;
 [HarmonyWrapSafe]
 internal static class MenuManagerPostfix
 {
-    [HarmonyPostfix]
-    private static void Postfix(MenuManager __instance)
+    [HarmonyPrefix]
+    private static void Prefix(MenuManager __instance)
     {
         // Don't run on startup screen
         if (__instance.isInitScene)
@@ -30,10 +30,7 @@ internal static class MenuManagerPostfix
             return;
 
         LobbyCompatibilityPlugin.Logger?.LogInfo("Initializing menu UI.");
-
-        // Set challenge moon leaderboard title text to not wrap halfway through
-        __instance.leaderboardHeaderText.rectTransform.offsetMax = new Vector2(2000, __instance.leaderboardHeaderText.rectTransform.offsetMax.y);
-
+        
         // Setup hover notification/tooltip UI
         var parent = __instance.menuNotification.transform.parent;
         
@@ -53,6 +50,21 @@ internal static class MenuManagerPostfix
         modListPanelObject.transform.SetParent(parent);
         var modListPanel = modListPanelObject.AddComponent<ModListPanel>();
         modListPanel.SetupPanel(modListPanelNotification, lobbyListScrollView, privatePublicDescription);
+    }
+    
+    [HarmonyPostfix]
+    private static void Postfix(MenuManager __instance)
+    {
+        // Don't run on startup screen
+        if (__instance.isInitScene)
+            return;
+
+        var listPanel = __instance.serverListUIContainer.transform.Find("ListPanel");
+        if (listPanel == null)
+            return;
+
+        // Set challenge moon leaderboard title text to not wrap halfway through
+        __instance.leaderboardHeaderText.rectTransform.offsetMax = new Vector2(2000, __instance.leaderboardHeaderText.rectTransform.offsetMax.y);
 
         // Make refresh button a more compact image so we have space for our custom dropdown
         var refreshButton = listPanel.Find("RefreshButton")?.GetComponent<Button>();
