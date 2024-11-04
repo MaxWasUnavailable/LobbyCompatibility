@@ -30,7 +30,8 @@ public class ModdedLobbySlot : MonoBehaviour
         _lobbySlot = lobbySlot;
 
         // Get the "diff" of the lobby
-        _lobbyDiff = LobbyHelper.GetLobbyDiff(_lobbySlot.thisLobby);
+        if (_lobbyDiff == null || !GameNetworkManager.Instance || !GameNetworkManager.Instance.disableSteam)
+            _lobbyDiff = LobbyHelper.GetLobbyDiff(_lobbySlot.thisLobby);
 
         // Find player count text (could be moved/removed in a future update, but unlikely)
         var playerCount = _lobbySlot.playerCount;

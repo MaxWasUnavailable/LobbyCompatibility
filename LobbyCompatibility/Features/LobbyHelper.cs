@@ -134,10 +134,13 @@ public static class LobbyHelper
     internal static string GetLobbyPlugins(Lobby lobby)
     {
         var lobbyPluginStrings = new List<string>();
-        var i = 0;
 
-        do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
-        while (lobbyPluginStrings[i++].Contains("@"));
+        if (GameNetworkManager.Instance && !GameNetworkManager.Instance.disableSteam)
+        {
+            var i = 0;
+            do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
+            while (lobbyPluginStrings[i++].Contains("@"));
+        }
 
         return lobbyPluginStrings
             .Join(delimiter: string.Empty)
