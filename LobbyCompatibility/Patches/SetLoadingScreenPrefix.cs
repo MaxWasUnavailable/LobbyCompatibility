@@ -23,6 +23,13 @@ internal static class SetLoadingScreenPrefix
 
         if (result != RoomEnter.Error)
             return true;
+
+        LobbyCompatibilityPlugin.Logger?.LogDebug("Error while joining! Logging Diff...");
+        LobbyCompatibilityPlugin.Logger?.LogDebug(
+            LobbyHelper.LatestLobbyDiff.PluginDiffs.Join(converter: diff => diff.GetDisplayText()));
+
+        if (!string.IsNullOrEmpty(GameNetworkManager.Instance.disconnectionReasonMessage))
+            return true;
         
         __instance.MenuAudio.volume = 0.5f;
         __instance.menuButtons.SetActive(true);
@@ -31,10 +38,6 @@ internal static class SetLoadingScreenPrefix
 
         if (ModListPanel.Instance != null)
             ModListPanel.Instance.DisplayNotification(LobbyHelper.LatestLobbyDiff, "Error while joining...");
-
-        LobbyCompatibilityPlugin.Logger?.LogDebug("Error while joining! Logging Diff...");
-        LobbyCompatibilityPlugin.Logger?.LogDebug(
-            LobbyHelper.LatestLobbyDiff.PluginDiffs.Join(converter: diff => diff.GetDisplayText()));
         
         return false;
     }
