@@ -72,6 +72,7 @@ internal static class MenuManagerPostfix
             UIHelper.ReskinRefreshButton(refreshButton);
 
         // Add a custom "Mods" filtering type, and shift all other filtering UI elements to the left
-        UIHelper.AddCustomFilterToLobbyList(listPanel);
+        if (!GameNetworkManager.Instance || !GameNetworkManager.Instance.disableSteam)
+            UIHelper.AddCustomFilterToLobbyList(listPanel);
     }
 }
