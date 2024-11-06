@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 06/11/2024
+- Disable certain functionality on LAN | authored by @1A3Dev
+- Fix LAN-related issues | authored by @1A3Dev
+
 ## [1.2.0] - 20/08/2024
 
 ### Changed
