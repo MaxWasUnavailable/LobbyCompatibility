@@ -55,7 +55,7 @@ public static class LobbyHelper
         var lobbyDataList = lobbyData?.ToList();
 
         var lobbyPlugins = PluginHelper
-            .ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue ? GetLobbyPlugins(lobby.Value) : (GetLobbyPlugins(lobbyDataList ?? [])))).ToList();
+            .ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue ? GetLobbyPlugins(lobby.Value) : (lobbyDataList != null ? GetLobbyPlugins(lobbyDataList) : string.Empty))).ToList();
         _clientPlugins = PluginHelper.GetAllPluginInfo().CalculateCompatibilityLevel(lobby, lobbyDataList);
 
         var pluginDiffs = new List<PluginDiff>();

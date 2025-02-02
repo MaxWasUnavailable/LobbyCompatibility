@@ -237,7 +237,7 @@ public static class PluginHelper
 
         PluginInfoRecord VariableCompat(PluginInfoRecord plugin)
         {
-            var compatibilityLevel = plugin.VariableCompatibilityCheck?.Invoke(lobbyData ?? (lobby?.Data ?? [])) ?? CompatibilityLevel.ClientOnly;
+            var compatibilityLevel = plugin.VariableCompatibilityCheck?.Invoke((lobby?.Data ?? lobbyData) ?? []) ?? CompatibilityLevel.ClientOnly;
             compatibilityLevel = compatibilityLevel is CompatibilityLevel.Variable ? CompatibilityLevel.ClientOnly : compatibilityLevel;
             
             LobbyCompatibilityPlugin.Logger?.LogDebug($"({plugin.GUID}) Variable Compatibility level: {compatibilityLevel}");
