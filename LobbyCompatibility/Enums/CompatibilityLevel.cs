@@ -29,5 +29,14 @@ public enum CompatibilityLevel
     ///     Generally used for mods that add extra (optional) functionality to the client if the server has it installed.
     ///     Mod must be loaded on server. Version checking depends on the VersionStrictness.
     /// </summary>
-    ClientOptional
+    ClientOptional,
+    
+    /// <summary>
+    ///     The compatibility level changes depending on the context of the lobby.
+    ///     Only very specific mods will ever use this, and it is highly discouraged to use this if you do not know what you are doing.
+    ///     If a value is not returned when the <see cref="LobbyCompatibility.Features.VariableCompatibilityCheckDelegate">check</see> is called, it will default to <see cref="CompatibilityLevel.ClientOnly"/>.
+    ///     Only usable for mods using the
+    ///     <see cref="LobbyCompatibility.Features.PluginHelper.RegisterPlugin(string, System.Version, CompatibilityLevel, VersionStrictness, LobbyCompatibility.Features.VariableCompatibilityCheckDelegate?)">RegisterPlugin</see> method.
+    /// </summary>
+    Variable,
 }

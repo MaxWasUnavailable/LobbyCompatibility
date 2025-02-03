@@ -23,17 +23,17 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
         // lobby has not yet been created or something went wrong
         if (result != Result.OK)
             return;
-
-        var pluginInfo = PluginHelper.GetAllPluginInfo().ToList();
+        
+        var pluginInfo = PluginHelper.GetAllPluginInfo().CalculateCompatibilityLevel(lobby);
 
         // Modded is flagged as true, since we're using mods
         lobby.SetData(LobbyMetadata.Modded, "true");
 
         // Add paginated plugin metadata to the lobby so clients can check if they have the required plugins
-        var plugins = PluginHelper.GetLobbyPluginsMetadata().ToArray();
+        var pluginsString = PluginHelper.GetLobbyPluginsMetadata(pluginInfo).ToArray();
         // Add each page - with a delimiter if there's another page
-        for (var i = 0; i < plugins.Length; i++)
-            lobby.SetData($"{LobbyMetadata.Plugins}{i}", $"{plugins[i]}{(i < plugins.Length - 1 ? "@" : string.Empty)}");
+        for (var i = 0; i < pluginsString.Length; i++)
+            lobby.SetData($"{LobbyMetadata.Plugins}{i}", $"{pluginsString[i]}{(i < pluginsString.Length - 1 ? "@" : string.Empty)}");
 
         // Set the joinable modded metadata to the same value as the original joinable metadata, in case it wasn't originally joinable
         lobby.SetData(LobbyMetadata.JoinableModded, lobby.GetData(LobbyMetadata.Joinable));

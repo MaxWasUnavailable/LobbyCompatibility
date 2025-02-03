@@ -1,5 +1,6 @@
 using HarmonyLib;
 using LobbyCompatibility.Features;
+using Steamworks.Data;
 
 namespace LobbyCompatibility.Patches;
 
@@ -17,6 +18,6 @@ internal static class StartAClientPostfix
     private static void Prefix()
     {
         // Create lobby diff so LatestLobbyDiff is set
-        LobbyHelper.GetLobbyDiff(null);
+        LobbyHelper.GetLobbyDiff((Lobby?)null);
     }
 }

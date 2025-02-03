@@ -31,12 +31,20 @@ public static class LobbyHelper
     public static LobbyDiff GetLobbyDiff(Lobby? lobby) => GetLobbyDiff(lobby, null);
 
     /// <summary>
+    ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
+    /// </summary>
+    /// <param name="lobby"> The lobby to get the diff from. </param>
+    /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
+    public static LobbyDiff GetLobbyDiff(IEnumerable<KeyValuePair<string, string>> lobbyData) => GetLobbyDiff(null, null, lobbyData);
+
+    /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" /> or <see cref="IEnumerable{String}" />.
     /// </summary>
     /// <param name="lobby"> The lobby to cache the diff to and/or get the diff from. </param>
     /// <param name="lobbyPluginString"> The json string to parse. </param>
+    /// <param name="lobbyData"> (Opt.) The lobby data. </param>
     /// <returns> The <see cref="LobbyDiff" />. </returns>
-    internal static LobbyDiff GetLobbyDiff(Lobby? lobby, string? lobbyPluginString)
+    internal static LobbyDiff GetLobbyDiff(Lobby? lobby, string? lobbyPluginString, IEnumerable<KeyValuePair<string, string>>? lobbyData = null)
     {
         if (lobby.HasValue && LobbyDiffCache.TryGetValue(lobby.Value.Id, out var cachedLobbyDiff))
         {
@@ -44,9 +52,11 @@ public static class LobbyHelper
             return cachedLobbyDiff;
         }
 
+        var lobbyDataList = lobbyData?.ToList();
+
         var lobbyPlugins = PluginHelper
-            .ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue ? GetLobbyPlugins(lobby.Value) : string.Empty)).ToList();
-        _clientPlugins ??= PluginHelper.GetAllPluginInfo().ToList();
+            .ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue ? GetLobbyPlugins(lobby.Value) : (lobbyDataList != null ? GetLobbyPlugins(lobbyDataList) : string.Empty))).ToList();
+        _clientPlugins = PluginHelper.GetAllPluginInfo().CalculateCompatibilityLevel(lobby, lobbyDataList);
 
         var pluginDiffs = new List<PluginDiff>();
 
@@ -139,6 +149,27 @@ public static class LobbyHelper
         {
             var i = 0;
             do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
+            while (lobbyPluginStrings[i++].Contains("@"));
+        }
+
+        return lobbyPluginStrings
+            .Join(delimiter: string.Empty)
+            .Replace("@", string.Empty);
+    }
+    
+    /// <summary>
+    ///     Get the plugins json from lobby data.
+    /// </summary>
+    /// <param name="lobbyData"> The lobby data that has the json string. </param>
+    /// <returns> A json <see cref="string" /> from the lobby data. </returns>
+    internal static string GetLobbyPlugins(List<KeyValuePair<string, string>> lobbyData)
+    {
+        var lobbyPluginStrings = new List<string>();
+
+        if (GameNetworkManager.Instance)
+        {
+            var i = 0;
+            do lobbyPluginStrings.Insert(i, lobbyData.FirstOrDefault(x => x.Key == $"{LobbyMetadata.Plugins}{i}").Value);
             while (lobbyPluginStrings[i++].Contains("@"));
         }
 

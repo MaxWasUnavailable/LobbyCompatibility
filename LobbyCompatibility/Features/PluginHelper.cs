@@ -10,8 +10,11 @@ using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Steamworks.Data;
 
 namespace LobbyCompatibility.Features;
+
+public delegate CompatibilityLevel VariableCompatibilityCheckDelegate(IEnumerable<KeyValuePair<string, string>> lobbyData);
 
 /// <summary>
 ///     Helper class for plugin related functions.
@@ -36,7 +39,7 @@ public static class PluginHelper
         get => _cachedChecksum ?? GetRequiredPluginsChecksum();
         set => _cachedChecksum = value;
     }
-    
+
     /// <summary>
     ///     Register a plugin's compatibility information manually.
     /// </summary>
@@ -44,9 +47,20 @@ public static class PluginHelper
     /// <param name="version"> The version of the plugin. </param>
     /// <param name="compatibilityLevel"> The compatibility level of the plugin. </param>
     /// <param name="versionStrictness"> The version strictness of the plugin. </param>
-    public static void RegisterPlugin(string guid, Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
+    public static void RegisterPlugin(string guid, Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness) =>
+        RegisterPlugin(guid, version, compatibilityLevel, versionStrictness, null);
+
+    /// <summary>
+    ///     Register a plugin's compatibility information manually.
+    /// </summary>
+    /// <param name="guid"> The GUID of the plugin. </param>
+    /// <param name="version"> The version of the plugin. </param>
+    /// <param name="compatibilityLevel"> The compatibility level of the plugin. </param>
+    /// <param name="versionStrictness"> The version strictness of the plugin. </param>
+    /// <param name="variableCompatibilityCheck"> (Opt.) The function to run when checking variable compatibility. In most cases, disregard. </param>
+    public static void RegisterPlugin(string guid, Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness, VariableCompatibilityCheckDelegate? variableCompatibilityCheck)
     {
-        RegisteredPluginInfoRecords.Add(new PluginInfoRecord(guid, version, compatibilityLevel, versionStrictness));
+        RegisteredPluginInfoRecords.Add(new PluginInfoRecord(guid, version, compatibilityLevel, versionStrictness, variableCompatibilityCheck));
         _cachedChecksum = null;
     }
 
@@ -118,9 +132,9 @@ public static class PluginHelper
     ///     Creates a list of json strings containing the metadata of all plugins, to add to the lobby.
     /// </summary>
     /// <returns> A list of json strings containing the metadata of all plugins. </returns>
-    internal static IEnumerable<string> GetLobbyPluginsMetadata()
+    internal static IEnumerable<string> GetLobbyPluginsMetadata(List<PluginInfoRecord>? plugins = null)
     {
-        var json = JsonConvert.SerializeObject(GetAllPluginInfo().ToList(), new VersionConverter());
+        var json = JsonConvert.SerializeObject(plugins ?? GetAllPluginInfo().ToList(), new VersionConverter());
 
         // The maximum string size for steam lobby metadata is 8192 (2^13).
         // We want one less than the maximum to allow space for a delimiter
@@ -207,6 +221,29 @@ public static class PluginHelper
                     return false;
 
         return true;
+    }
+
+    /// <summary>
+    ///     For Internal or Advanced Use Only.
+    ///     Checks for plugins with a CompatibilityLevel of Variable, then invokes the compatibility check to get the compatibility level of those plugins.
+    /// </summary>
+    /// <param name="pluginInfoRecords"> The plugin list. </param>
+    /// <param name="lobby"> (Opt.) The lobby. </param>
+    /// <param name="lobbyData"> (Opt.) The lobby data. </param>
+    /// <returns> A modified plugin list with correct compatibility levels. </returns>
+    public static List<PluginInfoRecord> CalculateCompatibilityLevel(this IEnumerable<PluginInfoRecord> pluginInfoRecords, Lobby? lobby = null, IEnumerable<KeyValuePair<string, string>>? lobbyData = null)
+    {
+        return pluginInfoRecords.Select(plugin => plugin.CompatibilityLevel is CompatibilityLevel.Variable ? VariableCompat(plugin) : plugin).ToList();
+
+        PluginInfoRecord VariableCompat(PluginInfoRecord plugin)
+        {
+            var compatibilityLevel = plugin.VariableCompatibilityCheck?.Invoke((lobby?.Data ?? lobbyData) ?? []) ?? CompatibilityLevel.ClientOnly;
+            compatibilityLevel = compatibilityLevel is CompatibilityLevel.Variable ? CompatibilityLevel.ClientOnly : compatibilityLevel;
+            
+            LobbyCompatibilityPlugin.Logger?.LogDebug($"({plugin.GUID}) Variable Compatibility level: {compatibilityLevel}");
+
+            return plugin with { CompatibilityLevel = compatibilityLevel };
+        }
     }
 
     /// <summary>
