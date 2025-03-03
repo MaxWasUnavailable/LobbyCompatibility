@@ -20,6 +20,8 @@ internal static class LobbyDataIsJoinablePostfix
     [HarmonyPostfix]
     private static bool Postfix(bool isJoinable, ref Lobby lobby)
     {
+        LobbyHelper.LatestLobbyData = lobby.Data;
+        
         // If original result was false, return false -- if lobby is modded through our mod, it will be Joinable || JoinableModded
         if (!isJoinable)
             return false;

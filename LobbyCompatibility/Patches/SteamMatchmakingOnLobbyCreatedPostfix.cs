@@ -58,5 +58,8 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
             if (lobby.GetData(LobbyMetadata.Tag) == "none")
                 lobby.SetData(LobbyMetadata.Tag, "modded");
         }
+        
+        // Log Lobby Data
+        LobbyCompatibilityPlugin.Logger?.LogDebug(lobby.Data.Join());
     }
 }

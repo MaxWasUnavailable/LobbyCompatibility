@@ -2,6 +2,7 @@ using HarmonyLib;
 using LobbyCompatibility.Behaviours;
 using LobbyCompatibility.Features;
 using Steamworks;
+using Steamworks.Data;
 
 namespace LobbyCompatibility.Patches;
 
@@ -24,9 +25,10 @@ internal static class SetLoadingScreenPrefix
         if (result != RoomEnter.Error)
             return true;
 
-        LobbyCompatibilityPlugin.Logger?.LogDebug("Error while joining! Logging Diff...");
-        LobbyCompatibilityPlugin.Logger?.LogDebug(
-            LobbyHelper.LatestLobbyDiff.PluginDiffs.Join(converter: diff => diff.GetDisplayText()));
+        LobbyCompatibilityPlugin.Logger?.LogError("Error while joining! Logging Lobby Data...");
+        LobbyCompatibilityPlugin.Logger?.LogDebug(LobbyHelper.LatestLobbyData.Join());
+        LobbyCompatibilityPlugin.Logger?.LogError("Logging Client Mods...");
+        LobbyCompatibilityPlugin.Logger?.LogDebug(PluginHelper.GetAllPluginInfo().CalculateCompatibilityLevel(lobbyData: LobbyHelper.LatestLobbyData).Join());
 
         if (!string.IsNullOrEmpty(GameNetworkManager.Instance.disconnectionReasonMessage))
             return true;
