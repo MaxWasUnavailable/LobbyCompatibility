@@ -30,7 +30,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
         lobby.SetData(LobbyMetadata.Modded, "true");
 
         // Add plugin metadata to the lobby so clients can check if they have the required plugins
-        var pluginsString = PluginHelper.GetLobbyPluginsMetadata(pluginInfo);
+        var pluginsString = LobbyHelper.GetLobbyPluginsMetadata(pluginInfo);
         
         lobby.SetData($"{LobbyMetadata.Plugins}0", pluginsString);
 
