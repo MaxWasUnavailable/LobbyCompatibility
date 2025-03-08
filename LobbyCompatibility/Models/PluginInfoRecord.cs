@@ -33,7 +33,7 @@ public record PluginInfoRecord(
     
     [property:JsonIgnore]
     VariableCompatibilityCheckDelegate? VariableCompatibilityCheck = null
-)
+) : IComparable<PluginInfoRecord>
 {
     private int? _jsonLength;
     
@@ -47,18 +47,18 @@ public record PluginInfoRecord(
     {
         if (CompatibilityLevel != other.CompatibilityLevel)
         {
-            if (CompatibilityLevel is null) return -1;
-            if (other.CompatibilityLevel is null) return 1;
+            if (CompatibilityLevel is null) return 1;
+            if (other.CompatibilityLevel is null) return -1;
             
-            return (CompatibilityLevel ?? 0) - (other.CompatibilityLevel ?? 0);
+            return (other.CompatibilityLevel ?? 0) - (CompatibilityLevel ?? 0);
         }
         
         if (VersionStrictness != other.VersionStrictness)
         {
-            if (VersionStrictness is null) return -1;
-            if (other.VersionStrictness is null) return 1;
+            if (VersionStrictness is null) return 1;
+            if (other.VersionStrictness is null) return -1;
             
-            return (VersionStrictness ?? 0) - (other.VersionStrictness ?? 0);
+            return (other.VersionStrictness ?? 0) - (VersionStrictness ?? 0);
         }
 
         return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
