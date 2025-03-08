@@ -8,8 +8,6 @@ using BepInEx.Bootstrap;
 using LobbyCompatibility.Attributes;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Steamworks.Data;
 
 namespace LobbyCompatibility.Features;
