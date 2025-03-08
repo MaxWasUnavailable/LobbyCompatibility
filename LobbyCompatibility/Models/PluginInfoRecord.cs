@@ -35,11 +35,13 @@ public record PluginInfoRecord(
     VariableCompatibilityCheckDelegate? VariableCompatibilityCheck = null
 ) : IComparable<PluginInfoRecord>
 {
+    [JsonIgnore]
     private int? _jsonLength;
     
     /// <summary>
     ///     The calculated length of the json string.
     /// </summary>
+    [JsonIgnore]
     public int JsonLength => _jsonLength ??= 25 + GUID.Length + Version.ToString().Length + 
                                (CompatibilityLevel.HasValue ? 1 : 4) + (VersionStrictness.HasValue ? 1 : 4);
 

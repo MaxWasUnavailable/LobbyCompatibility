@@ -230,7 +230,7 @@ public static class LobbyHelper
                 allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
             } while (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count > CurrentMaxPluginMetadataLength);
         
-            return JsonConvert.SerializeObject(plugins, new VersionConverter());
+            return JsonConvert.SerializeObject(allowedPluginInfoRecords, new VersionConverter());
         }
 
         do
@@ -240,7 +240,7 @@ public static class LobbyHelper
         
         allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
         
-        return JsonConvert.SerializeObject(plugins, new VersionConverter());
+        return JsonConvert.SerializeObject(allowedPluginInfoRecords, new VersionConverter());
     }
 
     /// <summary>
