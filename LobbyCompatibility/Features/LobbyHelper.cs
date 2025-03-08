@@ -59,7 +59,7 @@ public static class LobbyHelper
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
     /// </summary>
-    /// <param name="lobby"> The lobby to get the diff from. </param>
+    /// <param name="lobbyData"> The lobby to get the diff from. </param>
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
     public static LobbyDiff GetLobbyDiff(IEnumerable<KeyValuePair<string, string>> lobbyData) => GetLobbyDiff(null, null, lobbyData);
 
@@ -182,18 +182,12 @@ public static class LobbyHelper
     /// <returns> A json <see cref="string" /> from the <see cref="Lobby" />. </returns>
     internal static string GetLobbyPlugins(Lobby lobby)
     {
-        var lobbyPluginStrings = new List<string>();
-
         if (GameNetworkManager.Instance && !GameNetworkManager.Instance.disableSteam)
         {
-            var i = 0;
-            do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
-            while (lobbyPluginStrings[i++].Contains("@"));
+            return lobby.GetData($"{LobbyMetadata.Plugins}0");
         }
 
-        return lobbyPluginStrings
-            .Join(delimiter: string.Empty)
-            .Replace("@", string.Empty);
+        return string.Empty;
     }
     
     /// <summary>
