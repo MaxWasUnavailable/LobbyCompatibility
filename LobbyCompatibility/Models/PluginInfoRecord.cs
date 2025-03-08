@@ -33,4 +33,34 @@ public record PluginInfoRecord(
     
     [property:JsonIgnore]
     VariableCompatibilityCheckDelegate? VariableCompatibilityCheck = null
-);
+)
+{
+    private int? _jsonLength;
+    
+    /// <summary>
+    ///     The calculated length of the json string.
+    /// </summary>
+    public int JsonLength => _jsonLength ??= 25 + GUID.Length + Version.ToString().Length + 
+                               (CompatibilityLevel.HasValue ? 1 : 4) + (VersionStrictness.HasValue ? 1 : 4);
+
+    public int CompareTo(PluginInfoRecord other)
+    {
+        if (CompatibilityLevel != other.CompatibilityLevel)
+        {
+            if (CompatibilityLevel is null) return -1;
+            if (other.CompatibilityLevel is null) return 1;
+            
+            return (CompatibilityLevel ?? 0) - (other.CompatibilityLevel ?? 0);
+        }
+        
+        if (VersionStrictness != other.VersionStrictness)
+        {
+            if (VersionStrictness is null) return -1;
+            if (other.VersionStrictness is null) return 1;
+            
+            return (VersionStrictness ?? 0) - (other.VersionStrictness ?? 0);
+        }
+
+        return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
+    }
+}
