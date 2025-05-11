@@ -35,6 +35,11 @@ public class Config
     public ConfigEntry<ModListFilter> DefaultModListTab;
 
     /// <summary>
+    ///     Whether to add [MOD] to the lobby name automatically
+    /// </summary>
+    public ConfigEntry<bool> ChangeLobbyName;
+
+    /// <summary>
     ///     <see cref="Color"/> used to represent compatible plugins.
     /// </summary>
     public ConfigEntry<Color> CompatibleColor;
@@ -59,6 +64,10 @@ public class Config
             "Default ModList Tab",
             ModListFilter.All,
             "The default tab to use when viewing a lobby's mod list");
+	ChangeLobbyName = configFile.Bind("General",
+            "Change Lobby Name",
+	    true,
+	    "Whether to add [MOD] to the lobby name");
         CompatibleColor = configFile.Bind("Visual",
             "Compatible Plugin Color",
             DefaultCompatibleColor,
