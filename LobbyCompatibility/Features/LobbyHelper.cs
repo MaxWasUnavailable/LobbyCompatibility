@@ -64,13 +64,13 @@ public static class LobbyHelper
     public static LobbyDiff GetLobbyDiff(IEnumerable<KeyValuePair<string, string>> lobbyData) => GetLobbyDiff(null, null, lobbyData);
 
     /// <summary>
-    ///     Reduce the maximum string length for the plugins field in the lobby metadata.
+    ///     Reserve space in the lobby metadata.
     ///     Useful if you need larger space for lobby metadata for your mod.
     /// </summary>
-    /// <param name="length"> The max allowed length of LobbyCompatibility's plugin field on the lobby. Maxes out at <see cref="CurrentMaxPluginMetadataLength"/> (7800 on startup). </param>
-    public static void ReduceMaxLobbyMetadataStringLength(int length)
+    /// <param name="length"> The amount to metadata space in bytes space to reserve. The amound of bytes LobbyCompatibility will use is reduced by this amount. </param>
+    public static void ReserveLobbyMetadataSpace(int length)
     {
-        CurrentMaxPluginMetadataLength = length < CurrentMaxPluginMetadataLength ? length : CurrentMaxPluginMetadataLength;
+        CurrentMaxPluginMetadataLength -= length;
     }
 
     /// <summary>
