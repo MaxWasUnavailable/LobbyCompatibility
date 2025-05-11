@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using HarmonyLib;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Steamworks;
 using Steamworks.Data;
 
@@ -23,6 +25,30 @@ public static class LobbyHelper
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
     public static IEnumerable<KeyValuePair<string, string>>? LatestLobbyData { get; internal set; }
     private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
+    
+    /// <summary>
+    ///     The absolute maximum string size for ALL steam lobby metadata is 8192 (2^13).
+    ///     We want to give a large enough margin for the checksum, vanilla game metadata, and any other modded metadata.
+    /// </summary>
+    private const int MaxPluginMetadataLength = 7800;
+
+    /// <summary>
+    ///     The average json string size of a plugin.
+    /// </summary>
+    /// <remarks> Calculated from `{"i":"BMX.LobbyCompatibility","v":"1.4.1","c":null,"s":null}` </remarks>
+    private const int AveragePluginJsonLength = 60;
+
+    /// <summary>
+    ///     The current maximum string size for the plugin field in lobby metadata.
+    /// </summary>
+    /// <remarks> WARNING: The absolute maximum string size for ALL steam lobby metadata is 8192 (2^13). </remarks>
+    public static int CurrentMaxPluginMetadataLength { get; private set; } = MaxPluginMetadataLength;
+
+    /// <summary>
+    ///     The maximum string size for ALL steam lobby metadata is 8192 (2^13).
+    ///     We want to give a large margin for the checksum, vanilla game metadata, and any other modded metadata.
+    /// </summary>
+    private static int AverageMaxLobbyMetadataModCount => CurrentMaxPluginMetadataLength / AveragePluginJsonLength;
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
@@ -34,9 +60,19 @@ public static class LobbyHelper
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" />.
     /// </summary>
-    /// <param name="lobby"> The lobby to get the diff from. </param>
+    /// <param name="lobbyData"> The lobby to get the diff from. </param>
     /// <returns> The <see cref="LobbyDiff" /> from the <see cref="Lobby" />. </returns>
     public static LobbyDiff GetLobbyDiff(IEnumerable<KeyValuePair<string, string>> lobbyData) => GetLobbyDiff(null, null, lobbyData);
+
+    /// <summary>
+    ///     Reserve space in the lobby metadata.
+    ///     Useful if you need larger space for lobby metadata for your mod.
+    /// </summary>
+    /// <param name="length"> The amount to metadata space in bytes space to reserve. The amound of bytes LobbyCompatibility will use is reduced by this amount. </param>
+    public static void ReserveLobbyMetadataSpace(int length)
+    {
+        CurrentMaxPluginMetadataLength -= length;
+    }
 
     /// <summary>
     ///     Get a <see cref="LobbyDiff" /> from a <see cref="Lobby" /> or <see cref="IEnumerable{String}" />.
@@ -55,8 +91,11 @@ public static class LobbyHelper
 
         var lobbyDataList = lobbyData?.ToList();
 
-        var lobbyPlugins = PluginHelper
-            .ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue ? GetLobbyPlugins(lobby.Value) : (lobbyDataList != null ? GetLobbyPlugins(lobbyDataList) : string.Empty))).ToList();
+        var lobbyPlugins = ParseLobbyPluginsMetadata(lobbyPluginString ?? (lobby.HasValue 
+            ? GetLobbyPlugins(lobby.Value)
+            : lobbyDataList != null 
+                ? GetLobbyPlugins(lobbyDataList) 
+                : string.Empty)).ToList();
         _clientPlugins = PluginHelper.GetAllPluginInfo().CalculateCompatibilityLevel(lobby, lobbyDataList);
 
         var pluginDiffs = new List<PluginDiff>();
@@ -144,18 +183,12 @@ public static class LobbyHelper
     /// <returns> A json <see cref="string" /> from the <see cref="Lobby" />. </returns>
     internal static string GetLobbyPlugins(Lobby lobby)
     {
-        var lobbyPluginStrings = new List<string>();
-
         if (GameNetworkManager.Instance && !GameNetworkManager.Instance.disableSteam)
         {
-            var i = 0;
-            do lobbyPluginStrings.Insert(i, lobby.GetData($"{LobbyMetadata.Plugins}{i}"));
-            while (lobbyPluginStrings[i++].Contains("@"));
+            return lobby.GetData($"{LobbyMetadata.Plugins}0");
         }
 
-        return lobbyPluginStrings
-            .Join(delimiter: string.Empty)
-            .Replace("@", string.Empty);
+        return string.Empty;
     }
     
     /// <summary>
@@ -177,6 +210,58 @@ public static class LobbyHelper
         return lobbyPluginStrings
             .Join(delimiter: string.Empty)
             .Replace("@", string.Empty);
+    }
+    
+    /// <summary>
+    ///     Creates a json string containing the metadata of the maximum amount of plugins, sorted by highest compatibility requirement first.
+    /// </summary>
+    /// <returns> A json strings containing the maximum allowed mod count, as dictated by <see cref="CurrentMaxPluginMetadataLength"/>. </returns>
+    internal static string GetLobbyPluginsMetadata(List<PluginInfoRecord>? plugins = null)
+    {
+        plugins ??= PluginHelper.GetAllPluginInfo().ToList();
+
+        plugins.Sort();
+
+        var allowedPluginInfoRecords = plugins.Take(AverageMaxLobbyMetadataModCount).ToList();
+
+        if (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count > CurrentMaxPluginMetadataLength)
+        {
+            do
+            {
+                allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
+            } while (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count > CurrentMaxPluginMetadataLength);
+        
+            return JsonConvert.SerializeObject(allowedPluginInfoRecords, new VersionConverter());
+        }
+
+        do
+        {
+            allowedPluginInfoRecords.Add(plugins[allowedPluginInfoRecords.Count]);
+        } while (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count <= CurrentMaxPluginMetadataLength);
+        
+        allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
+        
+        return JsonConvert.SerializeObject(allowedPluginInfoRecords, new VersionConverter());
+    }
+
+    /// <summary>
+    ///     Parses a json string containing the metadata of all plugins.
+    /// </summary>
+    /// <param name="json"> The json string to parse. </param>
+    /// <returns> A list of plugins in the APIPluginInfo format. </returns>
+    internal static IEnumerable<PluginInfoRecord> ParseLobbyPluginsMetadata(string json)
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<List<PluginInfoRecord>>(json, new VersionConverter()) ??
+                   new List<PluginInfoRecord>();
+        }
+        catch (Exception e)
+        {
+            LobbyCompatibilityPlugin.Logger?.LogError("Failed to parse lobby plugins metadata.");
+            LobbyCompatibilityPlugin.Logger?.LogDebug(e);
+            throw;
+        }
     }
 
     public static string GetCompatibilityHeader(PluginDiffResult pluginDiffResult)

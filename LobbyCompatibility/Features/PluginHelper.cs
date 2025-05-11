@@ -8,8 +8,6 @@ using BepInEx.Bootstrap;
 using LobbyCompatibility.Attributes;
 using LobbyCompatibility.Enums;
 using LobbyCompatibility.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Steamworks.Data;
 
 namespace LobbyCompatibility.Features;
@@ -21,6 +19,7 @@ public delegate CompatibilityLevel VariableCompatibilityCheckDelegate(IEnumerabl
 /// </summary>
 public static class PluginHelper
 {
+    
     /// <summary>
     ///     PluginInfos registered through the register command, rather than found using the attribute.
     /// </summary>
@@ -126,47 +125,6 @@ public static class PluginHelper
 
         // Finally, we concatenate the manually registered plugins and our discovered plugins
         return pluginInfos.Concat(RegisteredPluginInfoRecords);
-    }
-
-    /// <summary>
-    ///     Creates a list of json strings containing the metadata of all plugins, to add to the lobby.
-    /// </summary>
-    /// <returns> A list of json strings containing the metadata of all plugins. </returns>
-    internal static IEnumerable<string> GetLobbyPluginsMetadata(List<PluginInfoRecord>? plugins = null)
-    {
-        var json = JsonConvert.SerializeObject(plugins ?? GetAllPluginInfo().ToList(), new VersionConverter());
-
-        // The maximum string size for steam lobby metadata is 8192 (2^13).
-        // We want one less than the maximum to allow space for a delimiter
-        var maxChunkLength = 8191;
-        
-        for (var i = 0; i < json.Length; i += maxChunkLength)
-        {
-            if (maxChunkLength + i > json.Length)
-                maxChunkLength = json.Length - i;
-
-            yield return json.Substring(i, maxChunkLength);
-        }
-    }
-
-    /// <summary>
-    ///     Parses a json string containing the metadata of all plugins.
-    /// </summary>
-    /// <param name="json"> The json string to parse. </param>
-    /// <returns> A list of plugins in the APIPluginInfo format. </returns>
-    internal static IEnumerable<PluginInfoRecord> ParseLobbyPluginsMetadata(string json)
-    {
-        try
-        {
-            return JsonConvert.DeserializeObject<List<PluginInfoRecord>>(json, new VersionConverter()) ??
-                   new List<PluginInfoRecord>();
-        }
-        catch (Exception e)
-        {
-            LobbyCompatibilityPlugin.Logger?.LogError("Failed to parse lobby plugins metadata.");
-            LobbyCompatibilityPlugin.Logger?.LogDebug(e);
-            throw;
-        }
     }
 
     /// <summary>

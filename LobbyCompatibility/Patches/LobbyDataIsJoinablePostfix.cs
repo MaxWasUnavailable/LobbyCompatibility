@@ -49,7 +49,7 @@ internal static class LobbyDataIsJoinablePostfix
         }
 
         var matchesPluginRequirements =
-            PluginHelper.MatchesTargetRequirements(PluginHelper.ParseLobbyPluginsMetadata(lobbyPluginString));
+            PluginHelper.MatchesTargetRequirements(LobbyHelper.ParseLobbyPluginsMetadata(lobbyPluginString));
 
         if (!matchesPluginRequirements)
         {
