@@ -25,9 +25,7 @@ internal static class SetLoadingScreenPrefix
         if (result != RoomEnter.Error)
             return true;
 
-        LobbyCompatibilityPlugin.Logger?.LogError("Error while joining! Logging Lobby Data...");
         LobbyCompatibilityPlugin.Logger?.LogDebug(LobbyHelper.LatestLobbyData.Join());
-        LobbyCompatibilityPlugin.Logger?.LogError("Logging Client Mods...");
         LobbyCompatibilityPlugin.Logger?.LogDebug(PluginHelper.GetAllPluginInfo().CalculateCompatibilityLevel(lobbyData: LobbyHelper.LatestLobbyData).Join());
 
         if (!string.IsNullOrEmpty(GameNetworkManager.Instance.disconnectionReasonMessage))
