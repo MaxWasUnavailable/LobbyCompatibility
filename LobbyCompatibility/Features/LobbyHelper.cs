@@ -21,6 +21,7 @@ public static class LobbyHelper
     public static LobbyDistanceFilter? LatestLobbyRequestDistanceFilter;
     private static List<PluginInfoRecord>? _clientPlugins;
     public static LobbyDiff LatestLobbyDiff { get; private set; } = new(new List<PluginDiff>());
+    public static IEnumerable<KeyValuePair<string, string>>? LatestLobbyData { get; internal set; }
     private static Dictionary<ulong, LobbyDiff> LobbyDiffCache { get; } = new();
 
     /// <summary>
