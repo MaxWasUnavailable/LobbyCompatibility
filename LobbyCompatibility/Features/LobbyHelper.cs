@@ -226,20 +226,24 @@ public static class LobbyHelper
 
         if (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count > CurrentMaxPluginMetadataLength)
         {
-            do
+            while (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count > CurrentMaxPluginMetadataLength)
             {
                 allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
-            } while (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count > CurrentMaxPluginMetadataLength);
+            }
         
             return JsonConvert.SerializeObject(allowedPluginInfoRecords, new VersionConverter());
         }
 
-        do
+        while (allowedPluginInfoRecords.Count < plugins.Count)
         {
             allowedPluginInfoRecords.Add(plugins[allowedPluginInfoRecords.Count]);
-        } while (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count <= CurrentMaxPluginMetadataLength);
+            if (allowedPluginInfoRecords.Sum(record => record.JsonLength) + 1 + allowedPluginInfoRecords.Count <=
+                CurrentMaxPluginMetadataLength) continue;
+            
+            allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
+            break;
+        }
         
-        allowedPluginInfoRecords.RemoveAt(allowedPluginInfoRecords.Count - 1);
         
         return JsonConvert.SerializeObject(allowedPluginInfoRecords, new VersionConverter());
     }
