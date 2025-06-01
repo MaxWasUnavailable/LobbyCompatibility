@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated plugin sort algorithm to prefer shorter plugin info records. 
+
 ## [1.5.1] - 24/05/2025
 
 ### Fixed
+
 - Fixed an issue during lobby creation if the number of installed mods were under a certain amount.
 
 ## [1.5.0] - 11/05/2025
@@ -20,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased logging for debugging purposes when failing to connect to lobby.
 
 ### Fixed
+
 - Fixed a connection issue when many mods were installed on a lobby. Because of this, there will be cases where not all mods a visible to a client, but they are prioritized in compatibility requirements - reducing the impact of this change.
 
 ## [1.4.0] - 03/02/2025

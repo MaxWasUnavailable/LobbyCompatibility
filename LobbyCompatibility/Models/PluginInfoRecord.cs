@@ -62,7 +62,9 @@ public record PluginInfoRecord(
             
             return (other.VersionStrictness ?? 0) - (VersionStrictness ?? 0);
         }
-
-        return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
+        
+        return JsonLength != other.JsonLength ? 
+            -JsonLength.CompareTo(other.JsonLength) : // invert compareTo so that smaller string is preferred
+            string.Compare(GUID, other.GUID, StringComparison.Ordinal);
     }
 }
